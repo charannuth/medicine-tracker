@@ -1,0 +1,40 @@
+name: Feature request
+description: Suggest an idea for Medicine Tracker
+title: "[Feature]: "
+labels: ["enhancement"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Share your idea. Check [docs/ROADMAP.md](../../docs/ROADMAP.md) to see if it's already planned.
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem or motivation
+      description: What problem does this solve? Who benefits?
+      placeholder: As a user, I want to...
+    validations:
+      required: true
+  - type: textarea
+    id: solution
+    attributes:
+      label: Proposed solution
+      description: How would you like this to work?
+    validations:
+      required: true
+  - type: dropdown
+    id: phase
+    attributes:
+      label: Suggested phase
+      options:
+        - Phase 1 — Core adherence
+        - Phase 2 — Refills & UX
+        - Phase 3 — Intelligence & vision
+        - Phase 4 — Integrations
+        - Phase 5 — Hardware
+        - Unsure
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered
+      description: Any other approaches you've thought about?

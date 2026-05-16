@@ -4,10 +4,10 @@ This document tracks planned phases for Medicine Tracker. Priorities may shift a
 
 ## Phase 0 — Foundation (current)
 
-- [x] GitHub repository setup (README, license, templates, CI skeleton)
-- [ ] Initialize Expo / React Native project
-- [ ] Define core data models (medication, schedule, dose log)
-- [ ] Local persistence (e.g. SQLite or AsyncStorage)
+- [x] GitHub repository setup (README, license, templates, CI)
+- [x] Web app scaffold (React + Vite)
+- [x] Supabase auth + schema (medications, dose_logs, RLS)
+- [ ] Deploy web app for sister to test via URL
 
 ## Phase 1 — Core adherence
 

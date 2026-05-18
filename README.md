@@ -210,9 +210,19 @@ Open `http://localhost:5173` (or the URL Vite prints).
 
 ### Deploy (Vercel)
 
-1. Import repo — `vercel.json` sets root to `web/`
+Step-by-step: **[docs/DEPLOY.md](docs/DEPLOY.md)**
+
+1. Import repo on [vercel.com](https://vercel.com) — set **Root Directory** to `web` (see `web/vercel.json`)
 2. Env vars: `VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY`
 3. Supabase → **Authentication** → add production URL to **Site URL** and **Redirect URLs**
+
+### Resume later (local dev)
+
+```bash
+cd web && npm install && npm run dev
+```
+
+No need to run Supabase locally; keep `web/.env` with your API keys.
 
 ### Build
 

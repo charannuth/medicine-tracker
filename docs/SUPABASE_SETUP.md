@@ -19,7 +19,8 @@ This creates `medications` and `dose_logs` tables plus Row Level Security (each 
 **Already ran an older schema?** Also run these migrations in order:
 
 1. [`002_dose_per_schedule_time.sql`](../supabase/migrations/002_dose_per_schedule_time.sql) — separate dose per scheduled time  
-2. [`003_split_dose_pills_mg.sql`](../supabase/migrations/003_split_dose_pills_mg.sql) — separate pills and mg fields
+2. [`003_split_dose_pills_mg.sql`](../supabase/migrations/003_split_dose_pills_mg.sql) — separate pills and mg fields  
+3. [`004_medication_dates.sql`](../supabase/migrations/004_medication_dates.sql) — start date and optional end date
 
 ## 3. Configure authentication
 

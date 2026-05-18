@@ -8,8 +8,14 @@ const KEYS = {
   theme: 'mt-theme',
   timezone: 'mt-timezone',
   reminders: 'mt-reminders',
+  missedBanner: 'mt-missed-banner-dismiss',
   onboarding: 'mt-onboarding-v1',
+  onboardingLegacy: 'mt-onboarding-v1',
 } as const
+
+function onboardingKey(userId: string): string {
+  return `${KEYS.onboarding}:${userId}`
+}
 
 export function getTheme(): Theme {
   const stored = localStorage.getItem(KEYS.theme)
@@ -66,10 +72,23 @@ export function setReminders(settings: ReminderSettings): void {
   localStorage.setItem(KEYS.reminders, JSON.stringify(settings))
 }
 
-export function isOnboardingDone(): boolean {
-  return localStorage.getItem(KEYS.onboarding) === '1'
+export function isOnboardingDone(userId: string): boolean {
+  if (localStorage.getItem(onboardingKey(userId)) === '1') return true
+  if (localStorage.getItem(KEYS.onboardingLegacy) === '1') {
+    setOnboardingDone(userId)
+    return true
+  }
+  return false
 }
 
-export function setOnboardingDone(): void {
-  localStorage.setItem(KEYS.onboarding, '1')
+export function setOnboardingDone(userId: string): void {
+  localStorage.setItem(onboardingKey(userId), '1')
+}
+
+export function isMissedDosesBannerDismissed(forDate: string): boolean {
+  return localStorage.getItem(`${KEYS.missedBanner}:${forDate}`) === '1'
+}
+
+export function dismissMissedDosesBanner(forDate: string): void {
+  localStorage.setItem(`${KEYS.missedBanner}:${forDate}`, '1')
 }

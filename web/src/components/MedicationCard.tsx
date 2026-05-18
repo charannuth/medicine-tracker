@@ -1,4 +1,5 @@
 import { formatDoseDisplay } from '../lib/dose'
+import { formatMedicationType } from '../lib/medicationForms'
 import { formatMedicationDateRange } from '../lib/medicationDates'
 import type { DoseSlotStatus, MedicationWithStatus } from '../lib/types'
 
@@ -24,12 +25,17 @@ export function MedicationCard({
 
   const { dosesTakenToday, dosesTotalToday, allDosesTakenToday } = medication
   const showDateRange = Boolean(medication.end_date)
+  const typeLabel = formatMedicationType(
+    medication.medication_route,
+    medication.medication_form,
+  )
 
   return (
     <article className={`med-card ${allDosesTakenToday ? 'taken' : ''}`}>
       <div className="med-card-header">
         <div>
           <h3>{medication.name}</h3>
+          {typeLabel && <p className="med-type-label">{typeLabel}</p>}
           <p className="med-dosage">
             {formatDoseDisplay(medication)}
             {dosesTotalToday > 1

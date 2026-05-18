@@ -90,6 +90,16 @@ export type FetchMedicationsOptions = {
   includeInactive?: boolean
 }
 
+export async function userHasMedications(userId: string): Promise<boolean> {
+  if (!supabase) return false
+  const { count, error } = await supabase
+    .from('medications')
+    .select('id', { count: 'exact', head: true })
+    .eq('user_id', userId)
+  if (error) throw error
+  return (count ?? 0) > 0
+}
+
 export async function fetchMedicationsWithStatus(
   userId: string,
   options: FetchMedicationsOptions = {},
@@ -180,6 +190,8 @@ export async function createMedication(
   const { error } = await supabase.from('medications').insert({
     user_id: userId,
     name: input.name.trim(),
+    medication_route: input.medication_route,
+    medication_form: input.medication_form,
     dose_pills,
     dose_mg,
     schedule_times,
@@ -220,6 +232,8 @@ export async function updateMedication(
     .from('medications')
     .update({
       name: input.name.trim(),
+      medication_route: input.medication_route,
+      medication_form: input.medication_form,
       dose_pills,
       dose_mg,
       schedule_times: newTimes,

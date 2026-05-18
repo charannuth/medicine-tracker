@@ -2,19 +2,23 @@ import { Link } from 'react-router-dom'
 import { setOnboardingDone } from '../lib/settings'
 
 type OnboardingModalProps = {
+  userId: string
   onDone: () => void
   onAddMedication: () => void
 }
 
-export function OnboardingModal({ onDone, onAddMedication }: OnboardingModalProps) {
+export function OnboardingModal({
+  userId,
+  onDone,
+  onAddMedication,
+}: OnboardingModalProps) {
   function finish() {
-    setOnboardingDone()
+    setOnboardingDone(userId)
     onDone()
   }
 
   function handleAdd() {
-    setOnboardingDone()
-    onDone()
+    setOnboardingDone(userId)
     onAddMedication()
   }
 

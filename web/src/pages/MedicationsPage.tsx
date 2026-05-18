@@ -179,6 +179,7 @@ export function MedicationsPage() {
               : 'new'
           }
           initial={editing}
+          existingMedicationNames={medications.map((m) => m.name)}
           onCancel={() => {
             setFormOpen(false)
             setEditing(null)

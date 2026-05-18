@@ -1,0 +1,144 @@
+import safetyData from '../data/drug-safety.json'
+import {
+  canonicalDrugName,
+  checkMedicationInteractions,
+  type FoundInteraction,
+} from './drugInteractions'
+
+const SUBSTANCE_KEYS = ['alcohol', 'cannabis', 'tobacco'] as const
+export type SubstanceKey = (typeof SUBSTANCE_KEYS)[number]
+
+type DrugSafetyProfile = {
+  sideEffects: string[]
+  pregnancy: string
+  substances: Partial<Record<SubstanceKey, string>>
+}
+
+type SafetyDataFile = {
+  substanceLabels: Record<SubstanceKey, string>
+  defaultPregnancy: string
+  defaultSideEffects: string
+  defaultSubstance: string
+  drugs: Record<string, DrugSafetyProfile>
+}
+
+const DATA = safetyData as SafetyDataFile
+
+export type SubstanceWarning = {
+  substance: SubstanceKey
+  label: string
+  severity: FoundInteraction['severity'] | 'info'
+  description: string
+  management: string
+}
+
+export type MedicationSafetyReview = {
+  drugName: string
+  canonical: string | null
+  existingMedInteractions: FoundInteraction[]
+  substanceWarnings: SubstanceWarning[]
+  sideEffects: string[]
+  pregnancy: string
+  checkedExistingCount: number
+}
+
+function profileForCanonical(canonical: string | null): DrugSafetyProfile | null {
+  if (!canonical) return null
+  return DATA.drugs[canonical] ?? null
+}
+
+function substanceWarningsForDrug(
+  drugName: string,
+  canonical: string | null,
+  interactions: FoundInteraction[],
+): SubstanceWarning[] {
+  const profile = profileForCanonical(canonical)
+  const warnings: SubstanceWarning[] = []
+
+  for (const key of SUBSTANCE_KEYS) {
+    const fromPair = interactions.find((i) => {
+      if (i.drugA !== key && i.drugB !== key) return false
+      const other = i.drugA === key ? i.drugB : i.drugA
+      if (canonical) return other === canonical
+      return (
+        i.displayA.toLowerCase() === drugName.toLowerCase() ||
+        i.displayB.toLowerCase() === drugName.toLowerCase()
+      )
+    })
+
+    if (fromPair) {
+      warnings.push({
+        substance: key,
+        label: DATA.substanceLabels[key],
+        severity: fromPair.severity,
+        description: fromPair.description,
+        management: fromPair.management,
+      })
+      continue
+    }
+
+    const custom = profile?.substances?.[key]
+    if (custom) {
+      warnings.push({
+        substance: key,
+        label: DATA.substanceLabels[key],
+        severity: 'info',
+        description: custom,
+        management: 'Discuss use with your clinician or pharmacist.',
+      })
+    }
+  }
+
+  return warnings
+}
+
+export async function buildMedicationSafetyReview(
+  drugName: string,
+  existingMedicationNames: string[],
+): Promise<MedicationSafetyReview> {
+  const trimmed = drugName.trim()
+  const others = existingMedicationNames
+    .map((n) => n.trim())
+    .filter((n) => n && n.toLowerCase() !== trimmed.toLowerCase())
+
+  const allForCheck = trimmed ? [...others, trimmed] : others
+  const substanceCheck = trimmed
+    ? await checkMedicationInteractions([trimmed, ...SUBSTANCE_KEYS])
+  : await checkMedicationInteractions([...SUBSTANCE_KEYS])
+
+  const medListCheck =
+    allForCheck.length >= 2
+      ? await checkMedicationInteractions(allForCheck)
+      : null
+
+  const canonical = canonicalDrugName(trimmed)
+  const profile = profileForCanonical(canonical)
+
+  const existingMedInteractions =
+    medListCheck?.interactions.filter(
+      (i) =>
+        i.displayA.toLowerCase() === trimmed.toLowerCase() ||
+        i.displayB.toLowerCase() === trimmed.toLowerCase(),
+    ) ?? []
+
+  return {
+    drugName: trimmed,
+    canonical,
+    existingMedInteractions,
+    substanceWarnings: substanceWarningsForDrug(
+      trimmed,
+      canonical,
+      substanceCheck.interactions,
+    ),
+    sideEffects: profile?.sideEffects ?? [DATA.defaultSideEffects],
+    pregnancy: profile?.pregnancy ?? DATA.defaultPregnancy,
+    checkedExistingCount: others.length,
+  }
+}
+
+export function hasSafetyAlerts(review: MedicationSafetyReview): boolean {
+  return (
+    review.existingMedInteractions.length > 0 ||
+    review.substanceWarnings.some((w) => w.severity === 'major' || w.severity === 'moderate')
+  )
+}

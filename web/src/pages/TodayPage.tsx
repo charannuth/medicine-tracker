@@ -25,6 +25,11 @@ import { MissedDosesBanner } from '../components/MissedDosesBanner'
 import { RefillBanner } from '../components/RefillBanner'
 import { StreakSnippet } from '../components/StreakSnippet'
 import { fetchMissedDoses, type MissedDoseItem } from '../lib/missedDoses'
+import {
+  dismissMissedDosesBanner,
+  isMissedDosesBannerDismissed,
+} from '../lib/settings'
+import { todayLocalDate } from '../lib/dates'
 import { getRefillAlerts } from '../lib/refills'
 import { fetchStreakStats, type StreakStats } from '../lib/streaks'
 
@@ -44,6 +49,9 @@ export function TodayPage() {
   const [editing, setEditing] = useState<Medication | null>(null)
   const [streakStats, setStreakStats] = useState<StreakStats | null>(null)
   const [missedDoses, setMissedDoses] = useState<MissedDoseItem[]>([])
+  const [missedBannerDismissed, setMissedBannerDismissed] = useState(() =>
+    isMissedDosesBannerDismissed(todayLocalDate()),
+  )
 
   const openAddForm = useCallback(() => {
     setEditing(null)
@@ -57,7 +65,11 @@ export function TodayPage() {
 
   useEffect(() => {
     if (!openAddFromNav) return
-    navigate('.', { replace: true, state: {} })
+    queueMicrotask(() => {
+      setEditing(null)
+      setFormOpen(true)
+      navigate('.', { replace: true, state: {} })
+    })
   }, [openAddFromNav, navigate])
 
   const reload = useCallback(async () => {
@@ -188,7 +200,15 @@ export function TodayPage() {
         </section>
 
         <RefillBanner alerts={refillAlerts} />
-        <MissedDosesBanner items={missedDoses} />
+        {!missedBannerDismissed && (
+          <MissedDosesBanner
+            items={missedDoses}
+            onDismiss={() => {
+              dismissMissedDosesBanner(todayLocalDate())
+              setMissedBannerDismissed(true)
+            }}
+          />
+        )}
         <InteractionAlert medicationNames={medications.map((m) => m.name)} />
 
         {error && <p className="banner banner-error">{error}</p>}
@@ -235,6 +255,7 @@ export function TodayPage() {
               : 'new'
           }
           initial={editing}
+          existingMedicationNames={medications.map((m) => m.name)}
           onCancel={() => {
             setFormOpen(false)
             setEditing(null)

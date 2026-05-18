@@ -47,7 +47,15 @@
     "vicodin": "hydrocodone",
     "ambien": "zolpidem",
     "lunesta": "eszopiclone",
-    "melatonin": "melatonin"
+    "melatonin": "melatonin",
+    "alcohol": "alcohol",
+    "ethanol": "alcohol",
+    "cannabis": "cannabis",
+    "marijuana": "cannabis",
+    "weed": "cannabis",
+    "tobacco": "tobacco",
+    "nicotine": "tobacco",
+    "cigarettes": "tobacco"
   },
   "pairs": [
     {

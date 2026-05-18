@@ -4,6 +4,8 @@ export type Medication = {
   id: string
   user_id: string
   name: string
+  medication_route: string | null
+  medication_form: string | null
   dose_pills: string | null
   dose_mg: string | null
   schedule_times: string[]
@@ -26,6 +28,8 @@ export type DoseLog = {
 
 export type MedicationInput = {
   name: string
+  medication_route: string
+  medication_form: string
   dose_pills: string
   dose_mg: string
   schedule_times: string[]

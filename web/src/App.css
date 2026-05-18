@@ -259,6 +259,13 @@
   font-size: 1.15rem;
 }
 
+.med-type-label {
+  margin: 0.15rem 0 0;
+  font-size: 0.8rem;
+  color: var(--accent);
+  font-weight: 500;
+}
+
 .med-dosage {
   margin: 0.2rem 0 0;
   color: var(--text-muted);
@@ -397,9 +404,36 @@
 }
 
 .banner-missed {
+  position: relative;
   background: #fef3c7;
   color: #78350f;
   border: 1px solid #fcd34d;
+  padding-right: 2rem;
+}
+
+.banner-dismiss {
+  position: absolute;
+  top: 0.45rem;
+  right: 0.45rem;
+  width: 1.35rem;
+  height: 1.35rem;
+  padding: 0;
+  border: none;
+  border-radius: 4px;
+  background: transparent;
+  color: inherit;
+  font-size: 1.1rem;
+  line-height: 1;
+  cursor: pointer;
+  opacity: 0.65;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.banner-dismiss:hover {
+  opacity: 1;
+  background: rgba(0, 0, 0, 0.06);
 }
 
 [data-theme='dark'] .banner-error {
@@ -573,6 +607,325 @@
 .modal h2 {
   margin: 0 0 1rem;
   font-size: 1.2rem;
+}
+
+.med-form-modal {
+  max-width: 480px;
+  max-height: min(90vh, 720px);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  padding: 1.25rem 1.5rem 1.5rem;
+}
+
+.med-form-modal.modal {
+  overflow: hidden;
+}
+
+.med-wizard-header {
+  flex-shrink: 0;
+  margin-bottom: 0.5rem;
+}
+
+.med-wizard-header h2 {
+  margin-bottom: 0.35rem;
+}
+
+.med-wizard-step-label {
+  margin: 0 0 0.65rem;
+  font-size: 0.85rem;
+  color: var(--text-muted);
+}
+
+.med-wizard-progress {
+  display: flex;
+  gap: 0.35rem;
+  margin-bottom: 0.25rem;
+}
+
+.med-wizard-dot {
+  flex: 1;
+  height: 3px;
+  border-radius: 999px;
+  background: var(--border);
+  transition: background 0.2s ease;
+}
+
+.med-wizard-dot.filled {
+  background: var(--accent);
+}
+
+.med-wizard-dot.current {
+  opacity: 1;
+}
+
+.med-form-wizard {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.med-wizard-viewport {
+  flex: 1;
+  min-height: 0;
+  width: 100%;
+  margin: 0 0 0.75rem;
+  overflow-x: hidden;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
+  position: relative;
+}
+
+.med-wizard-slide {
+  animation: med-wizard-enter 0.22s cubic-bezier(0.4, 0, 0.2, 1) both;
+  padding-right: 0.15rem;
+  padding-bottom: 0.25rem;
+}
+
+.med-wizard-viewport[data-direction='back'] .med-wizard-slide {
+  animation-name: med-wizard-enter-back;
+}
+
+@keyframes med-wizard-enter {
+  from {
+    opacity: 0;
+    transform: translateX(1.25rem);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes med-wizard-enter-back {
+  from {
+    opacity: 0;
+    transform: translateX(-1.25rem);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.med-wizard-nav-hint {
+  margin-top: -0.35rem;
+  margin-bottom: 0.75rem;
+  font-style: italic;
+}
+
+.med-wizard-panel-title {
+  margin: 0 0 0.75rem;
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+.med-wizard-panel-inner label:last-child {
+  margin-bottom: 0;
+}
+
+.med-wizard-panel-inner .field-hint:first-child {
+  margin-top: 0;
+  margin-bottom: 0.75rem;
+}
+
+.med-wizard-panel-inner--scroll {
+  padding-bottom: 0.5rem;
+}
+
+.med-wizard-panel-inner--scroll .med-type-grid-route {
+  padding-bottom: 0.25rem;
+}
+
+.med-form-wizard > .form-error {
+  flex-shrink: 0;
+  margin: 0 0 0.5rem;
+}
+
+.med-wizard-actions {
+  flex-shrink: 0;
+  margin-top: 0;
+  padding-top: 0.75rem;
+  border-top: 1px solid var(--border);
+  background: var(--surface);
+}
+
+.med-wizard-nav {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.med-type-grid-route {
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+}
+
+.med-type-card {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.25rem;
+  width: 100%;
+  padding: 0.85rem 1rem;
+  border: 2px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--bg);
+  color: var(--text);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition:
+    border-color 0.15s ease,
+    background 0.15s ease;
+}
+
+.med-type-card:hover {
+  border-color: var(--accent);
+}
+
+.med-type-card.selected {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+}
+
+.med-type-card-label {
+  font-weight: 600;
+  font-size: 1rem;
+}
+
+.med-type-card-desc {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  line-height: 1.4;
+}
+
+.med-type-grid-form {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.med-type-chip {
+  padding: 0.45rem 0.75rem;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--bg);
+  color: var(--text);
+  font: inherit;
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition:
+    border-color 0.15s ease,
+    background 0.15s ease;
+}
+
+.med-type-chip:hover {
+  border-color: var(--accent);
+}
+
+.med-type-chip.selected {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+  font-weight: 600;
+}
+
+.med-safety-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.med-safety-intro {
+  margin: 0;
+  font-size: 0.9rem;
+  line-height: 1.5;
+}
+
+.med-safety-section h4 {
+  margin: 0 0 0.5rem;
+  font-size: 0.95rem;
+}
+
+.med-safety-section p {
+  margin: 0;
+  font-size: 0.9rem;
+  line-height: 1.5;
+}
+
+.med-safety-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+}
+
+.med-safety-item {
+  padding: 0.65rem 0.75rem;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border);
+  background: var(--bg);
+}
+
+.med-safety-item.severity-major {
+  border-color: #f87171;
+  background: #fef2f2;
+}
+
+.med-safety-item.severity-moderate {
+  border-color: #fcd34d;
+  background: #fffbeb;
+}
+
+.med-safety-item p {
+  margin: 0.35rem 0 0;
+}
+
+.med-safety-bullets {
+  margin: 0;
+  padding-left: 1.2rem;
+  font-size: 0.9rem;
+}
+
+.med-safety-disclaimer {
+  padding: 0.75rem;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border);
+  background: var(--bg);
+  font-size: 0.85rem;
+  line-height: 1.5;
+}
+
+.med-safety-disclaimer-alert {
+  border-color: #fcd34d;
+  background: #fffbeb;
+}
+
+[data-theme='dark'] .med-safety-item.severity-major {
+  background: #450a0a;
+  border-color: #7f1d1d;
+}
+
+[data-theme='dark'] .med-safety-item.severity-moderate {
+  background: #422006;
+  border-color: #92400e;
+}
+
+[data-theme='dark'] .med-safety-disclaimer-alert {
+  background: #422006;
+  border-color: #92400e;
+}
+
+.med-safety-ai-btn {
+  margin-top: 0.25rem;
+  text-align: center;
+  white-space: normal;
+  line-height: 1.35;
 }
 
 .med-form label {

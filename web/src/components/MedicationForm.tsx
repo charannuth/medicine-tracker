@@ -354,7 +354,10 @@ export function MedicationForm({
       case 'name':
         return (
           <div className="med-wizard-panel-inner">
-            <p className="field-hint">Search common medications or type your own.</p>
+            <p className="field-hint">
+              Search by brand (Lexapro, Tylenol) or generic name — pick a suggestion or
+              type your own.
+            </p>
             <label>
               Name *
               <MedicationNameInput

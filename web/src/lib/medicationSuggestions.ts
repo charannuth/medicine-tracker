@@ -1,8 +1,28 @@
+import brandMedications from '../data/brand-medications.json'
+
 export type MedicationSuggestion = {
   name: string
   doseMg?: string
   dosePills?: string
+  /** Shown under the name — usually the generic ingredient for brand entries. */
+  genericName?: string
 }
+
+type BrandEntry = {
+  name: string
+  genericName?: string
+  doseMg?: string
+  dosePills?: string
+}
+
+const BRAND_MEDICATIONS: MedicationSuggestion[] = (
+  brandMedications as BrandEntry[]
+).map((entry) => ({
+  name: entry.name,
+  genericName: entry.genericName,
+  doseMg: entry.doseMg,
+  dosePills: entry.dosePills,
+}))
 
 /** Common medications for name autocomplete (generic names). */
 export const MEDICATION_SUGGESTIONS: MedicationSuggestion[] = [
@@ -113,25 +133,44 @@ export const MEDICATION_SUGGESTIONS: MedicationSuggestion[] = [
   { name: 'Zolpidem', doseMg: '10 mg' },
 ]
 
+function matchScore(med: MedicationSuggestion, q: string, brandBoost: number): number {
+  const name = med.name.toLowerCase()
+  const generic = med.genericName?.toLowerCase() ?? ''
+  if (name.startsWith(q)) return brandBoost
+  if (name.includes(q)) return brandBoost + 1
+  if (generic.startsWith(q)) return brandBoost + 2
+  if (generic.includes(q)) return brandBoost + 3
+  return 99
+}
+
 export function searchLocalMedicationSuggestions(
   query: string,
-  limit = 8,
+  limit = 10,
 ): MedicationSuggestion[] {
   const q = query.trim().toLowerCase()
   if (!q) return []
 
-  return MEDICATION_SUGGESTIONS.filter((med) =>
-    med.name.toLowerCase().includes(q),
+  const brandMatches = BRAND_MEDICATIONS.filter(
+    (med) => matchScore(med, q, 0) < 99,
   )
-    .sort((a, b) => {
-      const aName = a.name.toLowerCase()
-      const bName = b.name.toLowerCase()
-      const aStarts = aName.startsWith(q) ? 0 : 1
-      const bStarts = bName.startsWith(q) ? 0 : 1
-      if (aStarts !== bStarts) return aStarts - bStarts
-      return aName.localeCompare(bName)
-    })
-    .slice(0, limit)
+  const genericMatches = MEDICATION_SUGGESTIONS.filter(
+    (med) => matchScore(med, q, 10) < 99,
+  )
+
+  const seen = new Set<string>()
+  const merged: MedicationSuggestion[] = []
+
+  for (const med of [...brandMatches, ...genericMatches].sort(
+    (a, b) => matchScore(a, q, a.genericName ? 0 : 10) - matchScore(b, q, b.genericName ? 0 : 10),
+  )) {
+    const key = med.name.toLowerCase()
+    if (seen.has(key)) continue
+    seen.add(key)
+    merged.push(med)
+    if (merged.length >= limit) break
+  }
+
+  return merged
 }
 
 /** @deprecated Use searchLocalMedicationSuggestions */
@@ -140,7 +179,7 @@ export const searchMedicationSuggestions = searchLocalMedicationSuggestions
 export function mergeMedicationSuggestions(
   local: MedicationSuggestion[],
   rxnormNames: string[],
-  limit = 10,
+  limit = 12,
 ): MedicationSuggestion[] {
   const seen = new Set(local.map((m) => m.name.toLowerCase()))
   const merged = [...local]

@@ -36,8 +36,8 @@ export function MedicationNameInput({
   const [rxnormFailed, setRxnormFailed] = useState(false)
   const isMobile = useIsMobileLayout()
 
-  const localSuggestions = searchLocalMedicationSuggestions(value, 6)
-  const suggestions = mergeMedicationSuggestions(localSuggestions, rxnormNames, 10)
+  const localSuggestions = searchLocalMedicationSuggestions(value, 8)
+  const suggestions = mergeMedicationSuggestions(localSuggestions, rxnormNames, 12)
   const showList = open && value.trim().length > 0 && suggestions.length > 0
   const activeIndex = Math.min(highlight, Math.max(0, suggestions.length - 1))
   const floatingStyle = useFloatingPanelPosition(showList, wrapRef, isMobile)
@@ -123,7 +123,7 @@ export function MedicationNameInput({
           window.setTimeout(() => setOpen(false), 150)
         }}
         onKeyDown={handleKeyDown}
-        placeholder="e.g. Lipitor, Lisinopril"
+        placeholder="e.g. Lexapro, Lipitor, lisinopril"
         autoComplete="off"
         aria-autocomplete="list"
         aria-controls={showList ? listId : undefined}
@@ -136,7 +136,7 @@ export function MedicationNameInput({
             ? 'Searching RxNorm (NIH drug names)…'
             : rxnormFailed
               ? 'Showing common names only — RxNorm search unavailable.'
-              : 'Suggestions include brands and generics from RxNorm.'}
+              : 'Brand names (Lexapro, Tylenol) and RxNorm matches appear as you type.'}
         </p>
       )}
       {showList && (
@@ -158,11 +158,15 @@ export function MedicationNameInput({
                 onMouseEnter={() => setHighlight(index)}
               >
                 <span className="med-suggestion-name">{suggestion.name}</span>
-                {(suggestion.doseMg || suggestion.dosePills) && (
+                {(suggestion.genericName ||
+                  suggestion.doseMg ||
+                  suggestion.dosePills) && (
                   <span className="med-suggestion-hint">
-                    {[suggestion.dosePills, suggestion.doseMg]
-                      .filter(Boolean)
-                      .join(' · ')}
+                    {suggestion.genericName
+                      ? `Generic: ${suggestion.genericName}`
+                      : [suggestion.dosePills, suggestion.doseMg]
+                          .filter(Boolean)
+                          .join(' · ')}
                   </span>
                 )}
               </button>

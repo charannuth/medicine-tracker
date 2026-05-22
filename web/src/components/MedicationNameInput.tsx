@@ -1,17 +1,14 @@
-import { useEffect, useId, useRef, useState } from 'react'
+import { useId, useRef, useState } from 'react'
 import {
   useFloatingPanelPosition,
   useIsMobileLayout,
 } from '../hooks/useFloatingPanelPosition'
+import { MIN_RXNORM_QUERY_LEN, useRxNormDrugSearch } from '../hooks/useRxNormDrugSearch'
 import {
   mergeMedicationSuggestions,
   searchLocalMedicationSuggestions,
   type MedicationSuggestion,
 } from '../lib/medicationSuggestions'
-import { searchRxNormDrugNames } from '../lib/rxnormSearch'
-
-const RXNORM_DEBOUNCE_MS = 350
-const MIN_RXNORM_QUERY_LEN = 2
 
 type MedicationNameInputProps = {
   value: string
@@ -31,58 +28,17 @@ export function MedicationNameInput({
   const inputRef = useRef<HTMLInputElement>(null)
   const [open, setOpen] = useState(false)
   const [highlight, setHighlight] = useState(0)
-  const [rxnormNames, setRxnormNames] = useState<string[]>([])
-  const [rxnormLoading, setRxnormLoading] = useState(false)
-  const [rxnormFailed, setRxnormFailed] = useState(false)
   const isMobile = useIsMobileLayout()
+
+  const query = value.trim()
+  const { names: rxnormNames, loading: rxnormLoading, failed: rxnormFailed } =
+    useRxNormDrugSearch(query)
 
   const localSuggestions = searchLocalMedicationSuggestions(value, 8)
   const suggestions = mergeMedicationSuggestions(localSuggestions, rxnormNames, 12)
-  const showList = open && value.trim().length > 0 && suggestions.length > 0
+  const showList = open && query.length > 0 && suggestions.length > 0
   const activeIndex = Math.min(highlight, Math.max(0, suggestions.length - 1))
   const floatingStyle = useFloatingPanelPosition(showList, wrapRef, isMobile)
-
-  useEffect(() => {
-    const q = value.trim()
-    if (q.length < MIN_RXNORM_QUERY_LEN) {
-      setRxnormNames([])
-      setRxnormLoading(false)
-      setRxnormFailed(false)
-      return
-    }
-
-    const controller = new AbortController()
-    setRxnormLoading(true)
-    setRxnormFailed(false)
-
-    const timer = window.setTimeout(() => {
-      void searchRxNormDrugNames(q, 10, controller.signal)
-        .then((names) => {
-          if (!controller.signal.aborted) {
-            setRxnormNames(names)
-            setRxnormFailed(false)
-          }
-        })
-        .catch(() => {
-          if (!controller.signal.aborted) {
-            setRxnormNames([])
-            setRxnormFailed(true)
-          }
-        })
-        .finally(() => {
-          if (!controller.signal.aborted) setRxnormLoading(false)
-        })
-    }, RXNORM_DEBOUNCE_MS)
-
-    return () => {
-      controller.abort()
-      window.clearTimeout(timer)
-    }
-  }, [value])
-
-  useEffect(() => {
-    setHighlight(0)
-  }, [value, suggestions.length])
 
   function pick(suggestion: MedicationSuggestion) {
     onChange(suggestion.name)
@@ -116,6 +72,7 @@ export function MedicationNameInput({
         value={value}
         onChange={(e) => {
           onChange(e.target.value)
+          setHighlight(0)
           setOpen(true)
         }}
         onFocus={() => setOpen(true)}
@@ -130,7 +87,7 @@ export function MedicationNameInput({
         aria-expanded={showList}
         aria-busy={rxnormLoading}
       />
-      {value.trim().length >= MIN_RXNORM_QUERY_LEN && (
+      {query.length >= MIN_RXNORM_QUERY_LEN && (
         <p className="med-name-search-hint" aria-live="polite">
           {rxnormLoading
             ? 'Searching RxNorm (NIH drug names)…'

@@ -24,12 +24,10 @@ export function useFloatingPanelPosition(
   enabled: boolean,
 ): CSSProperties | undefined {
   const [style, setStyle] = useState<CSSProperties | undefined>()
+  const shouldPosition = enabled && open
 
   useLayoutEffect(() => {
-    if (!enabled || !open) {
-      setStyle(undefined)
-      return
-    }
+    if (!shouldPosition) return
 
     function update() {
       const el = anchorRef.current
@@ -86,7 +84,7 @@ export function useFloatingPanelPosition(
       window.removeEventListener('resize', update)
       window.removeEventListener('scroll', update, true)
     }
-  }, [open, enabled, anchorRef])
+  }, [shouldPosition, anchorRef])
 
-  return style
+  return shouldPosition ? style : undefined
 }

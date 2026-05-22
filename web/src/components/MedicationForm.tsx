@@ -6,6 +6,8 @@ import {
   twelveHourToScheduleTime,
   type Meridiem,
 } from '../lib/dates'
+import { normalizeTime12Display } from '../lib/doseTimeInput'
+import { DoseTimeInput } from './DoseTimeInput'
 import { getErrorMessage } from '../lib/errors'
 import {
   isMedicationRouteId,
@@ -202,7 +204,8 @@ export function MedicationForm({
   function parseScheduleTimes(): string[] {
     const parsed = doseTimes.map((row, index) => {
       try {
-        return twelveHourToScheduleTime(row.time12, row.period)
+        const normalized = normalizeTime12Display(row.time12)
+        return twelveHourToScheduleTime(normalized, row.period)
       } catch (err) {
         const msg = err instanceof Error ? err.message : 'Invalid time'
         throw new Error(`Dose ${index + 1}: ${msg}`, { cause: err })
@@ -512,26 +515,12 @@ export function MedicationForm({
             {doseTimes.map((row, index) => (
               <div key={row.id} className="dose-time-row">
                 <span className="dose-time-label">Dose {index + 1}:</span>
-                <input
-                  type="text"
-                  inputMode="decimal"
-                  className="dose-time-input"
-                  value={row.time12}
-                  onChange={(e) => updateDoseTime(row.id, { time12: e.target.value })}
-                  placeholder="8:00"
-                  aria-label={`Dose ${index + 1} time`}
+                <DoseTimeInput
+                  label={`Dose ${index + 1}`}
+                  time12={row.time12}
+                  period={row.period}
+                  onChange={(next) => updateDoseTime(row.id, next)}
                 />
-                <select
-                  className="dose-period-select"
-                  value={row.period}
-                  onChange={(e) =>
-                    updateDoseTime(row.id, { period: e.target.value as Meridiem })
-                  }
-                  aria-label={`Dose ${index + 1} AM or PM`}
-                >
-                  <option value="AM">AM</option>
-                  <option value="PM">PM</option>
-                </select>
                 {doseTimes.length > 1 && (
                   <button
                     type="button"

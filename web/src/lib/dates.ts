@@ -50,7 +50,8 @@ export function twelveHourToScheduleTime(
   time12: string,
   period: Meridiem,
 ): string {
-  const match = /^(\d{1,2}):(\d{1,2})$/.exec(time12.trim())
+  const trimmed = time12.trim()
+  const match = /^(\d{1,2}):(\d{2})$/.exec(trimmed)
   if (!match) {
     throw new Error(`Use hours:minutes (e.g. 8:00 or 10:30)`)
   }

@@ -88,3 +88,5 @@ drop trigger if exists medications_updated_at on public.medications;
 create trigger medications_updated_at
   before update on public.medications
   for each row execute function public.set_updated_at();
+
+-- Wellness (baseline + daily logs) — see migrations/006_wellness.sql for full DDL

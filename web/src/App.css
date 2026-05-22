@@ -2152,3 +2152,315 @@
     padding: 1.5rem 2rem;
   }
 }
+
+/* Wellness — baseline, daily log, Today check-in */
+.wellness-disclaimer {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 1rem 1.15rem;
+  margin-bottom: 1.25rem;
+  font-size: 0.9rem;
+  line-height: 1.5;
+  color: var(--text-muted);
+}
+
+.wellness-disclaimer strong {
+  color: var(--text);
+}
+
+.wellness-disclaimer-compact {
+  margin: 0.5rem 0 0.75rem;
+  padding: 0.65rem 0.85rem;
+  font-size: 0.8rem;
+}
+
+.wellness-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 1.15rem 1.25rem;
+  margin-bottom: 1.25rem;
+}
+
+.wellness-section-title {
+  margin: 0 0 0.5rem;
+  font-size: 1.05rem;
+}
+
+.wellness-checkin {
+  margin-top: 1.5rem;
+}
+
+.wellness-checkin-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 0.75rem;
+  margin-bottom: 0.35rem;
+}
+
+.wellness-checkin-header h3 {
+  margin: 0;
+  font-size: 1.05rem;
+}
+
+.wellness-checkin-link {
+  font-size: 0.85rem;
+  white-space: nowrap;
+}
+
+.wellness-checkin-done {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  align-items: flex-start;
+}
+
+.wellness-checkin-summary {
+  margin: 0;
+  font-size: 0.9rem;
+  color: var(--text-muted);
+  line-height: 1.45;
+}
+
+.wellness-form label {
+  display: block;
+  margin-bottom: 0.85rem;
+  font-size: 0.9rem;
+}
+
+.wellness-form input,
+.wellness-form select,
+.wellness-form textarea {
+  display: block;
+  width: 100%;
+  margin-top: 0.35rem;
+  font: inherit;
+  padding: 0.55rem 0.75rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--bg);
+  color: var(--text);
+}
+
+.wellness-form .btn {
+  margin-top: 0.5rem;
+}
+
+.wellness-fieldset {
+  border: none;
+  margin: 0 0 0.85rem;
+  padding: 0;
+}
+
+.wellness-fieldset legend {
+  font-size: 0.9rem;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+  padding: 0;
+}
+
+.wellness-field-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.75rem;
+}
+
+@media (max-width: 480px) {
+  .wellness-field-row {
+    grid-template-columns: 1fr;
+  }
+}
+
+.wellness-chip-group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+
+.wellness-chip {
+  font: inherit;
+  font-size: 0.82rem;
+  padding: 0.4rem 0.65rem;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--bg);
+  color: var(--text);
+  cursor: pointer;
+}
+
+.wellness-chip.active {
+  border-color: var(--accent);
+  background: var(--accent-soft, rgba(59, 130, 246, 0.12));
+  color: var(--accent);
+}
+
+.wellness-checkbox {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.wellness-checkbox input {
+  width: auto;
+  margin: 0;
+}
+
+.wellness-day-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.wellness-day-btn {
+  width: 100%;
+  text-align: left;
+  font: inherit;
+  padding: 0.65rem 0.75rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--bg);
+  color: var(--text);
+  cursor: pointer;
+  margin-bottom: 0.4rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+
+.wellness-day-btn.active {
+  border-color: var(--accent);
+  background: var(--accent-soft, rgba(59, 130, 246, 0.08));
+}
+
+.wellness-day-label {
+  font-weight: 600;
+  font-size: 0.9rem;
+}
+
+.wellness-day-status {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+}
+
+.wellness-day-status.done {
+  color: var(--text);
+}
+
+.wellness-med-list {
+  margin: 0.5rem 0 1rem;
+  padding-left: 1.25rem;
+}
+
+.wellness-page .field-hint {
+  margin-top: 0;
+}
+
+.wellness-trends-compare-title {
+  margin: 1rem 0 0.35rem;
+  font-size: 0.95rem;
+}
+
+.wellness-trends-compare-list {
+  margin: 0;
+  padding-left: 1.2rem;
+  font-size: 0.9rem;
+  color: var(--text-muted);
+}
+
+.wellness-trends-compare-list li {
+  margin-bottom: 0.35rem;
+}
+
+.wellness-trend-chart {
+  margin-bottom: 1rem;
+}
+
+.wellness-trend-chart h4 {
+  margin: 0 0 0.5rem;
+  font-size: 0.9rem;
+}
+
+.wellness-trend-bars {
+  display: flex;
+  align-items: flex-end;
+  gap: 0.35rem;
+  height: 100px;
+  padding: 0.25rem 0;
+}
+
+.wellness-trend-bar-wrap {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.25rem;
+  min-width: 0;
+}
+
+.wellness-trend-bar {
+  width: 100%;
+  max-width: 2rem;
+  min-height: 4px;
+  background: var(--accent);
+  border-radius: 3px 3px 0 0;
+  transition: height 0.2s ease;
+}
+
+.wellness-trend-bar.empty {
+  background: var(--border);
+}
+
+.wellness-trend-bar-label {
+  font-size: 0.65rem;
+  color: var(--text-muted);
+  text-align: center;
+}
+
+.wellness-briefing-card {
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 1rem;
+  margin-bottom: 1rem;
+  background: var(--bg);
+}
+
+.wellness-briefing-header h4 {
+  margin: 0;
+  font-size: 1rem;
+}
+
+.wellness-briefing-meta {
+  margin: 0.2rem 0 0;
+  font-size: 0.85rem;
+  color: var(--text-muted);
+}
+
+.wellness-briefing-routine {
+  margin: 0.75rem 0;
+  font-size: 0.9rem;
+  line-height: 1.45;
+}
+
+.wellness-briefing-block h5 {
+  margin: 0.5rem 0 0.25rem;
+  font-size: 0.88rem;
+}
+
+.wellness-briefing-bullets {
+  margin: 0.25rem 0 0.5rem;
+  padding-left: 1.2rem;
+  font-size: 0.88rem;
+}
+
+.wellness-briefing-foot {
+  margin: 0.5rem 0 0;
+  font-size: 0.8rem;
+  color: var(--text-muted);
+}
+
+.wellness-export .btn {
+  margin-top: 0.25rem;
+}

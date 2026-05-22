@@ -15,6 +15,7 @@ import { HistoryPage } from './pages/HistoryPage'
 import { MedicationsPage } from './pages/MedicationsPage'
 import { InteractionsPage } from './pages/InteractionsPage'
 import { TodayPage } from './pages/TodayPage'
+import { WellnessPage } from './pages/WellnessPage'
 import './App.css'
 
 function AuthenticatedRoutes({ user }: { user: User }) {
@@ -77,6 +78,7 @@ function AuthenticatedRoutes({ user }: { user: User }) {
           <Route path="account" element={<AccountPage />} />
           <Route path="medications" element={<MedicationsPage />} />
           <Route path="interactions" element={<InteractionsPage />} />
+          <Route path="wellness" element={<WellnessPage />} />
           <Route path="help" element={<HelpPage />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Route>

@@ -24,6 +24,7 @@ import { MedicationForm } from '../components/MedicationForm'
 import { MissedDosesBanner } from '../components/MissedDosesBanner'
 import { RefillBanner } from '../components/RefillBanner'
 import { StreakSnippet } from '../components/StreakSnippet'
+import { TodayWellnessCheckIn } from '../components/TodayWellnessCheckIn'
 import { fetchMissedDoses, type MissedDoseItem } from '../lib/missedDoses'
 import {
   dismissMissedDosesBanner,
@@ -245,6 +246,8 @@ export function TodayPage() {
             ))}
           </ul>
         )}
+
+        <TodayWellnessCheckIn />
       </main>
 
       {formOpen && (

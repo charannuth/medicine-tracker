@@ -12,6 +12,7 @@ function getInitials(email: string | undefined): string {
 const navItems = [
   { to: '/', label: 'Today', end: true },
   { to: '/history', label: 'History', end: false },
+  { to: '/wellness', label: 'Wellness', end: false },
   { to: '/account', label: 'My account', end: false },
   { to: '/medications', label: 'All medications', end: false },
   { to: '/interactions', label: 'Drug safety check', end: false },

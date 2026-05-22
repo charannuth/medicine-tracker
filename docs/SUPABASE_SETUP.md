@@ -20,7 +20,8 @@ This creates `medications` and `dose_logs` tables plus Row Level Security (each 
 
 1. [`002_dose_per_schedule_time.sql`](../supabase/migrations/002_dose_per_schedule_time.sql) — separate dose per scheduled time  
 2. [`003_split_dose_pills_mg.sql`](../supabase/migrations/003_split_dose_pills_mg.sql) — separate pills and mg fields  
-3. [`004_medication_dates.sql`](../supabase/migrations/004_medication_dates.sql) — start date and optional end date
+3. [`004_medication_dates.sql`](../supabase/migrations/004_medication_dates.sql) — start date and optional end date  
+4. [`006_wellness.sql`](../supabase/migrations/006_wellness.sql) — wellness baseline profile and daily logs
 
 ## 3. Configure authentication
 
@@ -106,3 +107,4 @@ Open the URL shown (usually `http://localhost:5173`), create an account, and add
 | “relation does not exist” | Run `supabase/schema.sql` again |
 | “Already marked as taken” | Expected — one dose per med per day |
 | RLS errors on insert | Ensure `user_id` matches logged-in user (app does this automatically) |
+| Wellness check-in errors | Run `supabase/migrations/006_wellness.sql` in the SQL Editor |

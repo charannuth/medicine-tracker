@@ -1,5 +1,9 @@
 import { useId, useRef, useState } from 'react'
 import {
+  useFloatingPanelPosition,
+  useIsMobileLayout,
+} from '../hooks/useFloatingPanelPosition'
+import {
   searchMedicationSuggestions,
   type MedicationSuggestion,
 } from '../lib/medicationSuggestions'
@@ -18,13 +22,16 @@ export function MedicationNameInput({
   required,
 }: MedicationNameInputProps) {
   const listId = useId()
+  const wrapRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLInputElement>(null)
   const [open, setOpen] = useState(false)
   const [highlight, setHighlight] = useState(0)
+  const isMobile = useIsMobileLayout()
 
   const suggestions = searchMedicationSuggestions(value)
   const showList = open && value.trim().length > 0 && suggestions.length > 0
   const activeIndex = Math.min(highlight, Math.max(0, suggestions.length - 1))
+  const floatingStyle = useFloatingPanelPosition(showList, wrapRef, isMobile)
 
   function pick(suggestion: MedicationSuggestion) {
     onChange(suggestion.name)
@@ -51,7 +58,7 @@ export function MedicationNameInput({
   }
 
   return (
-    <div className="med-name-autocomplete">
+    <div className="med-name-autocomplete" ref={wrapRef}>
       <input
         ref={inputRef}
         required={required}
@@ -73,7 +80,12 @@ export function MedicationNameInput({
         aria-expanded={showList}
       />
       {showList && (
-        <ul id={listId} className="med-suggestions" role="listbox">
+        <ul
+          id={listId}
+          className={`med-suggestions${isMobile ? ' med-suggestions--floating' : ''}`}
+          role="listbox"
+          style={floatingStyle}
+        >
           {suggestions.map((suggestion, index) => (
             <li key={suggestion.name} role="presentation">
               <button

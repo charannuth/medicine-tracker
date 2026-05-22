@@ -113,7 +113,7 @@ export const MEDICATION_SUGGESTIONS: MedicationSuggestion[] = [
   { name: 'Zolpidem', doseMg: '10 mg' },
 ]
 
-export function searchMedicationSuggestions(
+export function searchLocalMedicationSuggestions(
   query: string,
   limit = 8,
 ): MedicationSuggestion[] {
@@ -132,4 +132,26 @@ export function searchMedicationSuggestions(
       return aName.localeCompare(bName)
     })
     .slice(0, limit)
+}
+
+/** @deprecated Use searchLocalMedicationSuggestions */
+export const searchMedicationSuggestions = searchLocalMedicationSuggestions
+
+export function mergeMedicationSuggestions(
+  local: MedicationSuggestion[],
+  rxnormNames: string[],
+  limit = 10,
+): MedicationSuggestion[] {
+  const seen = new Set(local.map((m) => m.name.toLowerCase()))
+  const merged = [...local]
+
+  for (const name of rxnormNames) {
+    if (merged.length >= limit) break
+    const key = name.toLowerCase()
+    if (seen.has(key)) continue
+    seen.add(key)
+    merged.push({ name })
+  }
+
+  return merged.slice(0, limit)
 }

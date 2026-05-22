@@ -21,7 +21,12 @@ export function HelpPage() {
             Tap a day to filter.
           </li>
           <li>
-            <strong>All medications</strong> — add, edit, or remove medications. Set a{' '}
+            <strong>All medications</strong> — add, edit, or remove medications. When
+            you type a name, suggestions come from a built-in list plus{' '}
+            <a href="https://www.nlm.nih.gov/research/umls/rxnorm/index.html" target="_blank" rel="noreferrer">
+              RxNorm (NIH)
+            </a>{' '}
+            (brands and generics such as Lipitor, Tylenol, lisinopril). Set a{' '}
             <strong>start date</strong> and optional <strong>end date</strong> for each
             schedule (e.g. a short antibiotic course).
           </li>

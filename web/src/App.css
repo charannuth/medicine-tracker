@@ -951,6 +951,14 @@
   position: relative;
 }
 
+.med-name-search-hint {
+  margin: 0.35rem 0 0;
+  font-size: 0.75rem;
+  font-weight: 400;
+  color: var(--text-muted);
+  line-height: 1.4;
+}
+
 .med-name-autocomplete > input {
   width: 100%;
 }

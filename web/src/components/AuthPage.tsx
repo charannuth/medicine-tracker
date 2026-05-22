@@ -1,119 +1,286 @@
 import { useState, type FormEvent } from 'react'
+import { EmailOtpVerification } from './EmailOtpVerification'
 import { useAuth } from '../hooks/useAuth'
+import { authErrorMessage } from '../lib/authErrors'
 
-type AuthMode = 'signin' | 'signup' | 'forgot'
+type AuthMode =
+  | 'signin'
+  | 'signup'
+  | 'signup-verify'
+  | 'forgot'
+  | 'forgot-verify'
+  | 'forgot-reset'
 
 export function AuthPage() {
-  const { signIn, signUp, resetPassword } = useAuth()
+  const {
+    signIn,
+    signUp,
+    verifySignupOtp,
+    resendSignupOtp,
+    requestPasswordReset,
+    verifyRecoveryOtp,
+    resendRecoveryOtp,
+    updatePassword,
+  } = useAuth()
+
   const [mode, setMode] = useState<AuthMode>('signin')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
+  const [newPassword, setNewPassword] = useState('')
+  const [confirmPassword, setConfirmPassword] = useState('')
   const [error, setError] = useState<string | null>(null)
   const [message, setMessage] = useState<string | null>(null)
   const [busy, setBusy] = useState(false)
 
-  async function handleSubmit(e: FormEvent) {
-    e.preventDefault()
+  function resetMessages() {
     setError(null)
     setMessage(null)
+  }
+
+  function switchMode(next: AuthMode) {
+    resetMessages()
+    setMode(next)
+  }
+
+  async function handleSubmit(e: FormEvent) {
+    e.preventDefault()
+    resetMessages()
     setBusy(true)
 
     try {
       if (mode === 'forgot') {
-        await resetPassword(email)
-        setMessage('Check your email for a password reset link.')
-      } else if (mode === 'signin') {
+        await requestPasswordReset(email)
+        switchMode('forgot-verify')
+        setMessage('We emailed you an 8-digit verification code.')
+        return
+      }
+
+      if (mode === 'forgot-reset') {
+        if (newPassword.length < 6) {
+          setError('Password must be at least 6 characters.')
+          return
+        }
+        if (newPassword !== confirmPassword) {
+          setError('Passwords do not match.')
+          return
+        }
+        await updatePassword(newPassword)
+        setMessage('Password updated. You are signed in.')
+        return
+      }
+
+      if (mode === 'signin') {
         await signIn(email, password)
-      } else {
-        await signUp(email, password)
-        setMessage('Check your email to confirm your account, then sign in.')
+        return
+      }
+
+      if (mode === 'signup') {
+        const { needsVerification } = await signUp(email, password)
+        if (needsVerification) {
+          switchMode('signup-verify')
+          setMessage('We emailed you an 8-digit verification code.')
+        }
+        return
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Something went wrong')
+      setError(authErrorMessage(err))
     } finally {
       setBusy(false)
     }
   }
 
+  async function handleSignupVerify(code: string) {
+    resetMessages()
+    setBusy(true)
+    try {
+      await verifySignupOtp(email, code)
+    } catch (err) {
+      setError(authErrorMessage(err))
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  async function handleRecoveryVerify(code: string) {
+    resetMessages()
+    setBusy(true)
+    try {
+      await verifyRecoveryOtp(email, code)
+      switchMode('forgot-reset')
+      setMessage('Code verified. Choose a new password.')
+    } catch (err) {
+      setError(authErrorMessage(err))
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  const title =
+    mode === 'signup-verify'
+      ? 'Verify your email'
+      : mode === 'forgot-verify'
+        ? 'Verify reset code'
+        : mode === 'forgot-reset'
+          ? 'Set new password'
+          : 'Dr. Dose'
+
+  const subtitle =
+    mode === 'forgot'
+      ? 'We will email you a verification code to reset your password.'
+      : mode === 'forgot-reset'
+        ? 'Enter a new password for your account.'
+        : mode === 'signup'
+          ? 'Create an account — we will verify your email with a one-time code.'
+          : 'Sign in to manage medications and log doses.'
+
+  const showEmailPasswordForm =
+    mode === 'signin' ||
+    mode === 'signup' ||
+    mode === 'forgot' ||
+    mode === 'forgot-reset'
+
+  const showBottomToggle = mode !== 'forgot-verify' && mode !== 'signup-verify'
+
   return (
     <div className="auth-page">
       <div className="auth-card">
-        <h1>Medicine Tracker</h1>
-        <p className="auth-subtitle">
-          {mode === 'forgot'
-            ? 'We will email you a reset link.'
-            : 'Sign in to manage medications and log doses.'}
-        </p>
+        <h1>{title}</h1>
 
-        <form onSubmit={handleSubmit} className="auth-form">
-          <label>
-            Email
-            <input
-              type="email"
-              autoComplete="email"
-              required
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-            />
-          </label>
-          {mode !== 'forgot' && (
-            <label>
-              Password
-              <input
-                type="password"
-                autoComplete={
-                  mode === 'signin' ? 'current-password' : 'new-password'
-                }
-                required
-                minLength={6}
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-              />
-            </label>
-          )}
+        {mode === 'signup-verify' && (
+          <EmailOtpVerification
+            email={email}
+            description="Enter the 8-digit code from your email to finish creating your account."
+            verifyLabel="Complete sign up"
+            busy={busy}
+            error={error}
+            message={message}
+            onVerify={handleSignupVerify}
+            onResend={() => resendSignupOtp(email)}
+            onBack={() => switchMode('signup')}
+          />
+        )}
 
-          {error && <p className="form-error">{error}</p>}
-          {message && <p className="form-success">{message}</p>}
+        {mode === 'forgot-verify' && (
+          <EmailOtpVerification
+            email={email}
+            description="Enter the 8-digit code from your email to continue resetting your password."
+            verifyLabel="Verify code"
+            busy={busy}
+            error={error}
+            message={message}
+            onVerify={handleRecoveryVerify}
+            onResend={() => resendRecoveryOtp(email)}
+            onBack={() => switchMode('forgot')}
+          />
+        )}
 
-          <button type="submit" className="btn btn-primary" disabled={busy}>
-            {busy
-              ? 'Please wait…'
-              : mode === 'forgot'
-                ? 'Send reset link'
-                : mode === 'signin'
-                  ? 'Sign in'
-                  : 'Create account'}
-          </button>
-        </form>
+        {showEmailPasswordForm && (
+          <>
+            <p className="auth-subtitle">{subtitle}</p>
 
-        <p className="auth-toggle">
-          {mode === 'signin' && (
-            <>
-              <button type="button" onClick={() => setMode('forgot')}>
-                Forgot password?
+            <form onSubmit={handleSubmit} className="auth-form">
+              {mode !== 'forgot-reset' && (
+                <label>
+                  Email
+                  <input
+                    type="email"
+                    autoComplete="email"
+                    required
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                  />
+                </label>
+              )}
+
+              {(mode === 'signin' || mode === 'signup') && (
+                <label>
+                  Password
+                  <input
+                    type="password"
+                    autoComplete={
+                      mode === 'signin' ? 'current-password' : 'new-password'
+                    }
+                    required
+                    minLength={6}
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                  />
+                </label>
+              )}
+
+              {mode === 'forgot-reset' && (
+                <>
+                  <label>
+                    New password
+                    <input
+                      type="password"
+                      autoComplete="new-password"
+                      required
+                      minLength={6}
+                      value={newPassword}
+                      onChange={(e) => setNewPassword(e.target.value)}
+                    />
+                  </label>
+                  <label>
+                    Confirm password
+                    <input
+                      type="password"
+                      autoComplete="new-password"
+                      required
+                      minLength={6}
+                      value={confirmPassword}
+                      onChange={(e) => setConfirmPassword(e.target.value)}
+                    />
+                  </label>
+                </>
+              )}
+
+              {error && <p className="form-error">{error}</p>}
+              {message && <p className="form-success">{message}</p>}
+
+              <button type="submit" className="btn btn-primary" disabled={busy}>
+                {busy
+                  ? 'Please wait…'
+                  : mode === 'forgot'
+                    ? 'Send verification code'
+                    : mode === 'forgot-reset'
+                      ? 'Update password'
+                      : mode === 'signin'
+                        ? 'Sign in'
+                        : 'Create account'}
               </button>
-              {' · '}
-              <button type="button" onClick={() => setMode('signup')}>
-                Create account
-              </button>
-            </>
-          )}
-          {mode === 'signup' && (
-            <>
-              Already have an account?{' '}
-              <button type="button" onClick={() => setMode('signin')}>
-                Sign in
-              </button>
-            </>
-          )}
-          {mode === 'forgot' && (
-            <>
-              <button type="button" onClick={() => setMode('signin')}>
+            </form>
+          </>
+        )}
+
+        {showBottomToggle && (
+          <p className="auth-toggle">
+            {mode === 'signin' && (
+              <>
+                <button type="button" onClick={() => switchMode('forgot')}>
+                  Forgot password?
+                </button>
+                {' · '}
+                <button type="button" onClick={() => switchMode('signup')}>
+                  Create account
+                </button>
+              </>
+            )}
+            {mode === 'signup' && (
+              <>
+                Already have an account?{' '}
+                <button type="button" onClick={() => switchMode('signin')}>
+                  Sign in
+                </button>
+              </>
+            )}
+            {(mode === 'forgot' || mode === 'forgot-reset') && (
+              <button type="button" onClick={() => switchMode('signin')}>
                 Back to sign in
               </button>
-            </>
-          )}
-        </p>
+            )}
+          </p>
+        )}
 
         <p className="disclaimer">
           For personal use only. Not medical advice — always follow your

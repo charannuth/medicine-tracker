@@ -1,11 +1,11 @@
-# Deploy Medicine Tracker (pick up later)
+# Deploy Dr. Dose (pick up later)
 
 Host the web app on **Vercel** (free). Your database stays on **Supabase** in the cloud — no local Supabase process.
 
 ## One-time: Vercel
 
 1. Sign in at [vercel.com](https://vercel.com) with GitHub.
-2. **Add New Project** → import `charannuth/medicine-tracker`.
+2. **Add New Project** → import `charannuth/dr.dose`.
 3. Set **Root Directory** to `web` (important). Vercel reads `web/vercel.json` for build settings.
 4. **Environment variables** (Production + Preview):
 
@@ -14,7 +14,7 @@ Host the web app on **Vercel** (free). Your database stays on **Supabase** in th
    | `VITE_SUPABASE_URL` | From Supabase → Settings → API → Project URL |
    | `VITE_SUPABASE_ANON_KEY` | From Supabase → Settings → API → `anon` `public` key |
 
-5. Click **Deploy**. Note your URL, e.g. `https://medicine-tracker-xxx.vercel.app`.
+5. Click **Deploy**. Note your production URL in Vercel → **Domains** (may still be an older `*.vercel.app` alias until you add a new one).
 
 ## One-time: Supabase auth URLs
 
@@ -55,7 +55,7 @@ Vercel redeploys when you push to `main` on GitHub (default). No extra step afte
 
 ```bash
 npm i -g vercel
-cd /path/to/medicine-tracker
+cd /path/to/dr.dose
 vercel login
 vercel --cwd web
 # set env vars in Vercel dashboard or: vercel env add

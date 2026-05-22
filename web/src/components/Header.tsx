@@ -14,7 +14,7 @@ export function Header({ onAddClick }: HeaderProps) {
     <header className="app-header">
       <div className="header-brand">
         <ProfileMenu />
-        <h1>Medicine Tracker</h1>
+        <h1>Dr. Dose</h1>
       </div>
       <div className="header-actions">
         <ThemeToggle />

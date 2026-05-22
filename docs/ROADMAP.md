@@ -1,6 +1,6 @@
 # Roadmap
 
-This document tracks planned phases for Medicine Tracker. Priorities may shift as the project evolves.
+This document tracks planned phases for Dr. Dose. Priorities may shift as the project evolves.
 
 ## Phase 0 — Foundation (current)
 

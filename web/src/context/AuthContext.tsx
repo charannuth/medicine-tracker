@@ -1,7 +1,11 @@
 import { useCallback, useEffect, useMemo, useState, type ReactNode } from 'react'
 import type { Session } from '@supabase/supabase-js'
 import { supabase } from '../lib/supabase'
-import { AuthContext, type AuthContextValue } from './auth-context'
+import { AuthContext, type AuthContextValue, type SignUpResult } from './auth-context'
+
+function authRedirectUrl() {
+  return `${window.location.origin}/`
+}
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [session, setSession] = useState<Session | null>(null)
@@ -38,24 +42,69 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (error) throw error
   }, [])
 
-  const signUp = useCallback(async (email: string, password: string) => {
+  const signUp = useCallback(async (email: string, password: string): Promise<SignUpResult> => {
     if (!supabase) throw new Error('Supabase is not configured')
-    const { error } = await supabase.auth.signUp({ email, password })
+    const { data, error } = await supabase.auth.signUp({ email, password })
     if (error) throw error
+    return { needsVerification: data.session === null }
+  }, [])
+
+  const verifySignupOtp = useCallback(async (email: string, token: string) => {
+    if (!supabase) throw new Error('Supabase is not configured')
+    const { error } = await supabase.auth.verifyOtp({
+      email,
+      token,
+      type: 'signup',
+    })
+    if (error) throw error
+  }, [])
+
+  const resendSignupOtp = useCallback(async (email: string) => {
+    if (!supabase) throw new Error('Supabase is not configured')
+    const { error } = await supabase.auth.resend({
+      type: 'signup',
+      email,
+    })
+    if (error) throw error
+  }, [])
+
+  const requestPasswordReset = useCallback(async (email: string) => {
+    if (!supabase) throw new Error('Supabase is not configured')
+    const { error } = await supabase.auth.resetPasswordForEmail(email, {
+      redirectTo: authRedirectUrl(),
+    })
+    if (error) throw error
+  }, [])
+
+  const verifyRecoveryOtp = useCallback(async (email: string, token: string) => {
+    if (!supabase) throw new Error('Supabase is not configured')
+    const { error } = await supabase.auth.verifyOtp({
+      email,
+      token,
+      type: 'recovery',
+    })
+    if (error) throw error
+  }, [])
+
+  const resendRecoveryOtp = useCallback(async (email: string) => {
+    if (!supabase) throw new Error('Supabase is not configured')
+    const { error } = await supabase.auth.resetPasswordForEmail(email, {
+      redirectTo: authRedirectUrl(),
+    })
+    if (error) throw error
+  }, [])
+
+  const updatePassword = useCallback(async (password: string) => {
+    if (!supabase) throw new Error('Supabase is not configured')
+    const { error } = await supabase.auth.updateUser({ password })
+    if (error) throw error
+    const { data } = await supabase.auth.getSession()
+    setSession(data.session)
   }, [])
 
   const signOut = useCallback(async () => {
     if (!supabase) return
     const { error } = await supabase.auth.signOut()
-    if (error) throw error
-  }, [])
-
-  const resetPassword = useCallback(async (email: string) => {
-    if (!supabase) throw new Error('Supabase is not configured')
-    const redirectTo = `${window.location.origin}/`
-    const { error } = await supabase.auth.resetPasswordForEmail(email, {
-      redirectTo,
-    })
     if (error) throw error
   }, [])
 
@@ -76,11 +125,29 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       loading,
       signIn,
       signUp,
+      verifySignupOtp,
+      resendSignupOtp,
+      requestPasswordReset,
+      verifyRecoveryOtp,
+      resendRecoveryOtp,
+      updatePassword,
       signOut,
-      resetPassword,
       updateDisplayName,
     }),
-    [session, loading, signIn, signUp, signOut, resetPassword, updateDisplayName],
+    [
+      session,
+      loading,
+      signIn,
+      signUp,
+      verifySignupOtp,
+      resendSignupOtp,
+      requestPasswordReset,
+      verifyRecoveryOtp,
+      resendRecoveryOtp,
+      updatePassword,
+      signOut,
+      updateDisplayName,
+    ],
   )
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>

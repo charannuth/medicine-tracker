@@ -26,13 +26,35 @@ This creates `medications` and `dose_logs` tables plus Row Level Security (each 
 
 1. Go to **Authentication** → **Providers** → **Email**.
 2. Ensure Email is enabled.
+3. Turn **on** **Confirm email** (required for sign-up verification codes).
 
-### Optional: skip email confirmation (easier for you + your sister testing)
+### Email verification codes (sign up + forgot password)
 
-1. **Authentication** → **Providers** → **Email**.
-2. Turn off **Confirm email** (wording may vary by Supabase version).
+The app emails an **8-digit code** for new accounts and for password reset (Supabase `{{ .Token }}`). Supabase must include that token in the email body (not only a magic link).
 
-If confirmation stays on, new users must click the link in their inbox before signing in.
+1. **Authentication** → **Email Templates**.
+2. Edit **Confirm signup** — include the code, for example:
+
+   ```text
+   Your Dr. Dose verification code is: {{ .Token }}
+   ```
+
+   Remove or de-emphasize the confirmation link if you only want in-app code entry.
+
+3. Edit **Reset password** — same pattern:
+
+   ```text
+   Your password reset code is: {{ .Token }}
+   ```
+
+4. **Authentication** → **URL configuration** — add your app URLs (local + production), e.g.  
+   `http://localhost:5173/**` and your production URL from Vercel → Domains, e.g. `https://medicine-tracker-one-eta.vercel.app/**` (add `/**`)
+
+**Sign in** uses email + password only (no code). **Forgot password** uses the same code flow as sign up.
+
+### Do not disable confirm email
+
+If **Confirm email** is off, new users skip verification and sign in immediately without a code.
 
 ## 4. Add API keys to the app
 

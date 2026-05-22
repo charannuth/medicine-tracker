@@ -5,7 +5,7 @@ export function HelpPage() {
     <main className="page">
       <header className="page-header">
         <h2>Help & safety</h2>
-        <p className="page-subtitle">How to use Medicine Tracker</p>
+        <p className="page-subtitle">How to use Dr. Dose</p>
       </header>
 
       <section className="help-section">
@@ -68,7 +68,7 @@ export function HelpPage() {
       <section className="help-section help-warning">
         <h3>Medical disclaimer</h3>
         <p>
-          Medicine Tracker is for personal organization only. It does not provide medical
+          Dr. Dose is for personal organization only. It does not provide medical
           advice. Always follow instructions from your doctor or pharmacist. Call
           emergency services for urgent medical problems.
         </p>

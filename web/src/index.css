@@ -15,6 +15,10 @@
   --radius-sm: 8px;
   --shadow: 0 1px 3px rgba(15, 23, 42, 0.06);
   --shadow-lg: 0 10px 40px rgba(15, 23, 42, 0.1);
+  --auth-input-border: #60a5fa;
+  --auth-input-glow: rgba(59, 130, 246, 0.22);
+  --auth-input-glow-strong: rgba(59, 130, 246, 0.38);
+  --auth-input-bg: #ffffff;
 
   font-family:
     'Inter',
@@ -75,4 +79,8 @@ button {
   --warning: #fbbf24;
   --shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
   --shadow-lg: 0 10px 40px rgba(0, 0, 0, 0.45);
+  --auth-input-border: #38bdf8;
+  --auth-input-glow: rgba(56, 189, 248, 0.2);
+  --auth-input-glow-strong: rgba(56, 189, 248, 0.35);
+  --auth-input-bg: #0f172a;
 }

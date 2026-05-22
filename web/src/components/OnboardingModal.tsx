@@ -30,7 +30,7 @@ export function OnboardingModal({
         aria-labelledby="onboarding-title"
         onClick={(e) => e.stopPropagation()}
       >
-        <h2 id="onboarding-title">Welcome to Medicine Tracker</h2>
+        <h2 id="onboarding-title">Welcome to Dr. Dose</h2>
         <ol className="onboarding-steps">
           <li>Add your medications with dose times (12-hour + AM/PM).</li>
           <li>On <strong>Today</strong>, mark each dose when you take it.</li>

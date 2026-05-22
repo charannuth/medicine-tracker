@@ -27,7 +27,7 @@ export function notifyDoseDue(medicationName: string, timeLabel: string): void {
   if (notifiedToday.has(key)) return
   notifiedToday.add(key)
 
-  new Notification('Medicine Tracker', {
+  new Notification('Dr. Dose', {
     body: `Time to take ${medicationName} (${timeLabel})`,
     tag: key,
   })

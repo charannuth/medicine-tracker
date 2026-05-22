@@ -355,8 +355,7 @@ export function MedicationForm({
         return (
           <div className="med-wizard-panel-inner">
             <p className="field-hint">
-              Search by brand (Lexapro, Tylenol) or generic name — pick a suggestion or
-              type your own.
+              Type a medication name — pick a suggestion or enter your own.
             </p>
             <label>
               Name *

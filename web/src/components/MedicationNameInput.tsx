@@ -80,7 +80,7 @@ export function MedicationNameInput({
           window.setTimeout(() => setOpen(false), 150)
         }}
         onKeyDown={handleKeyDown}
-        placeholder="e.g. Lexapro, Lipitor, lisinopril"
+        placeholder="e.g. Tylenol, Albuterol"
         autoComplete="off"
         aria-autocomplete="list"
         aria-controls={showList ? listId : undefined}
@@ -93,7 +93,7 @@ export function MedicationNameInput({
             ? 'Searching RxNorm (NIH drug names)…'
             : rxnormFailed
               ? 'Showing common names only — RxNorm search unavailable.'
-              : 'Brand names (Lexapro, Tylenol) and RxNorm matches appear as you type.'}
+              : 'Suggestions appear as you type.'}
         </p>
       )}
       {showList && (

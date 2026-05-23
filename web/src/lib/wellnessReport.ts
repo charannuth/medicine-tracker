@@ -3,10 +3,13 @@ import type { WellnessProfileInput } from './wellness'
 import {
   formatWellnessLogSummary,
   isWellnessLogFilled,
+  lastNDates,
   logFromRow,
   type WellnessLog,
 } from './wellness'
-import { formatComparisonLine, type WeekMetricComparison } from './wellnessTrends'
+import { formatComparisonLine, compareWeekMetrics } from './wellnessTrends'
+import { todayLocalDate } from './dates'
+import type { MedBriefingEntry } from '../hooks/useWellnessMedBriefings'
 
 export type ActiveMedicationSummary = {
   name: string
@@ -21,8 +24,35 @@ export type WellnessReportData = {
   medications: ActiveMedicationSummary[]
   logs: WellnessLog[]
   logDates: string[]
-  weekComparisons: WeekMetricComparison[]
+  weekComparisons: ReturnType<typeof compareWeekMetrics>
   medReviews: { med: ActiveMedicationSummary; review: MedicationSafetyReview }[]
+}
+
+export function createWellnessReportData(input: {
+  userEmail: string | undefined
+  profile: WellnessProfileInput
+  medications: ActiveMedicationSummary[]
+  reportLogs: WellnessLog[]
+  briefingEntries: MedBriefingEntry[]
+}): WellnessReportData {
+  const today = todayLocalDate()
+  const recentWeek = lastNDates(7, today)
+  const priorWeek = lastNDates(14, today).slice(7, 14)
+  const logDates = lastNDates(14, today)
+
+  return {
+    generatedAt: new Date().toLocaleString(),
+    userEmail: input.userEmail,
+    profile: input.profile,
+    medications: input.medications,
+    logs: input.reportLogs,
+    logDates,
+    weekComparisons: compareWeekMetrics(recentWeek, priorWeek, input.reportLogs),
+    medReviews: input.briefingEntries.map((e) => ({
+      med: e.med,
+      review: e.review,
+    })),
+  }
 }
 
 function formatReportDate(dateStr: string): string {
@@ -52,11 +82,11 @@ export function buildWellnessReportHtml(data: WellnessReportData): string {
       if (!row || !isWellnessLogFilled(logFromRow(row))) {
         return `<tr><td>${escapeHtml(formatReportDate(date))}</td><td colspan="2"><em>No log</em></td></tr>`
       }
-      const input = logFromRow(row)
+      const logInput = logFromRow(row)
       return `<tr>
         <td>${escapeHtml(formatReportDate(date))}</td>
-        <td>${escapeHtml(formatWellnessLogSummary(input))}</td>
-        <td>${escapeHtml(input.notes.trim() || '—')}</td>
+        <td>${escapeHtml(formatWellnessLogSummary(logInput))}</td>
+        <td>${escapeHtml(logInput.notes.trim() || '—')}</td>
       </tr>`
     })
     .join('')
@@ -164,17 +194,4 @@ export function buildWellnessReportHtml(data: WellnessReportData): string {
   </div>
 </body>
 </html>`
-}
-
-export function openWellnessPrintReport(data: WellnessReportData): boolean {
-  const html = buildWellnessReportHtml(data)
-  const win = window.open('', '_blank', 'noopener,noreferrer')
-  if (!win) return false
-  win.document.write(html)
-  win.document.close()
-  win.focus()
-  window.setTimeout(() => {
-    win.print()
-  }, 400)
-  return true
 }

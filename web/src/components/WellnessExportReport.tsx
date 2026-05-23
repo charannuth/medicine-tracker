@@ -1,14 +1,9 @@
 import { useState } from 'react'
-import { compareWeekMetrics } from '../lib/wellnessTrends'
-import {
-  openWellnessPrintReport,
-  type ActiveMedicationSummary,
-  type WellnessReportData,
-} from '../lib/wellnessReport'
-import { lastNDates } from '../lib/wellness'
-import { todayLocalDate } from '../lib/dates'
+import { createWellnessReportData } from '../lib/wellnessReport'
+import type { ActiveMedicationSummary } from '../lib/wellnessReport'
 import type { WellnessLog, WellnessProfileInput } from '../lib/wellness'
 import type { MedBriefingEntry } from '../hooks/useWellnessMedBriefings'
+import { WellnessReportModal } from './WellnessReportModal'
 
 type WellnessExportReportProps = {
   userEmail: string | undefined
@@ -25,56 +20,41 @@ export function WellnessExportReport({
   reportLogs,
   briefingEntries,
 }: WellnessExportReportProps) {
-  const [message, setMessage] = useState<string | null>(null)
-  const [error, setError] = useState<string | null>(null)
+  const [reportOpen, setReportOpen] = useState(false)
 
-  function handleExport() {
-    setMessage(null)
-    setError(null)
-
-    const today = todayLocalDate()
-    const recentWeek = lastNDates(7, today)
-    const priorWeek = lastNDates(14, today).slice(7, 14)
-    const logDates = lastNDates(14, today)
-
-    const data: WellnessReportData = {
-      generatedAt: new Date().toLocaleString(),
-      userEmail,
-      profile,
-      medications,
-      logs: reportLogs,
-      logDates,
-      weekComparisons: compareWeekMetrics(recentWeek, priorWeek, reportLogs),
-      medReviews: briefingEntries.map((e) => ({
-        med: e.med,
-        review: e.review,
-      })),
-    }
-
-    const ok = openWellnessPrintReport(data)
-    if (ok) {
-      setMessage(
-        'Report opened — use Print → Save as PDF, or print for your appointment.',
-      )
-    } else {
-      setError('Allow pop-ups for this site, then try again.')
-    }
-  }
+  const reportData = createWellnessReportData({
+    userEmail,
+    profile,
+    medications,
+    reportLogs,
+    briefingEntries,
+  })
 
   return (
-    <section className="wellness-card wellness-export">
-      <h3 className="wellness-section-title">Report for your doctor</h3>
-      <p className="field-hint">
-        Opens a printable summary of your baseline, last 14 days of logs, week-over-week
-        notes, and medication briefings. Save as PDF from the print dialog.
-      </p>
+    <>
+      <section className="wellness-card wellness-export">
+        <h3 className="wellness-section-title">Report for your doctor</h3>
+        <p className="field-hint">
+          Opens a full-screen preview of your baseline, last 14 days of logs,
+          week-over-week notes, and medication briefings. Then use Print → Save as
+          PDF — no pop-up required.
+        </p>
 
-      {error && <p className="banner banner-error">{error}</p>}
-      {message && <p className="banner banner-success-style">{message}</p>}
+        <button
+          type="button"
+          className="btn btn-primary"
+          onClick={() => setReportOpen(true)}
+        >
+          View printable report
+        </button>
+      </section>
 
-      <button type="button" className="btn btn-primary" onClick={handleExport}>
-        Open printable report
-      </button>
-    </section>
+      {reportOpen && (
+        <WellnessReportModal
+          data={reportData}
+          onClose={() => setReportOpen(false)}
+        />
+      )}
+    </>
   )
 }

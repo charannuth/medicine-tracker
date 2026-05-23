@@ -2464,3 +2464,61 @@
 .wellness-export .btn {
   margin-top: 0.25rem;
 }
+
+.wellness-report-backdrop {
+  z-index: 200;
+  align-items: stretch;
+  padding: 0;
+}
+
+.wellness-report-modal {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  max-width: none;
+  height: 100%;
+  max-height: none;
+  margin: 0;
+  border-radius: 0;
+  background: var(--surface);
+  border: none;
+  padding: 0;
+}
+
+.wellness-report-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: calc(0.75rem + env(safe-area-inset-top, 0px)) 1rem 0.5rem;
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+}
+
+.wellness-report-toolbar h2 {
+  margin: 0;
+  font-size: 1.1rem;
+}
+
+.wellness-report-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.wellness-report-toolbar-hint {
+  margin: 0;
+  padding: 0 1rem 0.5rem;
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  flex-shrink: 0;
+}
+
+.wellness-report-frame {
+  flex: 1;
+  width: 100%;
+  border: none;
+  background: #fff;
+  min-height: 0;
+}

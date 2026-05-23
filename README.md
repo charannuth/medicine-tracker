@@ -9,6 +9,8 @@ A personal web app to manage medications, log daily doses, track adherence strea
 Newest first. Each line is added from the commit subject when you commit (with hooks enabled).
 
 <!-- DEVLOG:START -->
+- **2026-05-23** (`f94e121`) — Add README development log with auto-update git hooks.
+
 - **2026-05-23** (`17c3ebb`) — Update README for Dr. Dose rebrand and current features.
 
 - **2026-05-23** (`e2d0257`) — Add in-app reminder banner and service worker notifications.

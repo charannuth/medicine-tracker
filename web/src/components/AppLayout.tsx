@@ -3,6 +3,7 @@ import { Outlet, useLocation } from 'react-router-dom'
 import { useAuth } from '../hooks/useAuth'
 import { useReminderPoller } from '../hooks/useReminderPoller'
 import { Header } from './Header'
+import { InAppReminderToast } from './InAppReminderToast'
 
 export type LayoutOutletContext = {
   registerAddHandler: (handler: (() => void) | null) => void
@@ -25,6 +26,7 @@ export function AppLayout() {
     <div className="app-shell">
       <Header onAddClick={showAdd ? addHandler : undefined} />
       <Outlet context={{ registerAddHandler } satisfies LayoutOutletContext} />
+      <InAppReminderToast />
     </div>
   )
 }

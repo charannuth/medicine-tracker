@@ -17,13 +17,35 @@ export function nowInTimezone(timeZone?: string): Date {
 }
 
 export function currentMinutesSinceMidnight(timeZone?: string): number {
-  const now = nowInTimezone(timeZone)
-  return now.getHours() * 60 + now.getMinutes()
+  const tz = timeZone ?? getTimezone()
+  const parts = new Intl.DateTimeFormat('en-US', {
+    timeZone: tz,
+    hour: 'numeric',
+    minute: 'numeric',
+    hourCycle: 'h23',
+  }).formatToParts(new Date())
+  const hour = Number(parts.find((p) => p.type === 'hour')?.value ?? 0)
+  const minute = Number(parts.find((p) => p.type === 'minute')?.value ?? 0)
+  return hour * 60 + minute
 }
 
+/** 24h schedule value → minutes since midnight (NaN if invalid). */
 export function scheduleTimeToMinutes(time: string): number {
-  const [h, m] = time.split(':').map(Number)
-  return h * 60 + m
+  const match = /^(\d{1,2}):(\d{2})$/.exec(time.trim())
+  if (!match) return Number.NaN
+  const hour = Number(match[1])
+  const minute = Number(match[2])
+  if (hour > 23 || minute > 59) return Number.NaN
+  return hour * 60 + minute
+}
+
+export function formatTimeInTimezone(timeZone?: string): string {
+  const tz = timeZone ?? getTimezone()
+  return new Date().toLocaleTimeString(undefined, {
+    timeZone: tz,
+    hour: 'numeric',
+    minute: '2-digit',
+  })
 }
 
 export type Meridiem = 'AM' | 'PM'

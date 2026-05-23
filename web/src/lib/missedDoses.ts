@@ -41,7 +41,8 @@ function findMissedForDate(
       if (logged.has(`${med.id}|${time}`)) continue
 
       if (options.onlyPastTimesToday && date === today) {
-        if (scheduleTimeToMinutes(time) > nowMins) continue
+        const slotMins = scheduleTimeToMinutes(time)
+        if (!Number.isFinite(slotMins) || slotMins > nowMins) continue
       }
 
       missed.push({

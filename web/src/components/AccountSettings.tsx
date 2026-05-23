@@ -1,8 +1,12 @@
 import { useEffect, useState } from 'react'
 import { useAuth } from '../hooks/useAuth'
+import { getLastReminderCheck, runReminderCheck } from '../lib/reminders'
 import {
   canUseNotifications,
+  getNotificationPermission,
+  isNotificationSupported,
   requestNotificationPermission,
+  sendTestNotification,
 } from '../lib/notifications'
 import {
   getReminders,
@@ -34,6 +38,9 @@ export function AccountSettings() {
   const [message, setMessage] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [busy, setBusy] = useState(false)
+  const [reminderDebug, setReminderDebug] = useState(
+    () => getLastReminderCheck(),
+  )
 
   async function saveProfile() {
     setBusy(true)
@@ -61,17 +68,93 @@ export function AccountSettings() {
   }
 
   async function toggleReminders(enabled: boolean) {
+    setError(null)
+    setMessage(null)
     if (enabled) {
+      if (!isNotificationSupported()) {
+        setError(
+          'This browser does not support reminders. Try Chrome or Edge on desktop, or the mobile app later.',
+        )
+        return
+      }
       const ok = await requestNotificationPermission()
       if (!ok) {
-        setError('Enable notifications in your browser to use reminders.')
+        setError(
+          'Notifications are blocked. Click the lock icon in the address bar → Notifications → Allow, then try again.',
+        )
         return
       }
     }
     setRemindersOn(enabled)
     setReminders({ enabled })
-    setMessage(enabled ? 'Reminders enabled while app is open.' : 'Reminders off.')
+    if (enabled && user?.id) {
+      const result = await runReminderCheck(user.id)
+      setReminderDebug(result)
+      setMessage(result.summary)
+    } else if (enabled) {
+      setMessage('Reminders on. Keep this tab open; alerts fire after each scheduled dose time.')
+    } else {
+      setMessage('Reminders off.')
+      setReminderDebug(null)
+    }
   }
+
+  async function handleCheckRemindersNow() {
+    if (!user?.id) return
+    setError(null)
+    setMessage(null)
+    try {
+      const result = await runReminderCheck(user.id)
+      setReminderDebug(result)
+      setMessage(result.summary)
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Reminder check failed')
+    }
+  }
+
+  async function handleTestNotification() {
+    setError(null)
+    setMessage(null)
+    if (!isNotificationSupported()) {
+      setError('Notifications are not supported in this browser.')
+      return
+    }
+    if (Notification.permission === 'denied') {
+      setError('Notifications are blocked for this site. Allow them in browser settings.')
+      return
+    }
+    if (Notification.permission !== 'granted') {
+      const ok = await requestNotificationPermission()
+      if (!ok) {
+        setError('Allow notifications when prompted, then tap Test again.')
+        return
+      }
+    }
+    const result = await sendTestNotification()
+    if (result.inAppShown) {
+      setMessage(
+        result.systemShown
+          ? 'Test sent — look for a banner at the bottom and/or Notification Center (Mac top right).'
+          : 'In-app banner shown at the bottom. Mac Chrome often hides system pop-ups; use the banner or Notification Center.',
+      )
+      if (user?.id && remindersOn) {
+        const check = await runReminderCheck(user.id)
+        setReminderDebug(check)
+      }
+    } else {
+      setError(result.error ?? 'Could not show test notification.')
+    }
+  }
+
+  const permission = getNotificationPermission()
+  const permissionHint =
+    permission === 'unsupported'
+      ? 'Not supported in this browser.'
+      : permission === 'granted'
+        ? 'Allowed'
+        : permission === 'denied'
+          ? 'Blocked — change in browser site settings'
+          : 'Not asked yet — turn on reminders or tap Test'
 
   const tzOptions = Intl.supportedValuesOf('timeZone')
 
@@ -135,6 +218,62 @@ export function AccountSettings() {
             )}
           </span>
         </label>
+
+        <p className="field-hint account-notification-status">
+          Notification permission: <strong>{permissionHint}</strong>
+        </p>
+
+        <button
+          type="button"
+          className="btn btn-secondary btn-block"
+          onClick={() => void handleTestNotification()}
+        >
+          Send test notification
+        </button>
+
+        {remindersOn && (
+          <button
+            type="button"
+            className="btn btn-secondary btn-block"
+            onClick={() => void handleCheckRemindersNow()}
+          >
+            Check dose reminders now
+          </button>
+        )}
+
+        {reminderDebug && remindersOn && (
+          <div className="reminder-debug">
+            <p>
+              App clock: <strong>{reminderDebug.nowLabel}</strong> ({reminderDebug.timezone}
+              ) · Today: {reminderDebug.today}
+            </p>
+            {reminderDebug.slots.length === 0 ? (
+              <p className="field-hint">No dose slots for today.</p>
+            ) : (
+              <ul>
+                {reminderDebug.slots.map((slot) => (
+                  <li key={`${slot.medicationName}-${slot.scheduleTime}`}>
+                    <strong>{slot.medicationName}</strong> {slot.scheduleLabel}
+                    {slot.taken
+                      ? ' — taken'
+                      : slot.notifiedNow
+                        ? ' — reminder sent'
+                        : slot.skipReason
+                          ? ` — ${slot.skipReason}`
+                          : ''}
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
+        )}
+
+        <p className="field-hint">
+          Dose reminders fire after each scheduled time passes (if not marked taken). On Mac,
+          switch to another app or check Notification Center if no banner appears. Start with{' '}
+          <strong>Send test notification</strong> — if that fails, fix Chrome/macOS permissions
+          first.
+        </p>
 
         {error && <p className="form-error">{error}</p>}
         {message && <p className="form-success">{message}</p>}

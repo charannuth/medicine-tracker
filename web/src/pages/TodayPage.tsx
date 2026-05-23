@@ -21,6 +21,7 @@ import type {
 import { InteractionAlert } from '../components/InteractionAlert'
 import { MedicationCard } from '../components/MedicationCard'
 import { MedicationForm } from '../components/MedicationForm'
+import { DueNowBanner } from '../components/DueNowBanner'
 import { MissedDosesBanner } from '../components/MissedDosesBanner'
 import { RefillBanner } from '../components/RefillBanner'
 import { StreakSnippet } from '../components/StreakSnippet'
@@ -201,6 +202,7 @@ export function TodayPage() {
         </section>
 
         <RefillBanner alerts={refillAlerts} />
+        <DueNowBanner items={missedDoses} />
         {!missedBannerDismissed && (
           <MissedDosesBanner
             items={missedDoses}

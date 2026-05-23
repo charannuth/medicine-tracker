@@ -411,6 +411,69 @@
   padding-right: 2rem;
 }
 
+.banner-due-now {
+  background: #ecfeff;
+  color: #0e7490;
+  border: 1px solid #67e8f9;
+}
+
+[data-theme='dark'] .banner-due-now {
+  background: #083344;
+  color: #a5f3fc;
+  border-color: #0e7490;
+}
+
+.in-app-reminder-toast {
+  position: fixed;
+  z-index: 300;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  padding: 0.75rem 1rem calc(0.75rem + env(safe-area-inset-bottom, 0px));
+  pointer-events: none;
+}
+
+.in-app-reminder-toast-inner {
+  position: relative;
+  max-width: 420px;
+  margin: 0 auto;
+  padding: 1rem 2.25rem 1rem 1rem;
+  background: var(--surface);
+  border: 2px solid var(--accent);
+  border-radius: var(--radius);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.25);
+  pointer-events: auto;
+}
+
+.in-app-reminder-title {
+  margin: 0;
+  font-weight: 600;
+  font-size: 1rem;
+}
+
+.in-app-reminder-body {
+  margin: 0.35rem 0 0;
+  font-size: 0.95rem;
+}
+
+.in-app-reminder-hint {
+  margin: 0.5rem 0 0;
+  font-size: 0.78rem;
+  color: var(--text-muted);
+}
+
+.in-app-reminder-dismiss {
+  position: absolute;
+  top: 0.5rem;
+  right: 0.5rem;
+  border: none;
+  background: transparent;
+  font-size: 1.25rem;
+  line-height: 1;
+  cursor: pointer;
+  color: var(--text-muted);
+}
+
 .banner-dismiss {
   position: absolute;
   top: 0.45rem;
@@ -2463,6 +2526,24 @@
 
 .wellness-export .btn {
   margin-top: 0.25rem;
+}
+
+.reminder-debug {
+  margin-top: 0.75rem;
+  padding: 0.75rem 1rem;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  font-size: 0.85rem;
+}
+
+.reminder-debug ul {
+  margin: 0.5rem 0 0;
+  padding-left: 1.2rem;
+}
+
+.reminder-debug li {
+  margin-bottom: 0.35rem;
 }
 
 .wellness-report-backdrop {

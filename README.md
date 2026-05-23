@@ -1,10 +1,10 @@
-# Medicine Tracker
+# Dr. Dose
 
 A personal web app to manage medications, log daily doses, track adherence streaks, and check for known drug interactions. Built for private use (you and family) with cloud sync via Supabase.
 
 ## Vision
 
-Medicine Tracker aims to be the central hub between patients, pharmacies, and healthcare providers — making it simple to know what to take, when to take it, and when to refill, while reducing accidental double-dosing.
+Dr. Dose aims to be the central hub between patients, pharmacies, and healthcare providers — making it simple to know what to take, when to take it, and when to refill, while reducing accidental double-dosing.
 
 ## Current status
 
@@ -26,8 +26,8 @@ Medicine Tracker aims to be the central hub between patients, pharmacies, and he
 
 | Feature | Description |
 |---------|-------------|
-| **Email sign up / sign in** | Supabase email auth; each user only sees their own data (Row Level Security). |
-| **Forgot password** | Reset link sent by email; configure redirect URLs in Supabase for local and production. |
+| **Email sign up / sign in** | Sign up with email + password, then **8-digit email verification**; sign in is password-only. |
+| **Forgot password** | Email verification code → set new password (same OTP flow as sign up). |
 | **Sign out** | From profile menu or Account page. |
 | **Config guard** | App shows setup instructions if `VITE_SUPABASE_URL` / `VITE_SUPABASE_ANON_KEY` are missing. |
 
@@ -46,13 +46,17 @@ The main dashboard for logging doses.
 | **Streak snippet** | Short line linking current streak status to Account. |
 | **Refill banner** | Warns when any medication has ≤ 7 pills remaining. |
 | **Missed doses banner** | Shows yesterday’s missed slots and today’s past-due slots (by schedule time). |
+| **Due now banner** | Always shows today’s past-due doses (not dismissable). |
+| **Daily wellness check-in** | Log sleep, energy, symptoms at the bottom of Today. |
 | **Interaction alert** | If active meds have known interaction warnings, a banner links to Drug safety check. |
 
 ### Medications (form & list)
 
 | Feature | Description |
 |---------|-------------|
-| **Name with autocomplete** | Type-ahead suggestions for ~90 common generic drugs; selecting one can pre-fill dose hints. |
+| **Name with autocomplete** | Local brand list (~90 names) + live **RxNorm** search; brands prioritized with generic shown underneath. |
+| **Medication type** | Optional route/form (e.g. inhaler, eye drops) for non-pill schedules. |
+| **Safety panel on add** | Side effects, alcohol/cannabis/tobacco notes, and interaction preview while adding a med. |
 | **Dose amount** | Separate **pills/tablets** and **mg** fields; at least one required. |
 | **Dose times** | One row per daily dose — 12-hour time + AM/PM; add/remove rows; duplicate times are normalized. |
 | **Schedule dates** | **Start date** (required) and optional **end date** for short courses (e.g. antibiotics). |
@@ -102,8 +106,24 @@ Educational tool — **not medical advice**.
 | **Display name** | Saved to Supabase user metadata. |
 | **Theme** | Light or dark mode; toggle in header (moon/sun) or Account dropdown; follows system preference on first visit. |
 | **Timezone** | “Today”, streaks, and missed-dose logic use the selected IANA timezone. |
-| **Browser reminders** | Optional notifications while the app tab is open, at scheduled dose times (requires permission). |
+| **Browser reminders** | Optional dose alerts while the tab is open (permission required). |
+| **In-app reminder banner** | Bottom banner when a reminder fires — works even when macOS hides system pop-ups. |
+| **Reminder diagnostics** | Test notification + “Check dose reminders now” with per-slot status on Account. |
 | **Sign-in details** | Email and account creation date. |
+
+### Wellness
+
+Track daily experiences to **discuss with your clinician** — not a diagnosis tool.
+
+| Feature | Description |
+|---------|-------------|
+| **Baseline profile** | Usual sleep, eating notes, substance use frequency, symptoms to track. |
+| **Daily log** | Sleep hours/quality, energy, appetite, exercise, symptom chips, notes. |
+| **Today check-in** | Same log as Wellness, quick entry at the bottom of Today. |
+| **7-day history** | Tap any day to view or edit logs. |
+| **Trends** | Bar charts (sleep, energy) + week-over-week comparison text. |
+| **Medication briefings** | Educational side effects and substance notes per active med. |
+| **Doctor report** | Printable summary (baseline, 14 days of logs, briefings) — Save as PDF from print dialog. |
 
 ### Onboarding & help
 
@@ -116,7 +136,7 @@ Educational tool — **not medical advice**.
 
 | Feature | Description |
 |---------|-------------|
-| **Profile menu** | Avatar dropdown: Today, History, My account, All medications, Drug safety check, Help, Sign out. |
+| **Profile menu** | Avatar dropdown: Today, History, Wellness, My account, All medications, Drug safety check, Help, Sign out. |
 | **Responsive layout** | Centered column, mobile-friendly cards and forms. |
 | **Account page styling** | Purple gradient theme on streak and settings cards (distinct from teal “Today” accents). |
 
@@ -147,12 +167,18 @@ Educational tool — **not medical advice**.
 
 **Unique constraint:** `(medication_id, taken_on, schedule_time)` — prevents duplicate logs for the same slot.
 
+### `wellness_profiles` / `wellness_logs`
+
+Per-user baseline (sleep habits, substance use, symptom focus) and one **daily log per calendar day** (sleep, energy, appetite, exercise, symptoms, notes). See migration `006_wellness.sql`.
+
 ### Migrations (run in order)
 
 1. `supabase/schema.sql` — initial schema (or baseline for new projects)
 2. `supabase/migrations/002_dose_per_schedule_time.sql` — per–dose-time logs
 3. `supabase/migrations/003_split_dose_pills_mg.sql` — `dose_pills` / `dose_mg` (replaces `dosage`)
 4. `supabase/migrations/004_medication_dates.sql` — `start_date` / `end_date`
+5. `supabase/migrations/005_medication_type.sql` — route/form fields
+6. `supabase/migrations/006_wellness.sql` — wellness profile + daily logs
 
 See [docs/SUPABASE_SETUP.md](docs/SUPABASE_SETUP.md) for project setup.
 
@@ -161,13 +187,14 @@ See [docs/SUPABASE_SETUP.md](docs/SUPABASE_SETUP.md) for project setup.
 ## Project structure
 
 ```
-medicine-tracker/
+dr.dose/
 ├── web/                          # React + Vite app
 │   ├── src/
-│   │   ├── pages/                # Today, History, Account, Medications, Interactions, Help
-│   │   ├── components/           # UI (forms, cards, banners, streak, auth)
-│   │   ├── lib/                  # medications, streaks, history, interactions, dates, settings
-│   │   └── data/                 # drug-interactions.json (curated pairs)
+│   │   ├── pages/                # Today, History, Wellness, Account, Medications, Interactions, Help
+│   │   ├── components/           # UI (forms, cards, banners, streak, auth, wellness)
+│   │   ├── lib/                  # medications, streaks, wellness, interactions, notifications
+│   │   └── data/                 # drug-interactions.json, drug-safety.json, brand-medications.json
+│   ├── public/sw.js              # Service worker for more reliable browser notifications
 │   └── .env                      # Supabase keys (not committed)
 ├── supabase/
 │   ├── schema.sql
@@ -189,7 +216,7 @@ medicine-tracker/
 ### Setup
 
 1. **Database & auth** — [docs/SUPABASE_SETUP.md](docs/SUPABASE_SETUP.md)
-2. **Run migrations** — SQL Editor, migrations `002` → `004` (see above)
+2. **Run migrations** — SQL Editor, migrations `002` → `006` if not using a fresh `schema.sql` only (see above)
 3. **Environment:**
 
 ```bash
@@ -247,7 +274,9 @@ npm run preview
 
 ## Roadmap
 
-Planned next steps: mobile apps, push notifications when app is closed, larger interaction database, pharmacy integrations. See [docs/ROADMAP.md](docs/ROADMAP.md).
+Planned next steps: UI polish, notifications when the app is closed (mobile), native apps via Capacitor, larger interaction database, pharmacy integrations. See [docs/ROADMAP.md](docs/ROADMAP.md).
+
+**Live demo:** Deploy to Vercel with env vars from Supabase; add production URL to Supabase Auth redirect allowlist.
 
 ---
 
@@ -265,4 +294,4 @@ See [SECURITY.md](SECURITY.md). Never commit `web/.env` or the Supabase **servic
 
 ## Medical disclaimer
 
-Medicine Tracker is for **personal organization only**. It does not provide medical advice, diagnosis, or treatment. Drug interaction information is incomplete and may be outdated. Always follow your prescriber and pharmacist. Call emergency services for urgent medical problems.
+Dr. Dose is for **personal organization only**. It does not provide medical advice, diagnosis, or treatment. Drug interaction information is incomplete and may be outdated. Always follow your prescriber and pharmacist. Call emergency services for urgent medical problems.

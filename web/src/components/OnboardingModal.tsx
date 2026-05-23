@@ -35,8 +35,9 @@ export function OnboardingModal({
           <li>Add your medications with dose times (12-hour + AM/PM).</li>
           <li>On <strong>Today</strong>, mark each dose when you take it.</li>
           <li>Build a streak by logging every scheduled dose each day.</li>
-          <li>Check <Link to="/history" onClick={finish}>History</Link> and your{' '}
-            <Link to="/account" onClick={finish}>Account</Link> for streaks and settings.
+          <li>
+            <Link to="/history" onClick={finish}>History</Link> for your calendar and daily
+            notes; <Link to="/streaks" onClick={finish}>Streaks</Link> for tulip badges.
           </li>
         </ol>
         <div className="form-actions">

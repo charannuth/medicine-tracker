@@ -8,6 +8,8 @@ import {
 type StreakBadgesProps = {
   longestStreak: number
   compact?: boolean
+  /** Full badge catalog with unlock requirements (Streaks page). */
+  catalog?: boolean
 }
 
 function BadgeIcon({ earned }: { earned: boolean }) {
@@ -48,26 +50,79 @@ function BadgeIcon({ earned }: { earned: boolean }) {
 function BadgeTile({
   badge,
   earned,
+  catalog,
 }: {
   badge: StreakBadge
   earned: boolean
+  catalog?: boolean
 }) {
+  const dayLabel =
+    badge.minDays === 1 ? '1 day' : `${badge.minDays} days`
+
   return (
     <li
-      className={`streak-badge-tile${earned ? ' streak-badge-earned' : ' streak-badge-locked'}`}
+      className={`streak-badge-tile${earned ? ' streak-badge-earned' : ' streak-badge-locked'}${catalog ? ' streak-badge-tile-catalog' : ''}`}
       title={badge.description}
     >
       <BadgeIcon earned={earned} />
-      <span className="streak-badge-days">{badge.minDays}d</span>
-      <span className="streak-badge-label">{badge.label}</span>
+      {catalog ? (
+        <>
+          <span className="streak-badge-label">{badge.label}</span>
+          <span className="streak-badge-requirement">
+            {earned ? 'Unlocked' : `Unlock at ${dayLabel}`}
+          </span>
+          <span className="streak-badge-desc">{badge.description}</span>
+        </>
+      ) : (
+        <>
+          <span className="streak-badge-days">{badge.minDays}d</span>
+          <span className="streak-badge-label">{badge.label}</span>
+        </>
+      )}
     </li>
   )
 }
 
-export function StreakBadges({ longestStreak, compact = false }: StreakBadgesProps) {
+export function StreakBadges({
+  longestStreak,
+  compact = false,
+  catalog = false,
+}: StreakBadgesProps) {
   const earned = getEarnedStreakBadges(longestStreak)
   const earnedIds = new Set(earned.map((b) => b.id))
   const next = getNextStreakBadge(longestStreak)
+
+  if (catalog) {
+    return (
+      <section className="streak-badges streak-badges-catalog" aria-labelledby="streak-badges-heading">
+        <h3 id="streak-badges-heading" className="streak-badges-title">
+          Tulip badges
+        </h3>
+        <p className="field-hint streak-badges-hint">
+          Each badge unlocks when your <strong>longest streak</strong> reaches consecutive
+          perfect days (every scheduled dose logged).
+          {next && (
+            <>
+              {' '}
+              Next up: <strong>{next.label}</strong> at {next.minDays} day
+              {next.minDays === 1 ? '' : 's'}
+              {longestStreak > 0 && ` (${next.minDays - longestStreak} to go)`}.
+            </>
+          )}
+        </p>
+        <ul className="streak-badge-grid streak-badge-grid-catalog">
+          {STREAK_BADGES.map((badge) => (
+            <BadgeTile
+              key={badge.id}
+              badge={badge}
+              earned={earnedIds.has(badge.id)}
+              catalog
+            />
+          ))}
+        </ul>
+      </section>
+    )
+  }
 
   if (compact) {
     return (

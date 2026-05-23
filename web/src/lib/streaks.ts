@@ -6,6 +6,13 @@ import {
 } from './medicationDates'
 import type { DoseLog, Medication } from './types'
 
+export type StreakDayStatus = 'perfect' | 'partial' | 'missed' | 'none'
+
+export type StreakCalendarDay = {
+  date: string
+  status: StreakDayStatus
+}
+
 export type StreakStats = {
   currentStreak: number
   longestStreak: number
@@ -14,7 +21,10 @@ export type StreakStats = {
   todayComplete: boolean
   hasMedications: boolean
   last7Days: { date: string; perfect: boolean }[]
+  consistencyCalendar: StreakCalendarDay[]
 }
+
+export const STREAK_CALENDAR_DAYS = 42
 
 const LOOKBACK_DAYS = 365
 
@@ -47,6 +57,23 @@ function isPerfectDay(
     }
   }
   return true
+}
+
+function countTakenSlots(logsForDay: DoseLog[]): number {
+  return new Set(logsForDay.map((l) => `${l.medication_id}|${l.schedule_time}`)).size
+}
+
+function streakDayStatus(
+  medications: Medication[],
+  logsForDay: DoseLog[],
+  date: string,
+  today: string,
+): StreakDayStatus {
+  const expected = expectedDosesForActiveMedicationsOnDate(medications, date)
+  if (expected === 0) return 'none'
+  if (isPerfectDay(medications, logsForDay, date)) return 'perfect'
+  if (date === today) return 'partial'
+  return countTakenSlots(logsForDay) > 0 ? 'partial' : 'missed'
 }
 
 function computeCurrentStreak(
@@ -98,6 +125,9 @@ export async function fetchStreakStats(userId: string): Promise<StreakStats> {
     last7Days: lastNDays(7)
       .reverse()
       .map((date) => ({ date, perfect: false })),
+    consistencyCalendar: lastNDays(STREAK_CALENDAR_DAYS)
+      .reverse()
+      .map((date) => ({ date, status: 'none' as StreakDayStatus })),
   }
 
   if (!supabase) return empty
@@ -153,6 +183,13 @@ export async function fetchStreakStats(userId: string): Promise<StreakStats> {
     .reverse()
     .map((date) => ({ date, perfect: perfectDays.has(date) }))
 
+  const consistencyCalendar = lastNDays(STREAK_CALENDAR_DAYS)
+    .reverse()
+    .map((date) => ({
+      date,
+      status: streakDayStatus(medications, logsByDate.get(date) ?? [], date, today),
+    }))
+
   return {
     currentStreak,
     longestStreak: Math.max(longestStreak, currentStreak),
@@ -161,6 +198,7 @@ export async function fetchStreakStats(userId: string): Promise<StreakStats> {
     todayComplete,
     hasMedications,
     last7Days: last7,
+    consistencyCalendar,
   }
 }
 

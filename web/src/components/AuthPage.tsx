@@ -144,7 +144,9 @@ export function AuthPage() {
   return (
     <div className="auth-page">
       <div className="auth-card">
-        <h1>{title}</h1>
+        <h1 className={title === 'Dr. Dose' ? 'brand-logo-text' : undefined}>
+          {title}
+        </h1>
 
         {mode === 'signup-verify' && (
           <EmailOtpVerification

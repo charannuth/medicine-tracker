@@ -31,22 +31,28 @@ export function HelpPage() {
             schedule (e.g. a short antibiotic course).
           </li>
           <li>
-            <strong>Drug safety check</strong> — cross-reference active medications for
-            known interaction warnings (not a complete list — always ask a pharmacist).
+            <strong>Medical records</strong> — self-reported allergies, blood type, and
+            conditions (not certified clinical records). <strong>Drug safety check</strong>{' '}
+            — cross-reference medications and your allergy list (always ask a pharmacist).
           </li>
           <li>
-            <strong>My account</strong> — streaks, timezone, theme, reminders, and sign
-            out.
+            <strong>History</strong> — {42}-day calendar; tap a day for doses and wellness
+            notes. <strong>Streaks</strong> — current streak and tulip badge milestones.{' '}
+            <strong>My account</strong> — profile, timezone, theme, reminders, and sign out.
           </li>
         </ul>
       </section>
 
       <section className="help-section">
-        <h3>Streaks</h3>
+        <h3>Streaks &amp; History</h3>
         <p>
           A <strong>perfect day</strong> means you logged every scheduled dose that day.
-          Your current streak counts consecutive perfect days. Today still counts as
-          in progress until the day ends — missing doses after that breaks the streak.
+          Your current streak counts consecutive perfect days. Today still counts as in
+          progress until the day ends — missing doses after that breaks the streak. On{' '}
+          <strong>History</strong>, the color calendar shows perfect, partial, and missed
+          days; tap one to see each dose and your wellness check-in. On{' '}
+          <strong>Streaks</strong>, see tulip badges and how many consecutive perfect days
+          each one requires.
         </p>
       </section>
 

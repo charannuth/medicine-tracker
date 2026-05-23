@@ -15,6 +15,8 @@ import { HistoryPage } from './pages/HistoryPage'
 import { MedicationsPage } from './pages/MedicationsPage'
 import { InteractionsPage } from './pages/InteractionsPage'
 import { TodayPage } from './pages/TodayPage'
+import { MedicalRecordsPage } from './pages/MedicalRecordsPage'
+import { StreaksPage } from './pages/StreaksPage'
 import { WellnessPage } from './pages/WellnessPage'
 import './App.css'
 
@@ -76,8 +78,10 @@ function AuthenticatedRoutes({ user }: { user: User }) {
           <Route index element={<TodayPage />} />
           <Route path="history" element={<HistoryPage />} />
           <Route path="account" element={<AccountPage />} />
+          <Route path="streaks" element={<StreaksPage />} />
           <Route path="medications" element={<MedicationsPage />} />
           <Route path="interactions" element={<InteractionsPage />} />
+          <Route path="medical-records" element={<MedicalRecordsPage />} />
           <Route path="wellness" element={<WellnessPage />} />
           <Route path="help" element={<HelpPage />} />
           <Route path="*" element={<Navigate to="/" replace />} />

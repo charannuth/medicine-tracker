@@ -1,17 +1,15 @@
-import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { AccountSettings } from '../components/AccountSettings'
 import { ProfileStreakSummary } from '../components/ProfileStreakSummary'
 import { StreakBadges } from '../components/StreakBadges'
-import { StreakCard } from '../components/StreakCard'
 import { useAuth } from '../hooks/useAuth'
-import { fetchStreakStats, type StreakStats } from '../lib/streaks'
+import { useStreakStats } from '../hooks/useStreakStats'
+import { STREAK_CALENDAR_DAYS } from '../lib/streaks'
 
 export function AccountPage() {
   const { user, signOut } = useAuth()
-  const [streakStats, setStreakStats] = useState<StreakStats | null>(null)
-  const [streakLoading, setStreakLoading] = useState(true)
-  const [streakError, setStreakError] = useState<string | null>(null)
+  const { stats: streakStats, loading: streakLoading, error: streakError } =
+    useStreakStats(user?.id)
 
   const created = user?.created_at
     ? new Date(user.created_at).toLocaleDateString(undefined, {
@@ -21,36 +19,11 @@ export function AccountPage() {
       })
     : null
 
-  useEffect(() => {
-    if (!user) return
-
-    let active = true
-
-    fetchStreakStats(user.id)
-      .then((data) => {
-        if (active) setStreakStats(data)
-      })
-      .catch((err: unknown) => {
-        if (active) {
-          setStreakError(
-            err instanceof Error ? err.message : 'Failed to load streak',
-          )
-        }
-      })
-      .finally(() => {
-        if (active) setStreakLoading(false)
-      })
-
-    return () => {
-      active = false
-    }
-  }, [user])
-
   return (
     <main className="page account-page">
       <header className="page-header">
         <h2>My account</h2>
-        <p className="page-subtitle">Streaks, settings, and sign-in</p>
+        <p className="page-subtitle">Profile, badges, and sign-in</p>
       </header>
 
       {streakError && <p className="banner banner-error">{streakError}</p>}
@@ -63,11 +36,28 @@ export function AccountPage() {
             email={user?.email}
             stats={streakStats}
           />
-          <StreakBadges longestStreak={streakStats.longestStreak} />
+          <StreakBadges longestStreak={streakStats.longestStreak} compact />
+
+          <div className="account-streaks-links">
+            <Link to="/streaks" className="account-streaks-teaser">
+              <span className="account-streaks-teaser-label">Streaks</span>
+              <span className="account-streaks-teaser-text">
+                Current{' '}
+                <strong>
+                  {streakStats.currentStreak} day{streakStats.currentStreak === 1 ? '' : 's'}
+                </strong>
+                · badge milestones →
+              </span>
+            </Link>
+            <Link to="/history" className="account-streaks-teaser">
+              <span className="account-streaks-teaser-label">History</span>
+              <span className="account-streaks-teaser-text">
+                {STREAK_CALENDAR_DAYS}-day calendar · doses &amp; notes →
+              </span>
+            </Link>
+          </div>
         </>
       )}
-
-      <StreakCard stats={streakStats ?? defaultStreakStats()} loading={streakLoading} />
 
       <AccountSettings />
 
@@ -100,16 +90,4 @@ export function AccountPage() {
       </p>
     </main>
   )
-}
-
-function defaultStreakStats(): StreakStats {
-  return {
-    currentStreak: 0,
-    longestStreak: 0,
-    todayTaken: 0,
-    todayExpected: 0,
-    todayComplete: false,
-    hasMedications: false,
-    last7Days: [],
-  }
 }

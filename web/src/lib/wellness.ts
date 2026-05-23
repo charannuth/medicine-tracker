@@ -14,6 +14,38 @@ export const WELLNESS_SYMPTOM_OPTIONS = [
 
 export type WellnessSymptom = (typeof WELLNESS_SYMPTOM_OPTIONS)[number]
 
+const PRESET_SYMPTOM_SET = new Set<string>(WELLNESS_SYMPTOM_OPTIONS)
+
+export function isPresetWellnessSymptom(symptom: string): boolean {
+  return PRESET_SYMPTOM_SET.has(symptom)
+}
+
+/** Unique chip labels: presets, then profile/custom entries. */
+export function buildSymptomChipOptions(
+  selected: string[],
+  trackedFromProfile: string[] = [],
+): string[] {
+  const seen = new Set<string>()
+  const options: string[] = []
+
+  for (const symptom of [
+    ...WELLNESS_SYMPTOM_OPTIONS,
+    ...trackedFromProfile,
+    ...selected,
+  ]) {
+    const trimmed = symptom.trim()
+    if (!trimmed || seen.has(trimmed)) continue
+    seen.add(trimmed)
+    options.push(trimmed)
+  }
+
+  return options
+}
+
+export function customTrackedSymptoms(symptomFocus: string[]): string[] {
+  return symptomFocus.filter((s) => !isPresetWellnessSymptom(s))
+}
+
 export type AppetiteLevel = 'same' | 'better' | 'worse'
 
 export type SubstanceUseLevel =

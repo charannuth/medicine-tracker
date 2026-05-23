@@ -19,6 +19,7 @@ export function TodayWellnessCheckIn() {
     setDraft,
     saved,
     setSaved,
+    trackedSymptoms,
     loading,
     error,
     setError,
@@ -112,6 +113,7 @@ export function TodayWellnessCheckIn() {
               onSubmit={() => void handleSave()}
               busy={busy}
               submitLabel="Save check-in"
+              trackedSymptoms={trackedSymptoms}
             />
           )}
         </>

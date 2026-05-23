@@ -6,7 +6,7 @@ export function ConfigGuard({ children }: { children: ReactNode }) {
     return (
       <div className="setup-page">
         <div className="setup-card">
-          <h1>Dr. Dose</h1>
+          <h1 className="brand-logo-text">Dr. Dose</h1>
           <p>Supabase is not configured yet.</p>
           <ol>
             <li>

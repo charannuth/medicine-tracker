@@ -1,9 +1,7 @@
 import type { SubstanceKey } from '../lib/medicationSafetyReview'
 import type { WellnessProfileInput, SubstanceUseLevel } from '../lib/wellness'
-import {
-  SUBSTANCE_USE_LEVELS,
-  WELLNESS_SYMPTOM_OPTIONS,
-} from '../lib/wellness'
+import { SUBSTANCE_USE_LEVELS } from '../lib/wellness'
+import { SymptomTrackField } from './SymptomTrackField'
 
 const SUBSTANCE_FIELDS: { key: SubstanceKey; label: string }[] = [
   { key: 'alcohol', label: 'Alcohol' },
@@ -36,15 +34,6 @@ export function WellnessBaselineForm({
       next[key] = level
     }
     patch({ substance_use: next })
-  }
-
-  function toggleFocus(symptom: string) {
-    const has = value.symptom_focus.includes(symptom)
-    patch({
-      symptom_focus: has
-        ? value.symptom_focus.filter((s) => s !== symptom)
-        : [...value.symptom_focus, symptom],
-    })
   }
 
   return (
@@ -113,22 +102,13 @@ export function WellnessBaselineForm({
         ))}
       </fieldset>
 
-      <fieldset className="wellness-fieldset">
-        <legend>Symptoms you want to track</legend>
-        <div className="wellness-chip-group" role="group">
-          {WELLNESS_SYMPTOM_OPTIONS.map((symptom) => (
-            <button
-              key={symptom}
-              type="button"
-              className={`wellness-chip${value.symptom_focus.includes(symptom) ? ' active' : ''}`}
-              aria-pressed={value.symptom_focus.includes(symptom)}
-              onClick={() => toggleFocus(symptom)}
-            >
-              {symptom}
-            </button>
-          ))}
-        </div>
-      </fieldset>
+      <SymptomTrackField
+        legend="Symptoms you want to track"
+        hint="Choose common symptoms or add your own (e.g. wheezing, joint pain). These appear on daily check-ins."
+        value={value.symptom_focus}
+        onChange={(symptom_focus) => patch({ symptom_focus })}
+        customPlaceholder="e.g. Shortness of breath"
+      />
 
       <label>
         Other notes for your clinician

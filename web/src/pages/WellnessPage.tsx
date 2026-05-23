@@ -1,4 +1,5 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
+import { useLocation } from 'react-router-dom'
 import { useAuth } from '../hooks/useAuth'
 import { useWellnessPageData } from '../hooks/useWellnessPageData'
 import { useWellnessMedBriefings } from '../hooks/useWellnessMedBriefings'
@@ -32,8 +33,14 @@ function formatDisplayDate(dateStr: string): string {
 
 export function WellnessPage() {
   const { user } = useAuth()
+  const location = useLocation()
   const today = todayLocalDate()
   const [selectedDate, setSelectedDate] = useState(today)
+
+  useEffect(() => {
+    const date = (location.state as { wellnessDate?: string } | null)?.wellnessDate
+    if (date) setSelectedDate(date)
+  }, [location.state])
   const {
     weekDates,
     profileDraft,
@@ -157,6 +164,7 @@ export function WellnessPage() {
                 onSubmit={() => void handleSaveLog()}
                 busy={logBusy}
                 submitLabel={`Save ${formatDisplayDate(logDraft.log_date)}`}
+                trackedSymptoms={profileDraft.symptom_focus}
               />
             )}
           </section>

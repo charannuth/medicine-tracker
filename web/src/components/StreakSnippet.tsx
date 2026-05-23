@@ -15,7 +15,7 @@ export function StreakSnippet({ stats }: { stats: StreakStats | null }) {
       ) : (
         <>Log every dose today to start a streak</>
       )}
-      . <Link to="/account">Details</Link>
+      . <Link to="/streaks">Details</Link>
     </p>
   )
 }

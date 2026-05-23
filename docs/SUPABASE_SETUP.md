@@ -23,7 +23,8 @@ This creates `medications` and `dose_logs` tables plus Row Level Security (each 
 3. [`004_medication_dates.sql`](../supabase/migrations/004_medication_dates.sql) — start date and optional end date  
 4. [`005_medication_type.sql`](../supabase/migrations/005_medication_type.sql) — medication route and form  
 5. [`006_wellness.sql`](../supabase/migrations/006_wellness.sql) — wellness baseline profile and daily logs  
-6. [`007_avatars_storage.sql`](../supabase/migrations/007_avatars_storage.sql) — profile photo storage bucket
+6. [`007_avatars_storage.sql`](../supabase/migrations/007_avatars_storage.sql) — profile photo storage bucket  
+7. [`008_medical_records.sql`](../supabase/migrations/008_medical_records.sql) — self-reported allergies, blood type, and conditions
 
 ### Profile photos (optional)
 

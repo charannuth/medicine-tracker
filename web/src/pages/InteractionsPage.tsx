@@ -1,6 +1,9 @@
 import { useCallback, useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useAuth } from '../hooks/useAuth'
+import { useMedicalRecordAllergies } from '../hooks/useMedicalRecordAllergies'
+import { checkDrugAllergies, type AllergyWarning } from '../lib/allergyCheck'
+import { checkDrugConditions, type ConditionWarning } from '../lib/conditionCheck'
 import {
   checkMedicationInteractions,
   severityLabel,
@@ -13,19 +16,41 @@ import type { Medication } from '../lib/types'
 
 export function InteractionsPage() {
   const { user } = useAuth()
+  const { allergies, conditions } = useMedicalRecordAllergies(user?.id)
   const [result, setResult] = useState<InteractionCheckResult | null>(null)
+  const [allergyWarnings, setAllergyWarnings] = useState<AllergyWarning[]>([])
+  const [conditionWarnings, setConditionWarnings] = useState<ConditionWarning[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [extraDrug, setExtraDrug] = useState('')
   const [rechecking, setRechecking] = useState(false)
+
+  const runMedicalRecordCheck = useCallback(
+    async (names: string[]) => {
+      const allergyHits: AllergyWarning[] = []
+      const conditionHits: ConditionWarning[] = []
+      for (const name of names) {
+        if (allergies.length > 0) {
+          allergyHits.push(...(await checkDrugAllergies(name, allergies)))
+        }
+        if (conditions.length > 0) {
+          conditionHits.push(...(await checkDrugConditions(name, conditions)))
+        }
+      }
+      setAllergyWarnings(allergyHits)
+      setConditionWarnings(conditionHits)
+    },
+    [allergies, conditions],
+  )
 
   const runCheck = useCallback(
     async (names: string[]) => {
       setError(null)
       const data = await checkMedicationInteractions(names)
       setResult(data)
+      await runMedicalRecordCheck(names)
     },
-    [],
+    [runMedicalRecordCheck],
   )
 
   useEffect(() => {
@@ -106,11 +131,21 @@ export function InteractionsPage() {
 
       <div className="interaction-disclaimer" role="note">
         <strong>Not medical advice.</strong> This tool uses a limited reference
-        database plus RxNorm name matching. It cannot list every interaction.
-        Always confirm with your doctor or pharmacist before changing medications.
+        database plus RxNorm name matching. It cannot list every interaction or
+        allergy. Always confirm with your doctor or pharmacist before changing
+        medications.{' '}
+        <Link to="/medical-records">Update medical records</Link> (allergies, conditions).
       </div>
 
       {error && <p className="banner banner-error">{error}</p>}
+
+      {allergies.length === 0 && conditions.length === 0 && !loading && (
+        <p className="banner banner-warning">
+          Add allergies and conditions (e.g. asthma) in{' '}
+          <Link to="/medical-records">Medical records</Link> to check medications against
+          your history.
+        </p>
+      )}
 
       {loading ? (
         <p className="loading">Checking your medications…</p>
@@ -157,6 +192,60 @@ export function InteractionsPage() {
               </p>
             )}
           </section>
+
+          {(allergyWarnings.length > 0 || conditionWarnings.length > 0) && (
+            <section className="interaction-allergy-section">
+              <h3>Medical record cross-check</h3>
+              <p className="field-hint">
+                Based on your{' '}
+                <Link to="/medical-records">medical record</Link> — not a diagnosis. If you
+                have asthma, NSAIDs such as ibuprofen and naproxen (Aleve) may both need
+                clinician review.
+              </p>
+              <ul className="interaction-results">
+                {allergyWarnings.map((item) => (
+                  <li
+                    key={`a-${item.drugName}-${item.category}`}
+                    className={`interaction-item interaction-${item.severity}`}
+                  >
+                    <div className="interaction-item-header">
+                      <span className={`badge badge-severity-${item.severity}`}>
+                        Allergy ({item.severity})
+                      </span>
+                      <h4>{item.drugName}</h4>
+                    </div>
+                    <p>
+                      You listed <em>{item.userAllergyText}</em> ({item.allergyLabel}).{' '}
+                      {item.description}
+                    </p>
+                    <p className="interaction-management">
+                      <strong>What to do:</strong> {item.management}
+                    </p>
+                  </li>
+                ))}
+                {conditionWarnings.map((item) => (
+                  <li
+                    key={`c-${item.drugName}-${item.conditionKey}`}
+                    className={`interaction-item interaction-${item.severity}`}
+                  >
+                    <div className="interaction-item-header">
+                      <span className={`badge badge-severity-${item.severity}`}>
+                        Condition ({item.severity})
+                      </span>
+                      <h4>{item.drugName}</h4>
+                    </div>
+                    <p>
+                      Your record includes <em>{item.userConditionText}</em> (
+                      {item.conditionLabel}). {item.description}
+                    </p>
+                    <p className="interaction-management">
+                      <strong>What to do:</strong> {item.management}
+                    </p>
+                  </li>
+                ))}
+              </ul>
+            </section>
+          )}
 
           {result.interactions.length > 0 ? (
             <ul className="interaction-results">

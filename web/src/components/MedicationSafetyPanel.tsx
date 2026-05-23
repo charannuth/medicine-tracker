@@ -1,4 +1,7 @@
 import { useEffect, useState } from 'react'
+import { Link } from 'react-router-dom'
+import { useMedicalRecordAllergies } from '../hooks/useMedicalRecordAllergies'
+import { useAuth } from '../hooks/useAuth'
 import { severityLabel } from '../lib/drugInteractions'
 import {
   buildMedicationSafetyReview,
@@ -15,10 +18,14 @@ export function MedicationSafetyPanel({
   drugName,
   existingMedicationNames,
 }: MedicationSafetyPanelProps) {
+  const { user } = useAuth()
+  const { allergies, conditions } = useMedicalRecordAllergies(user?.id)
   const [review, setReview] = useState<MedicationSafetyReview | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const existingKey = existingMedicationNames.join('\n')
+  const allergiesKey = allergies.join('\n')
+  const conditionsKey = conditions.join('\n')
 
   useEffect(() => {
     if (!drugName.trim()) {
@@ -37,7 +44,7 @@ export function MedicationSafetyPanel({
       }
     })
 
-    void buildMedicationSafetyReview(drugName, existingMedicationNames)
+    void buildMedicationSafetyReview(drugName, existingMedicationNames, allergies, conditions)
       .then((data) => {
         if (active) setReview(data)
       })
@@ -55,7 +62,7 @@ export function MedicationSafetyPanel({
     return () => {
       active = false
     }
-  }, [drugName, existingKey, existingMedicationNames])
+  }, [drugName, existingKey, existingMedicationNames, allergies, allergiesKey, conditions, conditionsKey])
 
   if (!drugName.trim()) {
     return (
@@ -84,6 +91,60 @@ export function MedicationSafetyPanel({
           : '.'}{' '}
         This is not medical advice.
       </p>
+
+      <section className="med-safety-section">
+        <h4>Your medical record</h4>
+        {allergies.length === 0 && conditions.length === 0 ? (
+          <p className="field-hint">
+            No allergies or conditions on file.{' '}
+            <Link to="/medical-records">Add your medical record</Link> (e.g. asthma,
+            ibuprofen sensitivity) to personalize safety checks.
+          </p>
+        ) : (
+          <>
+            {review.allergyWarnings.length === 0 &&
+            review.conditionWarnings.length === 0 ? (
+              <p className="field-hint">
+                No matches for <strong>{review.drugName}</strong> against your listed
+                allergies or conditions in our reference database. This does not rule
+                out a reaction — confirm with your clinician.
+              </p>
+            ) : (
+              <ul className="med-safety-list">
+                {review.allergyWarnings.map((item) => (
+                  <li
+                    key={`allergy-${item.category}`}
+                    className={`med-safety-item severity-${item.severity}`}
+                  >
+                    <strong>
+                      Allergy: {item.allergyLabel} ({item.severity})
+                    </strong>
+                    <p>
+                      You listed: <em>{item.userAllergyText}</em>. {item.description}
+                    </p>
+                    <p className="field-hint">{item.management}</p>
+                  </li>
+                ))}
+                {review.conditionWarnings.map((item) => (
+                  <li
+                    key={`condition-${item.conditionKey}`}
+                    className={`med-safety-item severity-${item.severity}`}
+                  >
+                    <strong>
+                      Condition: {item.conditionLabel} ({item.severity})
+                    </strong>
+                    <p>
+                      On your record: <em>{item.userConditionText}</em>.{' '}
+                      {item.description}
+                    </p>
+                    <p className="field-hint">{item.management}</p>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </>
+        )}
+      </section>
 
       <section className="med-safety-section">
         <h4>Your medication list</h4>

@@ -38,6 +38,13 @@
   --accent-violet-soft: #ede9fe;
   --accent-violet-glow: rgba(124, 58, 237, 0.18);
 
+  /* Dr. Dose wordmark — maroon / blood red (logo only) */
+  --brand-deep: #9f1239;
+  --brand-maroon: #be123c;
+  --brand-red: #e11d48;
+  --brand-crimson: #f43f5e;
+  --brand-shine: #fb7185;
+
   --success: #059669;
   --success-bg: #ecfdf5;
   --success-border: #a7f3d0;
@@ -150,6 +157,12 @@ textarea {
   --accent-violet: #a78bfa;
   --accent-violet-soft: #1e1533;
   --accent-violet-glow: rgba(167, 139, 250, 0.15);
+
+  --brand-deep: #be123c;
+  --brand-maroon: #e11d48;
+  --brand-red: #f43f5e;
+  --brand-crimson: #fb7185;
+  --brand-shine: #fda4af;
 
   --success: #34d399;
   --success-bg: #052e22;

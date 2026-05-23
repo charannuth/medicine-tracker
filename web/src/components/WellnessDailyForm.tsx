@@ -1,5 +1,5 @@
 import type { WellnessLogInput, AppetiteLevel } from '../lib/wellness'
-import { WELLNESS_SYMPTOM_OPTIONS } from '../lib/wellness'
+import { SymptomTrackField } from './SymptomTrackField'
 
 type WellnessDailyFormProps = {
   value: WellnessLogInput
@@ -9,6 +9,8 @@ type WellnessDailyFormProps = {
   submitLabel?: string
   compact?: boolean
   showDate?: boolean
+  /** From wellness baseline — custom symptoms the user chose to track. */
+  trackedSymptoms?: string[]
 }
 
 export function WellnessDailyForm({
@@ -19,18 +21,10 @@ export function WellnessDailyForm({
   submitLabel = 'Save check-in',
   compact = false,
   showDate = false,
+  trackedSymptoms = [],
 }: WellnessDailyFormProps) {
   function patch(partial: Partial<WellnessLogInput>) {
     onChange({ ...value, ...partial })
-  }
-
-  function toggleSymptom(symptom: string) {
-    const has = value.symptoms.includes(symptom)
-    patch({
-      symptoms: has
-        ? value.symptoms.filter((s) => s !== symptom)
-        : [...value.symptoms, symptom],
-    })
   }
 
   return (
@@ -178,22 +172,14 @@ export function WellnessDailyForm({
         )}
       </fieldset>
 
-      <fieldset className="wellness-fieldset">
-        <legend>Symptoms or changes today</legend>
-        <div className="wellness-chip-group" role="group" aria-label="Symptoms">
-          {WELLNESS_SYMPTOM_OPTIONS.map((symptom) => (
-            <button
-              key={symptom}
-              type="button"
-              className={`wellness-chip${value.symptoms.includes(symptom) ? ' active' : ''}`}
-              aria-pressed={value.symptoms.includes(symptom)}
-              onClick={() => toggleSymptom(symptom)}
-            >
-              {symptom}
-            </button>
-          ))}
-        </div>
-      </fieldset>
+      <SymptomTrackField
+        legend="Symptoms or changes today"
+        hint="Select any that apply today, including symptoms from your tracking list."
+        value={value.symptoms}
+        onChange={(symptoms) => patch({ symptoms })}
+        trackedFromProfile={trackedSymptoms}
+        customPlaceholder="e.g. Chest tightness today"
+      />
 
       <label>
         Notes for your clinician

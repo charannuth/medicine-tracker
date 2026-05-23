@@ -1,0 +1,130 @@
+import { supabase } from './supabase'
+import {
+  formatScheduleTime,
+  normalizeScheduleTimes,
+} from './dates'
+import { formatDoseDisplay } from './dose'
+import { filterMedicationsActiveOn } from './medicationDates'
+import {
+  fetchWellnessLog,
+  isWellnessLogFilled,
+  logFromRow,
+  type WellnessLogInput,
+} from './wellness'
+import type { DoseLog, Medication } from './types'
+
+export type DayDoseSlot = {
+  medicationId: string
+  medicationName: string
+  doseLabel: string
+  scheduleTime: string
+  scheduleLabel: string
+  taken: boolean
+  takenAt: string | null
+  medicationNotes: string | null
+}
+
+export type DayDetail = {
+  date: string
+  slots: DayDoseSlot[]
+  wellnessLog: WellnessLogInput | null
+  wellnessFilled: boolean
+  hasScheduledMeds: boolean
+}
+
+export async function fetchDayDetail(
+  userId: string,
+  date: string,
+): Promise<DayDetail> {
+  const empty: DayDetail = {
+    date,
+    slots: [],
+    wellnessLog: null,
+    wellnessFilled: false,
+    hasScheduledMeds: false,
+  }
+
+  if (!supabase) return empty
+
+  const [medsResult, logsResult, wellnessRow] = await Promise.all([
+    supabase.from('medications').select('*').eq('user_id', userId),
+    supabase
+      .from('dose_logs')
+      .select('*')
+      .eq('user_id', userId)
+      .eq('taken_on', date),
+    fetchWellnessLog(userId, date),
+  ])
+
+  if (medsResult.error) throw medsResult.error
+  if (logsResult.error) throw logsResult.error
+
+  const medications = filterMedicationsActiveOn(
+    (medsResult.data ?? []) as Medication[],
+    date,
+  )
+  const logBySlot = new Map<string, DoseLog>()
+  for (const log of (logsResult.data ?? []) as DoseLog[]) {
+    logBySlot.set(`${log.medication_id}|${log.schedule_time}`, log)
+  }
+
+  const slots: DayDoseSlot[] = []
+  for (const med of medications) {
+    for (const time of normalizeScheduleTimes(med.schedule_times ?? [])) {
+      const log = logBySlot.get(`${med.id}|${time}`)
+      slots.push({
+        medicationId: med.id,
+        medicationName: med.name,
+        doseLabel: formatDoseDisplay(med),
+        scheduleTime: time,
+        scheduleLabel: formatScheduleTime(time),
+        taken: Boolean(log),
+        takenAt: log?.taken_at ?? null,
+        medicationNotes: med.notes?.trim() || null,
+      })
+    }
+  }
+
+  const wellnessLog = wellnessRow ? logFromRow(wellnessRow) : null
+
+  return {
+    date,
+    slots,
+    wellnessLog,
+    wellnessFilled: wellnessLog ? isWellnessLogFilled(wellnessLog) : false,
+    hasScheduledMeds: slots.length > 0,
+  }
+}
+
+/** Group slots by medication for display. */
+export function groupDaySlotsByMedication(
+  slots: DayDoseSlot[],
+): { medicationId: string; medicationName: string; doseLabel: string; medicationNotes: string | null; slots: DayDoseSlot[] }[] {
+  const groups = new Map<
+    string,
+    {
+      medicationId: string
+      medicationName: string
+      doseLabel: string
+      medicationNotes: string | null
+      slots: DayDoseSlot[]
+    }
+  >()
+
+  for (const slot of slots) {
+    let group = groups.get(slot.medicationId)
+    if (!group) {
+      group = {
+        medicationId: slot.medicationId,
+        medicationName: slot.medicationName,
+        doseLabel: slot.doseLabel,
+        medicationNotes: slot.medicationNotes,
+        slots: [],
+      }
+      groups.set(slot.medicationId, group)
+    }
+    group.slots.push(slot)
+  }
+
+  return [...groups.values()]
+}

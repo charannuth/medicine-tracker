@@ -1,4 +1,6 @@
 import safetyData from '../data/drug-safety.json'
+import { checkDrugAllergies, type AllergyWarning } from './allergyCheck'
+import { checkDrugConditions, type ConditionWarning } from './conditionCheck'
 import {
   canonicalDrugName,
   checkMedicationInteractions,
@@ -36,6 +38,8 @@ export type MedicationSafetyReview = {
   drugName: string
   canonical: string | null
   existingMedInteractions: FoundInteraction[]
+  allergyWarnings: AllergyWarning[]
+  conditionWarnings: ConditionWarning[]
   substanceWarnings: SubstanceWarning[]
   sideEffects: string[]
   pregnancy: string
@@ -95,6 +99,8 @@ function substanceWarningsForDrug(
 export async function buildMedicationSafetyReview(
   drugName: string,
   existingMedicationNames: string[],
+  userAllergies: string[] = [],
+  userConditions: string[] = [],
 ): Promise<MedicationSafetyReview> {
   const trimmed = drugName.trim()
   const others = existingMedicationNames
@@ -121,10 +127,17 @@ export async function buildMedicationSafetyReview(
         i.displayB.toLowerCase() === trimmed.toLowerCase(),
     ) ?? []
 
+  const [allergyWarnings, conditionWarnings] = await Promise.all([
+    checkDrugAllergies(trimmed, userAllergies),
+    checkDrugConditions(trimmed, userConditions),
+  ])
+
   return {
     drugName: trimmed,
     canonical,
     existingMedInteractions,
+    allergyWarnings,
+    conditionWarnings,
     substanceWarnings: substanceWarningsForDrug(
       trimmed,
       canonical,
@@ -138,6 +151,8 @@ export async function buildMedicationSafetyReview(
 
 export function hasSafetyAlerts(review: MedicationSafetyReview): boolean {
   return (
+    review.allergyWarnings.length > 0 ||
+    review.conditionWarnings.length > 0 ||
     review.existingMedInteractions.length > 0 ||
     review.substanceWarnings.some((w) => w.severity === 'major' || w.severity === 'moderate')
   )

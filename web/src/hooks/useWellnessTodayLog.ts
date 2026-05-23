@@ -2,8 +2,10 @@ import { useEffect, useState } from 'react'
 import {
   emptyWellnessLogInput,
   fetchWellnessLog,
+  fetchWellnessProfile,
   isWellnessLogFilled,
   logFromRow,
+  profileToInput,
   type WellnessLogInput,
 } from '../lib/wellness'
 
@@ -12,6 +14,7 @@ export function useWellnessTodayLog(userId: string | undefined, today: string) {
     emptyWellnessLogInput(today),
   )
   const [saved, setSaved] = useState<WellnessLogInput | null>(null)
+  const [trackedSymptoms, setTrackedSymptoms] = useState<string[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
@@ -26,9 +29,10 @@ export function useWellnessTodayLog(userId: string | undefined, today: string) {
       setLoading(true)
       setError(null)
 
-      void fetchWellnessLog(userId, today)
-        .then((row) => {
+      void Promise.all([fetchWellnessLog(userId, today), fetchWellnessProfile(userId)])
+        .then(([row, profile]) => {
           if (!active || controller.signal.aborted) return
+          setTrackedSymptoms(profileToInput(profile).symptom_focus)
           if (row && isWellnessLogFilled(logFromRow(row))) {
             const input = logFromRow(row)
             setSaved(input)
@@ -60,6 +64,7 @@ export function useWellnessTodayLog(userId: string | undefined, today: string) {
     setDraft,
     saved,
     setSaved,
+    trackedSymptoms,
     loading,
     error,
     setError,

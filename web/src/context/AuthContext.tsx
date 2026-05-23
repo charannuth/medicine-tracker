@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useState, type ReactNode } from 'react'
 import type { Session } from '@supabase/supabase-js'
+import { avatarStoragePath, deleteAvatar, uploadAvatar } from '../lib/avatar'
 import { supabase } from '../lib/supabase'
 import { AuthContext, type AuthContextValue, type SignUpResult } from './auth-context'
 
@@ -108,15 +109,57 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (error) throw error
   }, [])
 
+  const refreshSession = useCallback(async () => {
+    if (!supabase) return
+    const { data } = await supabase.auth.getSession()
+    setSession(data.session)
+  }, [])
+
   const updateDisplayName = useCallback(async (displayName: string) => {
     if (!supabase) throw new Error('Supabase is not configured')
     const { error } = await supabase.auth.updateUser({
       data: { display_name: displayName.trim() },
     })
     if (error) throw error
-    const { data } = await supabase.auth.getSession()
-    setSession(data.session)
-  }, [])
+    await refreshSession()
+  }, [refreshSession])
+
+  const updateProfileAvatar = useCallback(
+    async (image: Blob) => {
+      if (!supabase) throw new Error('Supabase is not configured')
+      const userId = session?.user?.id
+      if (!userId) throw new Error('You must be signed in')
+
+      const avatarUrl = await uploadAvatar(userId, image)
+      const { error } = await supabase.auth.updateUser({
+        data: {
+          avatar_url: avatarUrl,
+          avatar_path: avatarStoragePath(userId),
+        },
+      })
+      if (error) throw error
+      await refreshSession()
+    },
+    [session?.user?.id, refreshSession],
+  )
+
+  const removeProfileAvatar = useCallback(async () => {
+    if (!supabase) throw new Error('Supabase is not configured')
+    const userId = session?.user?.id
+    if (!userId) throw new Error('You must be signed in')
+
+    try {
+      await deleteAvatar(userId)
+    } catch {
+      /* file may already be gone */
+    }
+
+    const { error } = await supabase.auth.updateUser({
+      data: { avatar_url: null, avatar_path: null },
+    })
+    if (error) throw error
+    await refreshSession()
+  }, [session?.user?.id, refreshSession])
 
   const value = useMemo<AuthContextValue>(
     () => ({
@@ -133,6 +176,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       updatePassword,
       signOut,
       updateDisplayName,
+      updateProfileAvatar,
+      removeProfileAvatar,
     }),
     [
       session,
@@ -147,6 +192,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       updatePassword,
       signOut,
       updateDisplayName,
+      updateProfileAvatar,
+      removeProfileAvatar,
     ],
   )
 

@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom'
 import { useAuth } from '../hooks/useAuth'
 import { formatScheduleTime } from '../lib/dates'
 import { formatDoseDisplay } from '../lib/dose'
+import { formatInventoryRemaining } from '../lib/inventory'
 import {
   formatMedicationDateRange,
   scheduleStatusLabel,
@@ -138,7 +139,9 @@ export function MedicationsPage() {
                     {med.schedule_times.map(formatScheduleTime).join(' · ')}
                   </p>
                   {med.pills_remaining != null && (
-                    <p className="med-pills">{med.pills_remaining} pills remaining</p>
+                    <p className="med-pills">
+                      {formatInventoryRemaining(med.pills_remaining, med)}
+                    </p>
                   )}
                 </div>
                 <div className="med-manage-actions">

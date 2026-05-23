@@ -24,7 +24,9 @@ import { MedicationForm } from '../components/MedicationForm'
 import { DueNowBanner } from '../components/DueNowBanner'
 import { MissedDosesBanner } from '../components/MissedDosesBanner'
 import { RefillBanner } from '../components/RefillBanner'
+import { StreakCelebration } from '../components/StreakCelebration'
 import { StreakSnippet } from '../components/StreakSnippet'
+import { useStreakCelebration } from '../hooks/useStreakCelebration'
 import { TodayWellnessCheckIn } from '../components/TodayWellnessCheckIn'
 import { fetchMissedDoses, type MissedDoseItem } from '../lib/missedDoses'
 import {
@@ -54,6 +56,10 @@ export function TodayPage() {
   const [missedBannerDismissed, setMissedBannerDismissed] = useState(() =>
     isMissedDosesBannerDismissed(todayLocalDate()),
   )
+  const { celebrationStreak, dismissCelebration } = useStreakCelebration(
+    user?.id,
+    streakStats,
+  )
 
   const openAddForm = useCallback(() => {
     setEditing(null)
@@ -78,6 +84,16 @@ export function TodayPage() {
     if (!user) return
     const data = await fetchMedicationsWithStatus(user.id)
     setMedications(data)
+  }, [user])
+
+  const refreshStreakStats = useCallback(async () => {
+    if (!user) return
+    try {
+      const streak = await fetchStreakStats(user.id)
+      setStreakStats(streak)
+    } catch {
+      /* non-blocking */
+    }
   }, [user])
 
   useEffect(() => {
@@ -150,6 +166,7 @@ export function TodayPage() {
     try {
       await markDoseTaken(user.id, med.id, scheduleTime)
       await reload()
+      await refreshStreakStats()
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Could not log dose')
     } finally {
@@ -165,6 +182,7 @@ export function TodayPage() {
     try {
       await undoDose(slot.doseLogId, med.id)
       await reload()
+      await refreshStreakStats()
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Could not undo dose')
     } finally {
@@ -251,6 +269,13 @@ export function TodayPage() {
 
         <TodayWellnessCheckIn />
       </main>
+
+      {celebrationStreak !== null && (
+        <StreakCelebration
+          streakDays={celebrationStreak}
+          onDismiss={dismissCelebration}
+        />
+      )}
 
       {formOpen && (
         <MedicationForm

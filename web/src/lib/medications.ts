@@ -5,6 +5,7 @@ import {
   todayLocalDate,
 } from './dates'
 import { normalizeDoseFields } from './dose'
+import { getDoseDeductionAmount } from './inventory'
 import {
   filterMedicationsActiveOn,
   getMedicationScheduleStatus,
@@ -261,9 +262,10 @@ export async function deleteMedication(id: string): Promise<void> {
   if (error) throw error
 }
 
-async function adjustPillsRemaining(
+async function adjustInventoryRemaining(
   medicationId: string,
-  delta: number,
+  dosePills: string | null,
+  direction: 'take' | 'undo',
 ): Promise<void> {
   if (!supabase) return
 
@@ -275,7 +277,9 @@ async function adjustPillsRemaining(
 
   if (med?.pills_remaining == null) return
 
-  const next = Math.max(0, med.pills_remaining + delta)
+  const amount = getDoseDeductionAmount(dosePills)
+  const delta = direction === 'take' ? -amount : amount
+  const next = Math.max(0, Math.round(med.pills_remaining + delta))
   await supabase
     .from('medications')
     .update({ pills_remaining: next })
@@ -292,7 +296,7 @@ export async function markDoseTaken(
   const today = todayLocalDate()
   const { data: med, error: medError } = await supabase
     .from('medications')
-    .select('start_date, end_date')
+    .select('start_date, end_date, dose_pills')
     .eq('id', medicationId)
     .single()
 
@@ -315,16 +319,24 @@ export async function markDoseTaken(
     throw error
   }
 
-  await adjustPillsRemaining(medicationId, -1)
+  await adjustInventoryRemaining(medicationId, med.dose_pills, 'take')
 }
 
 export async function undoDose(doseLogId: string, medicationId: string): Promise<void> {
   if (!supabase) return
 
+  const { data: med, error: medError } = await supabase
+    .from('medications')
+    .select('dose_pills')
+    .eq('id', medicationId)
+    .single()
+
+  if (medError) throw medError
+
   const { error } = await supabase.from('dose_logs').delete().eq('id', doseLogId)
   if (error) throw error
 
-  await adjustPillsRemaining(medicationId, 1)
+  await adjustInventoryRemaining(medicationId, med?.dose_pills ?? null, 'undo')
 }
 
 /** One-time cleanup: dedupe schedule_times in DB for a medication. */

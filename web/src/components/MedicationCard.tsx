@@ -1,4 +1,5 @@
 import { formatDoseDisplay } from '../lib/dose'
+import { formatInventoryRemaining } from '../lib/inventory'
 import { formatMedicationType } from '../lib/medicationForms'
 import { formatMedicationDateRange } from '../lib/medicationDates'
 import type { DoseSlotStatus, MedicationWithStatus } from '../lib/types'
@@ -68,8 +69,7 @@ export function MedicationCard({
 
       {medication.pills_remaining != null && (
         <p className={`med-pills ${lowSupply ? 'low' : ''}`}>
-          {medication.pills_remaining} pill
-          {medication.pills_remaining === 1 ? '' : 's'} remaining
+          {formatInventoryRemaining(medication.pills_remaining, medication)}
           {lowSupply && ' — refill soon'}
         </p>
       )}

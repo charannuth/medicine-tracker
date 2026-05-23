@@ -27,7 +27,10 @@ export function useFloatingPanelPosition(
   const shouldPosition = enabled && open
 
   useLayoutEffect(() => {
-    if (!shouldPosition) return
+    if (!shouldPosition) {
+      setStyle(undefined)
+      return
+    }
 
     function update() {
       const el = anchorRef.current
@@ -58,7 +61,7 @@ export function useFloatingPanelPosition(
           left,
           width,
           maxHeight,
-          zIndex: 250,
+          zIndex: 1100,
         })
       } else {
         setStyle({
@@ -67,18 +70,20 @@ export function useFloatingPanelPosition(
           width,
           maxHeight,
           bottom: viewportH - rect.top + gap,
-          zIndex: 250,
+          zIndex: 1100,
         })
       }
     }
 
     update()
+    const raf = requestAnimationFrame(update)
     const vv = window.visualViewport
     vv?.addEventListener('resize', update)
     vv?.addEventListener('scroll', update)
     window.addEventListener('resize', update)
     window.addEventListener('scroll', update, true)
     return () => {
+      cancelAnimationFrame(raf)
       vv?.removeEventListener('resize', update)
       vv?.removeEventListener('scroll', update)
       window.removeEventListener('resize', update)

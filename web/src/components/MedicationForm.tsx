@@ -15,6 +15,10 @@ import {
   MEDICATION_ROUTES,
   type MedicationRouteId,
 } from '../lib/medicationForms'
+import {
+  getDoseDeductionAmount,
+  inventoryUnitLabel,
+} from '../lib/inventory'
 import { validateMedicationDates } from '../lib/medicationDates'
 import type { MedicationSuggestion } from '../lib/medicationSuggestions'
 import {
@@ -257,7 +261,7 @@ export function MedicationForm({
         if (trackPills) {
           const n = parseInt(pillsRemaining, 10)
           if (Number.isNaN(n) || n < 0) {
-            return 'Pills remaining must be a non-negative number.'
+            return 'Remaining supply must be a non-negative number.'
           }
         }
         return null
@@ -323,7 +327,7 @@ export function MedicationForm({
       if (trackPills) {
         const n = parseInt(pillsRemaining, 10)
         if (Number.isNaN(n) || n < 0) {
-          throw new Error('Pills remaining must be a non-negative number')
+          throw new Error('Remaining supply must be a non-negative number')
         }
         pills = n
       }
@@ -559,7 +563,18 @@ export function MedicationForm({
           </div>
         )
 
-      case 'tracking':
+      case 'tracking': {
+        const invMed = {
+          dose_pills: dosePills,
+          medication_form: form,
+          medication_route: route,
+        }
+        const unitPlural = inventoryUnitLabel(invMed)
+        const unitSingular = inventoryUnitLabel(invMed, false)
+        const perDose = getDoseDeductionAmount(dosePills)
+        const unitTitle =
+          unitPlural.charAt(0).toUpperCase() + unitPlural.slice(1)
+
         return (
           <div className="med-wizard-panel-inner">
             <label className="checkbox-row">
@@ -572,21 +587,30 @@ export function MedicationForm({
             </label>
             {trackPills && (
               <label>
-                Amount remaining
+                {unitTitle} remaining
                 <input
                   type="number"
                   min={0}
                   value={pillsRemaining}
                   onChange={(e) => setPillsRemaining(e.target.value)}
-                  placeholder="e.g. 30"
+                  placeholder={
+                    unitPlural === 'puffs'
+                      ? 'e.g. 150'
+                      : unitPlural === 'sprays'
+                        ? 'e.g. 120'
+                        : 'e.g. 30'
+                  }
                 />
               </label>
             )}
             <p className="field-hint">
-              When enabled, marking doses taken updates your remaining count automatically.
+              {trackPills
+                ? `Each dose logged subtracts ${perDose} ${perDose === 1 ? unitSingular : unitPlural} from this total (from your dose amount). Undo adds them back.`
+                : 'When enabled, marking doses taken updates your remaining count automatically.'}
             </p>
           </div>
         )
+      }
 
       case 'notifications':
         return (

@@ -1,13 +1,8 @@
-import { useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useId, useRef, useState } from 'react'
+import { createPortal } from 'react-dom'
 import { NavLink, useNavigate } from 'react-router-dom'
 import { useAuth } from '../hooks/useAuth'
-
-function getInitials(email: string | undefined): string {
-  if (!email) return '?'
-  const local = email.split('@')[0] ?? ''
-  if (local.length >= 2) return local.slice(0, 2).toUpperCase()
-  return local.slice(0, 1).toUpperCase() || '?'
-}
+import { ProfileAvatar } from './ProfileAvatar'
 
 const navItems = [
   { to: '/', label: 'Today', end: true },
@@ -19,95 +14,186 @@ const navItems = [
   { to: '/help', label: 'Help & safety', end: false },
 ] as const
 
+const CLOSE_DELAY_MS = 220
+const SIDEBAR_TRANSITION_MS = 300
+
 export function ProfileMenu() {
   const { user, signOut } = useAuth()
   const navigate = useNavigate()
-  const [open, setOpen] = useState(false)
-  const rootRef = useRef<HTMLDivElement>(null)
+  const sidebarId = useId()
+  const [mounted, setMounted] = useState(false)
+  const [visible, setVisible] = useState(false)
+  const [pinned, setPinned] = useState(false)
+  const closeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+
+  const cancelScheduledClose = useCallback(() => {
+    if (closeTimerRef.current) {
+      clearTimeout(closeTimerRef.current)
+      closeTimerRef.current = null
+    }
+  }, [])
+
+  const beginClose = useCallback(() => {
+    cancelScheduledClose()
+    setVisible(false)
+  }, [cancelScheduledClose])
+
+  const scheduleClose = useCallback(() => {
+    cancelScheduledClose()
+    closeTimerRef.current = setTimeout(() => {
+      beginClose()
+    }, CLOSE_DELAY_MS)
+  }, [cancelScheduledClose, beginClose])
+
+  const closeMenu = useCallback(() => {
+    setPinned(false)
+    beginClose()
+  }, [beginClose])
+
+  const openMenu = useCallback(() => {
+    cancelScheduledClose()
+    if (!mounted) {
+      setMounted(true)
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => setVisible(true))
+      })
+      return
+    }
+    setVisible(true)
+  }, [cancelScheduledClose, mounted])
 
   useEffect(() => {
-    if (!open) return
+    return () => cancelScheduledClose()
+  }, [cancelScheduledClose])
 
-    function handlePointerDown(e: MouseEvent) {
-      if (rootRef.current && !rootRef.current.contains(e.target as Node)) {
-        setOpen(false)
-      }
-    }
+  useEffect(() => {
+    if (!mounted || visible) return
+
+    const timeout = window.setTimeout(() => {
+      setMounted(false)
+      setPinned(false)
+    }, SIDEBAR_TRANSITION_MS)
+
+    return () => window.clearTimeout(timeout)
+  }, [mounted, visible])
+
+  useEffect(() => {
+    if (!mounted) return
 
     function handleEscape(e: KeyboardEvent) {
-      if (e.key === 'Escape') setOpen(false)
+      if (e.key === 'Escape') closeMenu()
     }
 
-    document.addEventListener('mousedown', handlePointerDown)
     document.addEventListener('keydown', handleEscape)
-    return () => {
-      document.removeEventListener('mousedown', handlePointerDown)
-      document.removeEventListener('keydown', handleEscape)
+    return () => document.removeEventListener('keydown', handleEscape)
+  }, [mounted, closeMenu])
+
+  function handleTriggerMouseEnter() {
+    openMenu()
+  }
+
+  function handleTriggerMouseLeave() {
+    if (!pinned) scheduleClose()
+  }
+
+  function handleSidebarMouseEnter() {
+    openMenu()
+  }
+
+  function handleSidebarMouseLeave() {
+    if (!pinned) scheduleClose()
+  }
+
+  function handleTriggerClick() {
+    cancelScheduledClose()
+    if (visible && pinned) {
+      closeMenu()
+      return
     }
-  }, [open])
+    setPinned(true)
+    openMenu()
+  }
 
   async function handleSignOut() {
-    setOpen(false)
+    closeMenu()
     await signOut()
     navigate('/')
   }
 
-  return (
-    <div ref={rootRef} className="profile-menu">
-      <button
-        type="button"
-        className="profile-trigger"
-        aria-expanded={open}
-        aria-haspopup="true"
-        aria-label="Open menu"
-        onClick={() => setOpen((v) => !v)}
-      >
-        <span className="profile-avatar" aria-hidden>
-          {getInitials(user?.email)}
-        </span>
-      </button>
-
-      {open && (
-        <div className="profile-dropdown" role="menu">
-          <div className="profile-dropdown-header">
-            <span className="profile-avatar profile-avatar-lg" aria-hidden>
-              {getInitials(user?.email)}
-            </span>
-            <div>
-              <p className="profile-dropdown-title">Signed in</p>
-              <p className="profile-dropdown-email">{user?.email}</p>
-            </div>
-          </div>
-
-          <nav className="profile-nav">
-            {navItems.map((item) => (
-              <NavLink
-                key={item.to}
-                to={item.to}
-                end={item.end}
-                role="menuitem"
-                className={({ isActive }) =>
-                  `profile-nav-link${isActive ? ' active' : ''}`
-                }
-                onClick={() => setOpen(false)}
-              >
-                {item.label}
-              </NavLink>
-            ))}
-          </nav>
-
-          <div className="profile-dropdown-footer">
+  const sidebar =
+    mounted && typeof document !== 'undefined'
+      ? createPortal(
+          <>
             <button
               type="button"
-              className="profile-nav-link profile-sign-out"
-              role="menuitem"
-              onClick={() => void handleSignOut()}
+              className={`profile-sidebar-backdrop${visible ? ' is-visible' : ''}`}
+              aria-label="Close menu"
+              tabIndex={visible ? 0 : -1}
+              onClick={closeMenu}
+            />
+            <aside
+              id={sidebarId}
+              className={`profile-sidebar${visible ? ' is-visible' : ''}`}
+              role="navigation"
+              aria-label="Main menu"
+              aria-hidden={!visible}
+              onMouseEnter={handleSidebarMouseEnter}
+              onMouseLeave={handleSidebarMouseLeave}
             >
-              Sign out
-            </button>
-          </div>
-        </div>
-      )}
+              <div className="profile-sidebar-header">
+                <ProfileAvatar user={user} size="lg" />
+                <div className="profile-sidebar-user">
+                  <p className="profile-dropdown-title">Signed in</p>
+                  <p className="profile-dropdown-email">{user?.email}</p>
+                </div>
+              </div>
+
+              <nav className="profile-nav profile-sidebar-nav">
+                {navItems.map((item) => (
+                  <NavLink
+                    key={item.to}
+                    to={item.to}
+                    end={item.end}
+                    className={({ isActive }) =>
+                      `profile-nav-link${isActive ? ' active' : ''}`
+                    }
+                    onClick={closeMenu}
+                  >
+                    {item.label}
+                  </NavLink>
+                ))}
+              </nav>
+
+              <div className="profile-sidebar-footer">
+                <button
+                  type="button"
+                  className="profile-nav-link profile-sign-out"
+                  onClick={() => void handleSignOut()}
+                >
+                  Sign out
+                </button>
+              </div>
+            </aside>
+          </>,
+          document.body,
+        )
+      : null
+
+  return (
+    <div className="profile-menu">
+      <button
+        type="button"
+        className={`profile-trigger${mounted ? ' profile-trigger-open' : ''}`}
+        aria-expanded={visible}
+        aria-controls={sidebarId}
+        aria-label={visible ? 'Close menu' : 'Open menu'}
+        onClick={handleTriggerClick}
+        onMouseEnter={handleTriggerMouseEnter}
+        onMouseLeave={handleTriggerMouseLeave}
+      >
+        <ProfileAvatar user={user} size="sm" />
+      </button>
+      {sidebar}
     </div>
   )
 }

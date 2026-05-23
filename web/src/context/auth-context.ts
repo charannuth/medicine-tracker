@@ -19,6 +19,8 @@ export type AuthContextValue = {
   updatePassword: (password: string) => Promise<void>
   signOut: () => Promise<void>
   updateDisplayName: (displayName: string) => Promise<void>
+  updateProfileAvatar: (image: Blob) => Promise<void>
+  removeProfileAvatar: () => Promise<void>
 }
 
 export const AuthContext = createContext<AuthContextValue | null>(null)

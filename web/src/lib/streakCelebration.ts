@@ -1,0 +1,13 @@
+import { todayLocalDate } from './dates'
+
+function celebrationKey(userId: string, date: string): string {
+  return `mt-streak-celebrated:${userId}:${date}`
+}
+
+export function wasStreakCelebratedToday(userId: string, date = todayLocalDate()): boolean {
+  return localStorage.getItem(celebrationKey(userId, date)) === '1'
+}
+
+export function markStreakCelebratedToday(userId: string, date = todayLocalDate()): void {
+  localStorage.setItem(celebrationKey(userId, date), '1')
+}

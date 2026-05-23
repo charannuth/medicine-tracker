@@ -145,13 +145,3 @@ export async function notifyDoseDue(
   return false
 }
 
-export async function sendTestNotification(): Promise<ShowNotificationResult> {
-  if (!canUseNotifications()) {
-    return { systemShown: false, inAppShown: false, error: 'Permission not granted' }
-  }
-  return showNotification(
-    'Dr. Dose',
-    'Test reminder — check the in-app banner at the bottom too.',
-    'dr-dose-test',
-  )
-}

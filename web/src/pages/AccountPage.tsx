@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { AccountSettings } from '../components/AccountSettings'
+import { ProfileStreakSummary } from '../components/ProfileStreakSummary'
+import { StreakBadges } from '../components/StreakBadges'
 import { StreakCard } from '../components/StreakCard'
 import { useAuth } from '../hooks/useAuth'
 import { fetchStreakStats, type StreakStats } from '../lib/streaks'
@@ -52,6 +54,18 @@ export function AccountPage() {
       </header>
 
       {streakError && <p className="banner banner-error">{streakError}</p>}
+
+      {!streakLoading && streakStats && (
+        <>
+          <ProfileStreakSummary
+            user={user}
+            displayName={user?.user_metadata?.display_name as string | undefined}
+            email={user?.email}
+            stats={streakStats}
+          />
+          <StreakBadges longestStreak={streakStats.longestStreak} />
+        </>
+      )}
 
       <StreakCard stats={streakStats ?? defaultStreakStats()} loading={streakLoading} />
 

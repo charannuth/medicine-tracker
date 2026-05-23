@@ -10,7 +10,7 @@ export function RefillBanner({ alerts }: { alerts: RefillAlert[] }) {
       {alerts.map((a, i) => (
         <span key={a.medicationId}>
           {i > 0 && ', '}
-          {a.name} ({a.pillsRemaining} left)
+          {a.name} ({a.remainingLabel} left)
         </span>
       ))}
       .{' '}

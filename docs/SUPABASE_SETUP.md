@@ -21,7 +21,13 @@ This creates `medications` and `dose_logs` tables plus Row Level Security (each 
 1. [`002_dose_per_schedule_time.sql`](../supabase/migrations/002_dose_per_schedule_time.sql) — separate dose per scheduled time  
 2. [`003_split_dose_pills_mg.sql`](../supabase/migrations/003_split_dose_pills_mg.sql) — separate pills and mg fields  
 3. [`004_medication_dates.sql`](../supabase/migrations/004_medication_dates.sql) — start date and optional end date  
-4. [`006_wellness.sql`](../supabase/migrations/006_wellness.sql) — wellness baseline profile and daily logs
+4. [`005_medication_type.sql`](../supabase/migrations/005_medication_type.sql) — medication route and form  
+5. [`006_wellness.sql`](../supabase/migrations/006_wellness.sql) — wellness baseline profile and daily logs  
+6. [`007_avatars_storage.sql`](../supabase/migrations/007_avatars_storage.sql) — profile photo storage bucket
+
+### Profile photos (optional)
+
+After migration `007_avatars_storage.sql`, users can upload a profile picture from **My account** → **Settings**. Photos are stored in the public `avatars` bucket under `{userId}/avatar.jpg`.
 
 ## 3. Configure authentication
 

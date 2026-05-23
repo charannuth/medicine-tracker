@@ -1,3 +1,4 @@
+import { formatInventoryCount } from './inventory'
 import type { MedicationWithStatus } from './types'
 
 const REFILL_THRESHOLD = 7
@@ -5,7 +6,8 @@ const REFILL_THRESHOLD = 7
 export type RefillAlert = {
   medicationId: string
   name: string
-  pillsRemaining: number
+  remaining: number
+  remainingLabel: string
 }
 
 export function getRefillAlerts(medications: MedicationWithStatus[]): RefillAlert[] {
@@ -16,6 +18,7 @@ export function getRefillAlerts(medications: MedicationWithStatus[]): RefillAler
     .map((m) => ({
       medicationId: m.id,
       name: m.name,
-      pillsRemaining: m.pills_remaining!,
+      remaining: m.pills_remaining!,
+      remainingLabel: formatInventoryCount(m.pills_remaining!, m),
     }))
 }

@@ -6,8 +6,8 @@ import {
   getNotificationPermission,
   isNotificationSupported,
   requestNotificationPermission,
-  sendTestNotification,
 } from '../lib/notifications'
+import { ProfilePictureEditor } from './ProfilePictureEditor'
 import {
   getReminders,
   getTheme,
@@ -112,40 +112,6 @@ export function AccountSettings() {
     }
   }
 
-  async function handleTestNotification() {
-    setError(null)
-    setMessage(null)
-    if (!isNotificationSupported()) {
-      setError('Notifications are not supported in this browser.')
-      return
-    }
-    if (Notification.permission === 'denied') {
-      setError('Notifications are blocked for this site. Allow them in browser settings.')
-      return
-    }
-    if (Notification.permission !== 'granted') {
-      const ok = await requestNotificationPermission()
-      if (!ok) {
-        setError('Allow notifications when prompted, then tap Test again.')
-        return
-      }
-    }
-    const result = await sendTestNotification()
-    if (result.inAppShown) {
-      setMessage(
-        result.systemShown
-          ? 'Test sent — look for a banner at the bottom and/or Notification Center (Mac top right).'
-          : 'In-app banner shown at the bottom. Mac Chrome often hides system pop-ups; use the banner or Notification Center.',
-      )
-      if (user?.id && remindersOn) {
-        const check = await runReminderCheck(user.id)
-        setReminderDebug(check)
-      }
-    } else {
-      setError(result.error ?? 'Could not show test notification.')
-    }
-  }
-
   const permission = getNotificationPermission()
   const permissionHint =
     permission === 'unsupported'
@@ -154,7 +120,7 @@ export function AccountSettings() {
         ? 'Allowed'
         : permission === 'denied'
           ? 'Blocked — change in browser site settings'
-          : 'Not asked yet — turn on reminders or tap Test'
+          : 'Not asked yet — turn on reminders to allow'
 
   const tzOptions = Intl.supportedValuesOf('timeZone')
 
@@ -163,6 +129,8 @@ export function AccountSettings() {
       <h3 className="account-section-title">Settings</h3>
 
       <div className="account-settings-fields">
+        <ProfilePictureEditor />
+
         <label className="account-field">
           Display name
           <input
@@ -223,14 +191,6 @@ export function AccountSettings() {
           Notification permission: <strong>{permissionHint}</strong>
         </p>
 
-        <button
-          type="button"
-          className="btn btn-secondary btn-block"
-          onClick={() => void handleTestNotification()}
-        >
-          Send test notification
-        </button>
-
         {remindersOn && (
           <button
             type="button"
@@ -270,9 +230,8 @@ export function AccountSettings() {
 
         <p className="field-hint">
           Dose reminders fire after each scheduled time passes (if not marked taken). On Mac,
-          switch to another app or check Notification Center if no banner appears. Start with{' '}
-          <strong>Send test notification</strong> — if that fails, fix Chrome/macOS permissions
-          first.
+          switch to another app or check Notification Center if no banner appears. Use{' '}
+          <strong>Check dose reminders now</strong> to verify your schedule.
         </p>
 
         {error && <p className="form-error">{error}</p>}

@@ -1,14 +1,14 @@
 import { useId, useRef, useState } from 'react'
-import {
-  useFloatingPanelPosition,
-  useIsMobileLayout,
-} from '../hooks/useFloatingPanelPosition'
+import { createPortal } from 'react-dom'
+import { useFloatingPanelPosition } from '../hooks/useFloatingPanelPosition'
 import { MIN_RXNORM_QUERY_LEN, useRxNormDrugSearch } from '../hooks/useRxNormDrugSearch'
 import {
   mergeMedicationSuggestions,
   searchLocalMedicationSuggestions,
   type MedicationSuggestion,
 } from '../lib/medicationSuggestions'
+
+const SUGGESTIONS_Z_INDEX = 1100
 
 type MedicationNameInputProps = {
   value: string
@@ -24,11 +24,10 @@ export function MedicationNameInput({
   required,
 }: MedicationNameInputProps) {
   const listId = useId()
-  const wrapRef = useRef<HTMLDivElement>(null)
+  const anchorRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLInputElement>(null)
   const [open, setOpen] = useState(false)
   const [highlight, setHighlight] = useState(0)
-  const isMobile = useIsMobileLayout()
 
   const query = value.trim()
   const { names: rxnormNames, loading: rxnormLoading, failed: rxnormFailed } =
@@ -38,7 +37,7 @@ export function MedicationNameInput({
   const suggestions = mergeMedicationSuggestions(localSuggestions, rxnormNames, 12)
   const showList = open && query.length > 0 && suggestions.length > 0
   const activeIndex = Math.min(highlight, Math.max(0, suggestions.length - 1))
-  const floatingStyle = useFloatingPanelPosition(showList, wrapRef, isMobile)
+  const panelStyle = useFloatingPanelPosition(showList, anchorRef, showList)
 
   function pick(suggestion: MedicationSuggestion) {
     onChange(suggestion.name)
@@ -64,29 +63,71 @@ export function MedicationNameInput({
     }
   }
 
+  const suggestionsList = showList ? (
+      <ul
+        id={listId}
+        className="med-suggestions med-suggestions--floating"
+        role="listbox"
+        style={{
+          ...panelStyle,
+          zIndex: SUGGESTIONS_Z_INDEX,
+          visibility: panelStyle ? 'visible' : 'hidden',
+        }}
+      >
+        {suggestions.map((suggestion, index) => (
+          <li key={`${suggestion.name}-${index}`} role="presentation">
+            <button
+              type="button"
+              role="option"
+              aria-selected={index === activeIndex}
+              className={`med-suggestion-item ${index === activeIndex ? 'highlighted' : ''}`}
+              onMouseDown={(e) => e.preventDefault()}
+              onClick={() => pick(suggestion)}
+              onMouseEnter={() => setHighlight(index)}
+            >
+              <span className="med-suggestion-name">{suggestion.name}</span>
+              {(suggestion.genericName ||
+                suggestion.doseMg ||
+                suggestion.dosePills) && (
+                <span className="med-suggestion-hint">
+                  {suggestion.genericName
+                    ? `Generic: ${suggestion.genericName}`
+                    : [suggestion.dosePills, suggestion.doseMg]
+                        .filter(Boolean)
+                        .join(' · ')}
+                </span>
+              )}
+            </button>
+          </li>
+        ))}
+      </ul>
+    ) : null
+
   return (
-    <div className="med-name-autocomplete" ref={wrapRef}>
-      <input
-        ref={inputRef}
-        required={required}
-        value={value}
-        onChange={(e) => {
-          onChange(e.target.value)
-          setHighlight(0)
-          setOpen(true)
-        }}
-        onFocus={() => setOpen(true)}
-        onBlur={() => {
-          window.setTimeout(() => setOpen(false), 150)
-        }}
-        onKeyDown={handleKeyDown}
-        placeholder="e.g. Tylenol, Albuterol"
-        autoComplete="off"
-        aria-autocomplete="list"
-        aria-controls={showList ? listId : undefined}
-        aria-expanded={showList}
-        aria-busy={rxnormLoading}
-      />
+    <div className="med-name-autocomplete">
+      <div className="med-name-input-anchor" ref={anchorRef}>
+        <input
+          ref={inputRef}
+          required={required}
+          value={value}
+          onChange={(e) => {
+            onChange(e.target.value)
+            setHighlight(0)
+            setOpen(true)
+          }}
+          onFocus={() => setOpen(true)}
+          onBlur={() => {
+            window.setTimeout(() => setOpen(false), 200)
+          }}
+          onKeyDown={handleKeyDown}
+          placeholder="e.g. Tylenol, Albuterol"
+          autoComplete="off"
+          aria-autocomplete="list"
+          aria-controls={showList ? listId : undefined}
+          aria-expanded={showList}
+          aria-busy={rxnormLoading}
+        />
+      </div>
       {query.length >= MIN_RXNORM_QUERY_LEN && (
         <p className="med-name-search-hint" aria-live="polite">
           {rxnormLoading
@@ -96,41 +137,9 @@ export function MedicationNameInput({
               : 'Suggestions appear as you type.'}
         </p>
       )}
-      {showList && (
-        <ul
-          id={listId}
-          className={`med-suggestions${isMobile ? ' med-suggestions--floating' : ''}`}
-          role="listbox"
-          style={floatingStyle}
-        >
-          {suggestions.map((suggestion, index) => (
-            <li key={`${suggestion.name}-${index}`} role="presentation">
-              <button
-                type="button"
-                role="option"
-                aria-selected={index === activeIndex}
-                className={`med-suggestion-item ${index === activeIndex ? 'highlighted' : ''}`}
-                onMouseDown={(e) => e.preventDefault()}
-                onClick={() => pick(suggestion)}
-                onMouseEnter={() => setHighlight(index)}
-              >
-                <span className="med-suggestion-name">{suggestion.name}</span>
-                {(suggestion.genericName ||
-                  suggestion.doseMg ||
-                  suggestion.dosePills) && (
-                  <span className="med-suggestion-hint">
-                    {suggestion.genericName
-                      ? `Generic: ${suggestion.genericName}`
-                      : [suggestion.dosePills, suggestion.doseMg]
-                          .filter(Boolean)
-                          .join(' · ')}
-                  </span>
-                )}
-              </button>
-            </li>
-          ))}
-        </ul>
-      )}
+      {suggestionsList &&
+        typeof document !== 'undefined' &&
+        createPortal(suggestionsList, document.body)}
     </div>
   )
 }

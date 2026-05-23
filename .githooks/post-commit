@@ -1,0 +1,26 @@
+#!/bin/sh
+# Append this commit to README Development log and amend so it stays in the same commit.
+
+if [ "$SKIP_DEVLOG" = "1" ]; then
+  exit 0
+fi
+
+# Skip merge commits
+if git rev-parse -q --verify MERGE_HEAD >/dev/null 2>&1; then
+  exit 0
+fi
+
+ROOT="$(git rev-parse --show-toplevel)"
+HASH="$(git rev-parse HEAD)"
+MSG="$(git log -1 --format=%s)"
+
+if grep -Fq -- "$HASH" "$ROOT/README.md" 2>/dev/null; then
+  exit 0
+fi
+
+"$ROOT/scripts/append-dev-log.sh" "$MSG" "$HASH" || exit 0
+
+git add "$ROOT/README.md"
+
+# Amend current commit to include README; skip hooks to avoid recursion
+SKIP_DEVLOG=1 git commit --amend --no-edit --no-verify

@@ -2,6 +2,49 @@
 
 A personal web app to manage medications, log daily doses, track adherence streaks, and check for known drug interactions. Built for private use (you and family) with cloud sync via Supabase.
 
+> **Development log** (below) records what shipped each session. It updates automatically on every commit when [git hooks are installed](#development-log). Feature docs follow for reference.
+
+## Development log
+
+Newest first. Each line is added from the commit subject when you commit (with hooks enabled).
+
+<!-- DEVLOG:START -->
+- **2026-05-23** (`17c3ebb`) — Update README for Dr. Dose rebrand and current features.
+
+- **2026-05-23** (`e2d0257`) — Add in-app reminder banner and service worker notifications.
+
+- **2026-05-23** (`40a9399`) — Show doctor report in-app instead of relying on pop-ups.
+
+- **2026-05-23** (`73c10d6`) — Add wellness tracking with trends, med briefings, and doctor report.
+
+- **2026-05-23** (`978fad8`) — Simplify medication name placeholder and hints.
+
+- **2026-05-23** (`6429d6f`) — Fix ESLint errors so CI passes on push.
+
+- **2026-05-23** (`6dc3007`) — Prioritize brand names in medication search with local list and RxNorm cleanup.
+
+- **2026-05-23** (`f497651`) — Add RxNorm live search for medication name autocomplete.
+
+- **2026-05-23** (`29f04c0`) — Add responsive layouts and mobile-friendly medication search.
+
+- **2026-05-23** (`a7d16c4`) — Improve mobile dose time entry with mask and native picker.
+
+- **2026-05-23** (`f0ce06c`) — Rebrand to Dr. Dose and add email OTP verification.
+
+- **2026-05-23** (`00a3402`) — Point Vercel Git builds at the web app root directory.
+
+- **2026-05-23** (`3b4b0d6`) — Add multi-step medication wizard, safety review, and UX fixes.
+
+- **2026-05-23** (`68ba6d7`) — Move Vercel config to web/ and add deploy documentation.
+
+- **2026-05-23** (`691829f`) — Add Medicine Tracker web v1 with Supabase backend.
+
+- **2026-05-23** (`65835bf`) — Add repository scaffold for Medicine Tracker. README, roadmap, license, contributor docs, issue/PR templates, and CI skeleton.
+
+<!-- DEVLOG:END -->
+
+---
+
 ## Vision
 
 Dr. Dose aims to be the central hub between patients, pharmacies, and healthcare providers — making it simple to know what to take, when to take it, and when to refill, while reducing accidental double-dosing.
@@ -277,6 +320,20 @@ npm run preview
 Planned next steps: UI polish, notifications when the app is closed (mobile), native apps via Capacitor, larger interaction database, pharmacy integrations. See [docs/ROADMAP.md](docs/ROADMAP.md).
 
 **Live demo:** Deploy to Vercel with env vars from Supabase; add production URL to Supabase Auth redirect allowlist.
+
+---
+
+## Development log (setup)
+
+After cloning, run once:
+
+```bash
+./scripts/install-githooks.sh
+```
+
+Each `git commit` then appends its subject to the [Development log](#development-log) at the top of this file (same commit, via `post-commit` amend). To skip once: `SKIP_DEVLOG=1 git commit …`
+
+Manual entry: `./scripts/append-dev-log.sh "Your summary"`.
 
 ---
 

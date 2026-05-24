@@ -51,7 +51,7 @@
   { "name": "Norco", "genericName": "hydrocodone-acetaminophen", "doseMg": "5/325 mg" },
   { "name": "Percocet", "genericName": "oxycodone-acetaminophen", "doseMg": "5/325 mg" },
   { "name": "OxyContin", "genericName": "oxycodone", "doseMg": "5 mg" },
-  { "name": "Tramadol", "genericName": "tramadol", "doseMg": "50 mg" },
+  { "name": "Theo-24", "genericName": "theophylline", "doseMg": "300 mg" },
   { "name": "Ultram", "genericName": "tramadol", "doseMg": "50 mg" },
   { "name": "Adderall", "genericName": "amphetamine-dextroamphetamine", "doseMg": "10 mg" },
   { "name": "Ritalin", "genericName": "methylphenidate", "doseMg": "10 mg" },

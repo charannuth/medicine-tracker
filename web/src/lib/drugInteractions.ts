@@ -175,6 +175,78 @@ export function findInteractionsAmongCanonical(
   )
 }
 
+function warningSignature(item: FoundInteraction): string {
+  return `${item.severity}|${item.description}|${item.management}`
+}
+
+/** Merge identical class-rule warnings (e.g. albuterol + 3 beta blockers → one card). */
+export function collapseDuplicateClassWarnings(
+  interactions: FoundInteraction[],
+): FoundInteraction[] {
+  const standalone: FoundInteraction[] = []
+  const classGroups = new Map<string, FoundInteraction[]>()
+
+  for (const item of interactions) {
+    if (!item.fromClassRule) {
+      standalone.push(item)
+      continue
+    }
+    const sig = warningSignature(item)
+    const group = classGroups.get(sig) ?? []
+    group.push(item)
+    classGroups.set(sig, group)
+  }
+
+  const collapsed: FoundInteraction[] = [...standalone]
+
+  for (const items of classGroups.values()) {
+    if (items.length === 1) {
+      collapsed.push(items[0])
+      continue
+    }
+
+    const first = items[0]
+    const anchorCanonical =
+      items.every((i) => i.drugA === first.drugA) ? first.drugA : first.drugB
+    const anchorDisplay =
+      anchorCanonical === first.drugA ? first.displayA : first.displayB
+
+    const partnerDisplays = [
+      ...new Set(
+        items.flatMap((i) =>
+          i.drugA === anchorCanonical ? [i.displayB] : [i.displayA],
+        ),
+      ),
+    ].sort((a, b) => a.localeCompare(b))
+
+    const partnerCanonicals = [
+      ...new Set(
+        items.flatMap((i) =>
+          i.drugA === anchorCanonical ? [i.drugB] : [i.drugA],
+        ),
+      ),
+    ]
+
+    collapsed.push({
+      ...first,
+      drugA: anchorCanonical,
+      drugB: partnerCanonicals.join('+'),
+      displayA: anchorDisplay,
+      displayB: partnerDisplays.join(', '),
+    })
+  }
+
+  const severityOrder: Record<InteractionSeverity, number> = {
+    major: 0,
+    moderate: 1,
+    minor: 2,
+  }
+
+  return collapsed.sort(
+    (x, y) => severityOrder[x.severity] - severityOrder[y.severity],
+  )
+}
+
 /** Interactions involving a specific drug (by original or canonical name). */
 export function interactionsInvolvingDrug(
   interactions: FoundInteraction[],
@@ -209,9 +281,8 @@ export async function checkMedicationInteractions(
   }
 
   const canonicalList = [...displayByCanonical.keys()]
-  const interactions = findInteractionsAmongCanonical(
-    canonicalList,
-    displayByCanonical,
+  const interactions = collapseDuplicateClassWarnings(
+    findInteractionsAmongCanonical(canonicalList, displayByCanonical),
   )
 
   const pairCount =

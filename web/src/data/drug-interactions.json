@@ -37,6 +37,11 @@
     "singulair": "montelukast",
     "ventolin": "albuterol",
     "proair": "albuterol",
+    "theo-24": "theophylline",
+    "theophylline": "theophylline",
+    "lanoxin": "digoxin",
+    "digoxin": "digoxin",
+    "phenobarbital": "phenobarbital",
     "prilosec": "omeprazole",
     "nexium": "esomeprazole",
     "zantac": "ranitidine",
@@ -206,8 +211,8 @@
       "a": { "drug": "albuterol" },
       "b": { "class": "beta_blocker" },
       "severity": "major",
-      "description": "Non-selective beta blockers can block bronchodilation and worsen asthma.",
-      "management": "Generally avoid propranolol in asthma; cardioselective beta blockers may be used cautiously."
+      "description": "Beta blockers can reduce bronchodilator effect and worsen asthma control, especially non-selective agents.",
+      "management": "Discuss with your pulmonologist before combining rescue inhalers with any beta blocker; cardioselective options may be used cautiously when prescribed."
     },
     {
       "a": { "drug": "lithium" },
@@ -591,10 +596,31 @@
     },
     {
       "a": "albuterol",
-      "b": "propranolol",
-      "severity": "major",
-      "description": "Non-selective beta blockers can block bronchodilation and worsen asthma.",
-      "management": "Generally avoid propranolol in asthma; cardioselective beta blockers may be used cautiously."
+      "b": "theophylline",
+      "severity": "minor",
+      "description": "Both are bronchodilators with overlapping stimulant effects. Together they may increase tremor, palpitations, or nervousness.",
+      "management": "Usually manageable at prescribed doses; report persistent racing heart or shaking to your clinician."
+    },
+    {
+      "a": "albuterol",
+      "b": "digoxin",
+      "severity": "minor",
+      "description": "Beta-agonists like albuterol can lower potassium briefly, which may increase digoxin sensitivity in some patients.",
+      "management": "Stay hydrated; tell your doctor if you notice nausea, vision changes, or irregular heartbeat."
+    },
+    {
+      "a": "montelukast",
+      "b": "phenobarbital",
+      "severity": "minor",
+      "description": "Phenobarbital can speed up montelukast breakdown, which may reduce asthma control in some people.",
+      "management": "Watch for worsening wheezing after starting or stopping phenobarbital; your prescriber may adjust therapy."
+    },
+    {
+      "a": "montelukast",
+      "b": "gemfibrozil",
+      "severity": "minor",
+      "description": "Gemfibrozil may slow montelukast clearance and slightly raise blood levels.",
+      "management": "Report new or worsening mood changes, headache, or sleep problems to your clinician."
     },
     {
       "a": "bupropion",

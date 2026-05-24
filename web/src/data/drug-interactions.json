@@ -57,6 +57,180 @@
     "nicotine": "tobacco",
     "cigarettes": "tobacco"
   },
+  "drugClasses": {
+    "ssri": [
+      "escitalopram",
+      "sertraline",
+      "fluoxetine",
+      "citalopram",
+      "paroxetine",
+      "duloxetine",
+      "venlafaxine",
+      "desvenlafaxine"
+    ],
+    "snri": ["venlafaxine", "desvenlafaxine", "duloxetine"],
+    "maoi": ["phenelzine", "linezolid"],
+    "nsaid": [
+      "ibuprofen",
+      "naproxen",
+      "aspirin",
+      "ketorolac",
+      "diclofenac",
+      "meloxicam",
+      "celecoxib"
+    ],
+    "opioid": [
+      "tramadol",
+      "oxycodone",
+      "hydrocodone",
+      "morphine",
+      "codeine",
+      "fentanyl"
+    ],
+    "benzodiazepine": ["alprazolam", "lorazepam", "clonazepam", "diazepam"],
+    "anticoagulant": ["warfarin", "apixaban", "rivaroxaban"],
+    "antiplatelet": ["aspirin", "clopidogrel"],
+    "ace_inhibitor": ["lisinopril", "enalapril", "ramipril", "benazepril", "captopril"],
+    "arb": ["losartan", "valsartan"],
+    "beta_blocker": ["metoprolol", "propranolol", "carvedilol"],
+    "statin": ["simvastatin", "atorvastatin", "rosuvastatin"],
+    "ppi": ["omeprazole", "esomeprazole", "pantoprazole", "ranitidine"]
+  },
+  "classRules": [
+    {
+      "a": { "class": "ssri" },
+      "b": { "drug": "tramadol" },
+      "severity": "major",
+      "description": "Combined use increases the risk of serotonin syndrome.",
+      "management": "Avoid combination when possible. Seek urgent care if agitation, fever, or muscle rigidity occur."
+    },
+    {
+      "a": { "class": "ssri" },
+      "b": { "class": "maoi" },
+      "severity": "major",
+      "description": "SSRIs with MAOIs risk fatal serotonin syndrome.",
+      "management": "Contraindicated. Requires long washout between classes."
+    },
+    {
+      "a": { "class": "ssri" },
+      "b": { "class": "nsaid" },
+      "severity": "moderate",
+      "description": "SSRIs with NSAIDs increase bleeding risk.",
+      "management": "Use lowest NSAID dose for shortest time; watch for bruising or GI bleeding."
+    },
+    {
+      "a": { "class": "ssri" },
+      "b": { "drug": "sumatriptan" },
+      "severity": "moderate",
+      "description": "Triptans with SSRIs may increase serotonin syndrome risk.",
+      "management": "Use only under medical guidance; know serotonin syndrome symptoms."
+    },
+    {
+      "a": { "class": "ssri" },
+      "b": { "class": "beta_blocker" },
+      "severity": "moderate",
+      "description": "SSRIs with beta blockers may affect heart rate and blood pressure in some patients.",
+      "management": "Monitor blood pressure and heart rate when starting or changing doses."
+    },
+    {
+      "a": { "class": "anticoagulant" },
+      "b": { "class": "nsaid" },
+      "severity": "major",
+      "description": "Anticoagulants with NSAIDs increase serious bleeding risk.",
+      "management": "Avoid NSAIDs unless specifically approved; use acetaminophen when appropriate."
+    },
+    {
+      "a": { "class": "anticoagulant" },
+      "b": { "class": "antiplatelet" },
+      "severity": "major",
+      "description": "Anticoagulant plus antiplatelet therapy increases bleeding risk.",
+      "management": "Only combine when prescribed together; report any bleeding promptly."
+    },
+    {
+      "a": { "class": "ace_inhibitor" },
+      "b": { "class": "nsaid" },
+      "severity": "moderate",
+      "description": "NSAIDs may reduce blood pressure control and harm kidneys with ACE inhibitors.",
+      "management": "Limit NSAID use; stay hydrated; monitor blood pressure."
+    },
+    {
+      "a": { "class": "arb" },
+      "b": { "class": "nsaid" },
+      "severity": "moderate",
+      "description": "NSAIDs may reduce ARB efficacy and worsen kidney function.",
+      "management": "Limit NSAID use; monitor blood pressure and kidney labs."
+    },
+    {
+      "a": { "class": "opioid" },
+      "b": { "class": "benzodiazepine" },
+      "severity": "major",
+      "description": "Opioids with benzodiazepines increase sedation, respiratory depression, and overdose risk.",
+      "management": "Avoid combining unless specifically prescribed with close monitoring."
+    },
+    {
+      "a": { "class": "statin" },
+      "b": { "drug": "clarithromycin" },
+      "severity": "major",
+      "description": "Macrolides raise statin levels, increasing myopathy and rhabdomyolysis risk.",
+      "management": "Often requires holding or changing statin during antibiotic course."
+    },
+    {
+      "a": { "class": "statin" },
+      "b": { "drug": "fluconazole" },
+      "severity": "major",
+      "description": "Fluconazole greatly increases statin exposure and muscle toxicity risk.",
+      "management": "Avoid combination or use lowest statin dose with monitoring."
+    },
+    {
+      "a": { "class": "statin" },
+      "b": { "drug": "gemfibrozil" },
+      "severity": "major",
+      "description": "Statin with fibrate significantly increases severe muscle injury risk.",
+      "management": "Generally avoided; alternative lipid therapy may be needed."
+    },
+    {
+      "a": { "class": "beta_blocker" },
+      "b": { "drug": "verapamil" },
+      "severity": "major",
+      "description": "Beta blockers with verapamil risk dangerous bradycardia and hypotension.",
+      "management": "Avoid routine combination unless cardiology supervises."
+    },
+    {
+      "a": { "class": "beta_blocker" },
+      "b": { "drug": "diltiazem" },
+      "severity": "major",
+      "description": "Beta blockers with diltiazem can cause excessive heart rate slowing.",
+      "management": "Use only with close cardiac monitoring."
+    },
+    {
+      "a": { "drug": "albuterol" },
+      "b": { "class": "beta_blocker" },
+      "severity": "major",
+      "description": "Non-selective beta blockers can block bronchodilation and worsen asthma.",
+      "management": "Generally avoid propranolol in asthma; cardioselective beta blockers may be used cautiously."
+    },
+    {
+      "a": { "drug": "lithium" },
+      "b": { "class": "nsaid" },
+      "severity": "major",
+      "description": "NSAIDs reduce lithium clearance and can cause toxicity.",
+      "management": "Avoid NSAIDs when possible; check lithium levels if unavoidable."
+    },
+    {
+      "a": { "drug": "lithium" },
+      "b": { "class": "ace_inhibitor" },
+      "severity": "moderate",
+      "description": "ACE inhibitors can raise lithium levels.",
+      "management": "Monitor lithium levels when starting or changing ACE inhibitors."
+    },
+    {
+      "a": { "drug": "clopidogrel" },
+      "b": { "class": "ppi" },
+      "severity": "moderate",
+      "description": "Some PPIs may reduce activation of clopidogrel in certain patients.",
+      "management": "Discuss alternative PPI (e.g. pantoprazole) with your prescriber."
+    }
+  ],
   "pairs": [
     {
       "a": "escitalopram",

@@ -2,10 +2,11 @@ import safetyData from '../data/drug-safety.json'
 import { checkDrugAllergies, type AllergyWarning } from './allergyCheck'
 import { checkDrugConditions, type ConditionWarning } from './conditionCheck'
 import {
-  canonicalDrugName,
   checkMedicationInteractions,
+  interactionsInvolvingDrug,
   type FoundInteraction,
 } from './drugInteractions'
+import { resolveDrugLocally, resolveDrugViaRxNorm } from './drugResolver'
 
 const SUBSTANCE_KEYS = ['alcohol', 'cannabis', 'tobacco'] as const
 export type SubstanceKey = (typeof SUBSTANCE_KEYS)[number]
@@ -117,15 +118,20 @@ export async function buildMedicationSafetyReview(
       ? await checkMedicationInteractions(allForCheck)
       : null
 
-  const canonical = canonicalDrugName(trimmed)
+  const resolvedNew =
+    resolveDrugLocally(trimmed) ?? (await resolveDrugViaRxNorm(trimmed))
+  const canonical = resolvedNew
+
   const profile = profileForCanonical(canonical)
 
   const existingMedInteractions =
-    medListCheck?.interactions.filter(
-      (i) =>
-        i.displayA.toLowerCase() === trimmed.toLowerCase() ||
-        i.displayB.toLowerCase() === trimmed.toLowerCase(),
-    ) ?? []
+    medListCheck && trimmed
+      ? interactionsInvolvingDrug(
+          medListCheck.interactions,
+          trimmed,
+          medListCheck.resolved,
+        )
+      : []
 
   const [allergyWarnings, conditionWarnings] = await Promise.all([
     checkDrugAllergies(trimmed, userAllergies),

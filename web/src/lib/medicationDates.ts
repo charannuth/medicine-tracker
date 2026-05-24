@@ -1,5 +1,5 @@
 import { normalizeScheduleTimes, todayLocalDate } from './dates'
-import type { Medication } from './types'
+import type { DoseLog, Medication } from './types'
 
 export type MedicationScheduleStatus = 'active' | 'upcoming' | 'ended'
 
@@ -24,10 +24,37 @@ export function expectedDosesForActiveMedicationsOnDate(
   medications: Medication[],
   dateStr: string,
 ): number {
-  return filterMedicationsActiveOn(medications, dateStr).reduce(
-    (sum, med) => sum + normalizeScheduleTimes(med.schedule_times ?? []).length,
-    0,
+  return countScheduledDosesTakenOnDate(medications, [], dateStr).expected
+}
+
+/** Scheduled slots vs logs — only counts doses on today's active schedule. */
+export function countScheduledDosesTakenOnDate(
+  medications: Medication[],
+  logsForDay: DoseLog[],
+  dateStr: string,
+): { taken: number; expected: number; extraLogs: number } {
+  const expectedKeys = new Set<string>()
+  for (const med of filterMedicationsActiveOn(medications, dateStr)) {
+    for (const time of normalizeScheduleTimes(med.schedule_times ?? [])) {
+      expectedKeys.add(`${med.id}|${time}`)
+    }
+  }
+
+  const loggedKeys = new Set(
+    logsForDay.map((l) => `${l.medication_id}|${l.schedule_time}`),
   )
+
+  let taken = 0
+  for (const key of expectedKeys) {
+    if (loggedKeys.has(key)) taken++
+  }
+
+  let extraLogs = 0
+  for (const key of loggedKeys) {
+    if (!expectedKeys.has(key)) extraLogs++
+  }
+
+  return { taken, expected: expectedKeys.size, extraLogs }
 }
 
 export function filterMedicationsActiveOn<T extends DateRangeMed>(

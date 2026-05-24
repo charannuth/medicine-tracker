@@ -1,5 +1,8 @@
 import allergyData from '../data/drug-allergy-crossrefs.json'
-import { canonicalDrugName, resolveDrugNameViaRxNorm } from './drugInteractions'
+import {
+  resolveDrugLocally,
+  resolveDrugViaRxNorm,
+} from './drugResolver'
 
 export type AllergyWarning = {
   category: string
@@ -56,9 +59,9 @@ export function resolveUserAllergyCategories(userAllergies: string[]): Map<strin
 }
 
 async function resolveDrugCanonical(drugName: string): Promise<string | null> {
-  const local = canonicalDrugName(drugName)
+  const local = resolveDrugLocally(drugName)
   if (local) return local
-  return resolveDrugNameViaRxNorm(drugName)
+  return resolveDrugViaRxNorm(drugName)
 }
 
 export async function checkDrugAllergies(

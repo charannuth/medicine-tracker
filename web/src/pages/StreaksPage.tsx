@@ -50,6 +50,7 @@ function emptyStats(): StreakStats {
     longestStreak: 0,
     todayTaken: 0,
     todayExpected: 0,
+    todayExtraLogs: 0,
     todayComplete: false,
     hasMedications: false,
     last7Days: [],

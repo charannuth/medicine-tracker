@@ -1,6 +1,7 @@
 import { supabase } from './supabase'
 import { lastNDays, normalizeScheduleTimes, todayLocalDate } from './dates'
 import {
+  countScheduledDosesTakenOnDate,
   expectedDosesForActiveMedicationsOnDate,
   filterMedicationsActiveOn,
 } from './medicationDates'
@@ -18,6 +19,8 @@ export type StreakStats = {
   longestStreak: number
   todayTaken: number
   todayExpected: number
+  /** Logs today that don't match the current schedule (e.g. after editing dose times). */
+  todayExtraLogs: number
   todayComplete: boolean
   hasMedications: boolean
   last7Days: { date: string; perfect: boolean }[]
@@ -59,21 +62,21 @@ function isPerfectDay(
   return true
 }
 
-function countTakenSlots(logsForDay: DoseLog[]): number {
-  return new Set(logsForDay.map((l) => `${l.medication_id}|${l.schedule_time}`)).size
-}
-
 function streakDayStatus(
   medications: Medication[],
   logsForDay: DoseLog[],
   date: string,
   today: string,
 ): StreakDayStatus {
-  const expected = expectedDosesForActiveMedicationsOnDate(medications, date)
+  const { expected, taken } = countScheduledDosesTakenOnDate(
+    medications,
+    logsForDay,
+    date,
+  )
   if (expected === 0) return 'none'
   if (isPerfectDay(medications, logsForDay, date)) return 'perfect'
   if (date === today) return 'partial'
-  return countTakenSlots(logsForDay) > 0 ? 'partial' : 'missed'
+  return taken > 0 ? 'partial' : 'missed'
 }
 
 function computeCurrentStreak(
@@ -120,6 +123,7 @@ export async function fetchStreakStats(userId: string): Promise<StreakStats> {
     longestStreak: 0,
     todayTaken: 0,
     todayExpected: 0,
+    todayExtraLogs: 0,
     todayComplete: false,
     hasMedications: false,
     last7Days: lastNDays(7)
@@ -151,14 +155,15 @@ export async function fetchStreakStats(userId: string): Promise<StreakStats> {
 
   const medications = (medsResult.data ?? []) as Medication[]
   const logsByDate = groupLogsByDate((logsResult.data ?? []) as DoseLog[])
-  const todayExpected = expectedDosesForActiveMedicationsOnDate(medications, today)
+  const todayLogs = logsByDate.get(today) ?? []
+  const {
+    taken: todayTaken,
+    expected: todayExpected,
+    extraLogs: todayExtraLogs,
+  } = countScheduledDosesTakenOnDate(medications, todayLogs, today)
   const hasMedications =
     filterMedicationsActiveOn(medications, today).length > 0 && todayExpected > 0
 
-  const todayLogs = logsByDate.get(today) ?? []
-  const todayTaken = new Set(
-    todayLogs.map((l) => `${l.medication_id}|${l.schedule_time}`),
-  ).size
   const todayComplete =
     hasMedications &&
     todayTaken >= todayExpected &&
@@ -195,6 +200,7 @@ export async function fetchStreakStats(userId: string): Promise<StreakStats> {
     longestStreak: Math.max(longestStreak, currentStreak),
     todayTaken,
     todayExpected,
+    todayExtraLogs,
     todayComplete,
     hasMedications,
     last7Days: last7,

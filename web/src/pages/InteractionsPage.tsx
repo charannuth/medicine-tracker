@@ -6,7 +6,9 @@ import { checkDrugAllergies, type AllergyWarning } from '../lib/allergyCheck'
 import { checkDrugConditions, type ConditionWarning } from '../lib/conditionCheck'
 import {
   checkMedicationInteractions,
+  interactionsInvolvingDrug,
   severityLabel,
+  type FoundInteraction,
   type InteractionCheckResult,
 } from '../lib/drugInteractions'
 import { filterMedicationsActiveOn } from '../lib/medicationDates'
@@ -24,6 +26,7 @@ export function InteractionsPage() {
   const [error, setError] = useState<string | null>(null)
   const [extraDrug, setExtraDrug] = useState('')
   const [rechecking, setRechecking] = useState(false)
+  const [lastCheckedDrug, setLastCheckedDrug] = useState<string | null>(null)
 
   const runMedicalRecordCheck = useCallback(
     async (names: string[]) => {
@@ -104,9 +107,14 @@ export function InteractionsPage() {
     e.preventDefault()
     if (!result || !extraDrug.trim()) return
 
+    const candidate = extraDrug.trim()
     setRechecking(true)
     try {
-      const names = [...result.inputNames, extraDrug.trim()]
+      const existing = new Set(result.inputNames.map((n) => n.toLowerCase()))
+      const names = existing.has(candidate.toLowerCase())
+        ? result.inputNames
+        : [...result.inputNames, candidate]
+      setLastCheckedDrug(candidate)
       await runCheck(names)
       setExtraDrug('')
     } catch (err) {
@@ -115,6 +123,25 @@ export function InteractionsPage() {
       setRechecking(false)
     }
   }
+
+  const highlightedInteractions =
+    result && lastCheckedDrug
+      ? interactionsInvolvingDrug(
+          result.interactions,
+          lastCheckedDrug,
+          result.resolved,
+        )
+      : []
+
+  const otherInteractions =
+    result && lastCheckedDrug
+      ? result.interactions.filter(
+          (item) =>
+            !highlightedInteractions.some(
+              (hit) => hit.drugA === item.drugA && hit.drugB === item.drugB,
+            ),
+        )
+      : (result?.interactions ?? [])
 
   const unresolved = result?.resolved.filter((r) => !r.canonical) ?? []
   const majorCount =
@@ -180,7 +207,9 @@ export function InteractionsPage() {
 
             {result.inputNames.length >= 2 && (
               <p className="interaction-meta">
-                Checked {result.pairCount} pair{result.pairCount === 1 ? '' : 's'} ·{' '}
+                Mapped {result.mappedCount} of {result.resolved.length} name
+                {result.resolved.length === 1 ? '' : 's'} · checked{' '}
+                {result.pairCount} pair{result.pairCount === 1 ? '' : 's'} ·{' '}
                 {result.interactions.length} warning
                 {result.interactions.length === 1 ? '' : 's'} found
                 {majorCount > 0 && (
@@ -189,6 +218,15 @@ export function InteractionsPage() {
                     ({majorCount} major)
                   </span>
                 )}
+              </p>
+            )}
+
+            {result.unmappedCount > 0 && result.inputNames.length >= 2 && (
+              <p className="banner banner-warning interaction-map-warning">
+                {result.unmappedCount} medication
+                {result.unmappedCount === 1 ? ' was' : 's were'} not matched to our
+                reference set, so some drug–drug pairs could not be checked. Try the
+                generic name (e.g. ibuprofen instead of Advil) or check spelling.
               </p>
             )}
           </section>
@@ -248,28 +286,39 @@ export function InteractionsPage() {
           )}
 
           {result.interactions.length > 0 ? (
-            <ul className="interaction-results">
-              {result.interactions.map((item) => (
-                <li
-                  key={`${item.drugA}-${item.drugB}`}
-                  className={`interaction-item interaction-${item.severity}`}
-                >
-                  <div className="interaction-item-header">
-                    <span className={`badge badge-severity-${item.severity}`}>
-                      {severityLabel(item.severity)}
-                    </span>
-                    <h4>
-                      {item.displayA} + {item.displayB}
-                    </h4>
-                  </div>
-                  <p>{item.description}</p>
-                  <p className="interaction-management">
-                    <strong>What to do:</strong> {item.management}
+            <section className="interaction-drug-section">
+              <h3>Drug-to-drug interactions</h3>
+              {lastCheckedDrug && highlightedInteractions.length > 0 && (
+                <>
+                  <p className="field-hint">
+                    Warnings involving <strong>{lastCheckedDrug}</strong> and your
+                    current list:
                   </p>
-                </li>
-              ))}
-            </ul>
-          ) : result.inputNames.length >= 2 ? (
+                  <ul className="interaction-results">
+                    {highlightedInteractions.map((item) => (
+                      <InteractionResultItem
+                        key={`new-${item.drugA}-${item.drugB}`}
+                        item={item}
+                      />
+                    ))}
+                  </ul>
+                </>
+              )}
+              {lastCheckedDrug && otherInteractions.length > 0 && (
+                <p className="field-hint">Other interactions on your list:</p>
+              )}
+              <ul className="interaction-results">
+                {(lastCheckedDrug ? otherInteractions : result.interactions).map(
+                  (item) => (
+                    <InteractionResultItem
+                      key={`${item.drugA}-${item.drugB}`}
+                      item={item}
+                    />
+                  ),
+                )}
+              </ul>
+            </section>
+          ) : result.inputNames.length >= 2 && result.mappedCount >= 2 ? (
             <div className="interaction-clear banner banner-success-style">
               <p>
                 <strong>No known interactions</strong> in our reference database
@@ -278,6 +327,13 @@ export function InteractionsPage() {
               <p className="interaction-clear-note">
                 This does not guarantee safety. New drugs, doses, and conditions
                 can still matter — ask a pharmacist if unsure.
+              </p>
+            </div>
+          ) : result.inputNames.length >= 2 && result.mappedCount < 2 ? (
+            <div className="interaction-clear banner banner-warning">
+              <p>
+                <strong>Not enough medications mapped</strong> to run a full drug–drug
+                check. Add generic names where possible, or update spelling.
               </p>
             </div>
           ) : null}
@@ -330,4 +386,23 @@ export function InteractionsPage() {
 
 function normalize(s: string): string {
   return s.trim().toLowerCase()
+}
+
+function InteractionResultItem({ item }: { item: FoundInteraction }) {
+  return (
+    <li className={`interaction-item interaction-${item.severity}`}>
+      <div className="interaction-item-header">
+        <span className={`badge badge-severity-${item.severity}`}>
+          {severityLabel(item.severity)}
+        </span>
+        <h4>
+          {item.displayA} + {item.displayB}
+        </h4>
+      </div>
+      <p>{item.description}</p>
+      <p className="interaction-management">
+        <strong>What to do:</strong> {item.management}
+      </p>
+    </li>
+  )
 }

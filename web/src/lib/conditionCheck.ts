@@ -1,6 +1,9 @@
 import conditionData from '../data/drug-condition-crossrefs.json'
 import allergyData from '../data/drug-allergy-crossrefs.json'
-import { canonicalDrugName, resolveDrugNameViaRxNorm } from './drugInteractions'
+import {
+  resolveDrugLocally,
+  resolveDrugViaRxNorm,
+} from './drugResolver'
 
 export type ConditionWarning = {
   conditionKey: string
@@ -56,9 +59,9 @@ export function resolveUserConditionKeys(
 }
 
 async function resolveDrugCanonical(drugName: string): Promise<string | null> {
-  const local = canonicalDrugName(drugName)
+  const local = resolveDrugLocally(drugName)
   if (local) return local
-  return resolveDrugNameViaRxNorm(drugName)
+  return resolveDrugViaRxNorm(drugName)
 }
 
 export async function checkDrugConditions(

@@ -1,4 +1,11 @@
 import interactionData from '../data/drug-interactions.json'
+import {
+  normalizeToken,
+  resolveDrugLocally,
+  resolveDrugViaRxNorm,
+} from './drugResolver'
+
+export { canonicalDrugName, resolveDrugViaRxNorm as resolveDrugNameViaRxNorm } from './drugResolver'
 
 export type InteractionSeverity = 'major' | 'moderate' | 'minor'
 
@@ -10,6 +17,8 @@ export type FoundInteraction = {
   severity: InteractionSeverity
   description: string
   management: string
+  /** True when matched via a class rule rather than an explicit pair row. */
+  fromClassRule?: boolean
 }
 
 export type InteractionCheckResult = {
@@ -18,6 +27,8 @@ export type InteractionCheckResult = {
   resolved: { original: string; canonical: string | null }[]
   interactions: FoundInteraction[]
   pairCount: number
+  mappedCount: number
+  unmappedCount: number
 }
 
 type InteractionPair = {
@@ -28,70 +39,82 @@ type InteractionPair = {
   management: string
 }
 
-const ALIASES = interactionData.aliases as Record<string, string>
+type ClassSide = { class?: string; drug?: string }
+
+type ClassInteractionRule = {
+  a: ClassSide
+  b: ClassSide
+  severity: InteractionSeverity
+  description: string
+  management: string
+}
+
 const PAIRS = interactionData.pairs as InteractionPair[]
+const DRUG_CLASSES = (interactionData.drugClasses ?? {}) as Record<string, string[]>
+const CLASS_RULES = (interactionData.classRules ?? []) as ClassInteractionRule[]
 
 const pairIndex = new Map<string, InteractionPair>()
+const classMembers = new Map<string, Set<string>>()
+
+for (const [classKey, members] of Object.entries(DRUG_CLASSES)) {
+  classMembers.set(classKey, new Set(members.map(normalizeToken)))
+}
 
 for (const pair of PAIRS) {
-  const key = pairKey(pair.a, pair.b)
-  pairIndex.set(key, pair)
+  pairIndex.set(pairKey(pair.a, pair.b), pair)
 }
 
 function pairKey(a: string, b: string): string {
   return [a, b].sort().join('|')
 }
 
-function normalizeToken(name: string): string {
-  return name.trim().toLowerCase().replace(/\s+/g, ' ')
-}
-
-export function canonicalDrugName(name: string): string | null {
-  const token = normalizeToken(name)
-  if (!token) return null
-  if (ALIASES[token]) return ALIASES[token]
-  if (pairIndexHasDrug(token)) return token
-  return null
-}
-
-function pairIndexHasDrug(drug: string): boolean {
-  for (const pair of PAIRS) {
-    if (pair.a === drug || pair.b === drug) return true
+function sideMatchesDrug(side: ClassSide, drug: string): boolean {
+  if (side.drug && normalizeToken(side.drug) === drug) return true
+  if (side.class) {
+    const members = classMembers.get(side.class)
+    return members?.has(drug) ?? false
   }
   return false
 }
 
-export async function resolveDrugNameViaRxNorm(name: string): Promise<string | null> {
-  const local = canonicalDrugName(name)
-  if (local) return local
-
-  try {
-    const termRes = await fetch(
-      `https://rxnav.nlm.nih.gov/REST/approximateTerm.json?term=${encodeURIComponent(name.trim())}&maxEntries=1`,
-    )
-    if (!termRes.ok) return null
-
-    const termData = (await termRes.json()) as {
-      approximateGroup?: { candidate?: { rxcui?: string }[] }
-    }
-    const rxcui = termData.approximateGroup?.candidate?.[0]?.rxcui
-    if (!rxcui) return null
-
-    const propRes = await fetch(
-      `https://rxnav.nlm.nih.gov/REST/rxcui/${rxcui}/property.json?propName=RxNorm%20Name`,
-    )
-    if (!propRes.ok) return null
-
-    const propData = (await propRes.json()) as {
-      propConceptGroup?: { propConcept?: { propValue?: string }[] }
-    }
-    const rxName = propData.propConceptGroup?.propConcept?.[0]?.propValue
-    if (!rxName) return null
-
-    return canonicalDrugName(rxName) ?? normalizeToken(rxName)
-  } catch {
-    return null
+function findClassRule(a: string, b: string): ClassInteractionRule | null {
+  for (const rule of CLASS_RULES) {
+    const forward =
+      sideMatchesDrug(rule.a, a) && sideMatchesDrug(rule.b, b)
+    const reverse =
+      sideMatchesDrug(rule.a, b) && sideMatchesDrug(rule.b, a)
+    if (forward || reverse) return rule
   }
+  return null
+}
+
+function lookupInteraction(a: string, b: string): {
+  severity: InteractionSeverity
+  description: string
+  management: string
+  fromClassRule: boolean
+} | null {
+  const direct = pairIndex.get(pairKey(a, b))
+  if (direct) {
+    return {
+      severity: direct.severity,
+      description: direct.description,
+      management: direct.management,
+      fromClassRule: false,
+    }
+  }
+
+  const classRule = findClassRule(a, b)
+  if (classRule) {
+    return {
+      severity: classRule.severity,
+      description: classRule.description,
+      management: classRule.management,
+      fromClassRule: true,
+    }
+  }
+
+  return null
 }
 
 export async function resolveDrugNames(names: string[]): Promise<
@@ -101,7 +124,8 @@ export async function resolveDrugNames(names: string[]): Promise<
   const resolved: { original: string; canonical: string | null }[] = []
 
   for (const original of unique) {
-    const canonical = await resolveDrugNameViaRxNorm(original)
+    const local = resolveDrugLocally(original)
+    const canonical = local ?? (await resolveDrugViaRxNorm(original))
     resolved.push({ original, canonical })
   }
 
@@ -114,22 +138,28 @@ export function findInteractionsAmongCanonical(
 ): FoundInteraction[] {
   const unique = [...new Set(canonicalNames.filter(Boolean))]
   const found: FoundInteraction[] = []
+  const seen = new Set<string>()
 
   for (let i = 0; i < unique.length; i++) {
     for (let j = i + 1; j < unique.length; j++) {
       const a = unique[i]
       const b = unique[j]
-      const pair = pairIndex.get(pairKey(a, b))
-      if (!pair) continue
+      const key = pairKey(a, b)
+      if (seen.has(key)) continue
 
+      const match = lookupInteraction(a, b)
+      if (!match) continue
+
+      seen.add(key)
       found.push({
         drugA: a,
         drugB: b,
         displayA: displayByCanonical.get(a) ?? a,
         displayB: displayByCanonical.get(b) ?? b,
-        severity: pair.severity,
-        description: pair.description,
-        management: pair.management,
+        severity: match.severity,
+        description: match.description,
+        management: match.management,
+        fromClassRule: match.fromClassRule,
       })
     }
   }
@@ -143,6 +173,26 @@ export function findInteractionsAmongCanonical(
   return found.sort(
     (x, y) => severityOrder[x.severity] - severityOrder[y.severity],
   )
+}
+
+/** Interactions involving a specific drug (by original or canonical name). */
+export function interactionsInvolvingDrug(
+  interactions: FoundInteraction[],
+  drugName: string,
+  resolved: { original: string; canonical: string | null }[],
+): FoundInteraction[] {
+  const norm = normalizeToken(drugName)
+  const row = resolved.find((r) => normalizeToken(r.original) === norm)
+  const canonical = row?.canonical
+
+  return interactions.filter((item) => {
+    if (canonical && (item.drugA === canonical || item.drugB === canonical)) {
+      return true
+    }
+    return (
+      normalizeToken(item.displayA) === norm || normalizeToken(item.displayB) === norm
+    )
+  })
 }
 
 export async function checkMedicationInteractions(
@@ -169,12 +219,17 @@ export async function checkMedicationInteractions(
       ? 0
       : (canonicalList.length * (canonicalList.length - 1)) / 2
 
+  const mappedCount = resolved.filter((r) => r.canonical).length
+  const unmappedCount = resolved.length - mappedCount
+
   return {
     checkedAt: new Date().toISOString(),
     inputNames: medicationNames,
     resolved,
     interactions,
     pairCount,
+    mappedCount,
+    unmappedCount,
   }
 }
 

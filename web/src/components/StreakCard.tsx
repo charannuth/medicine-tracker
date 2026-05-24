@@ -42,9 +42,16 @@ export function StreakCard({ stats, loading }: StreakCardProps) {
 
       {stats.hasMedications && (
         <p className="streak-today-progress">
-          Today: {stats.todayTaken} of {stats.todayExpected} doses logged
+          Today: {stats.todayTaken} of {stats.todayExpected} scheduled doses logged
           {stats.todayComplete && (
             <span className="streak-today-done"> · Complete</span>
+          )}
+          {stats.todayExtraLogs > 0 && (
+            <span className="streak-today-extra">
+              {' '}
+              ({stats.todayExtraLogs} extra log{stats.todayExtraLogs === 1 ? '' : 's'}{' '}
+              not on today&apos;s schedule)
+            </span>
           )}
         </p>
       )}

@@ -9,6 +9,8 @@ A personal web app to manage medications, log daily doses, track adherence strea
 Newest first. Each line is added from the commit subject when you commit (with hooks enabled).
 
 <!-- DEVLOG:START -->
+- **2026-05-23** (`e3fd93f`) — Fix drug interaction checks and polish streaks and mobile nav.
+
 - **2026-05-23** (`4a2108c`) — Add streaks, medical records, history calendar, and maroon branding.
 
 - **2026-05-23** (`6ec5c1d`) — Add streak celebrations, profile photos, and UI polish for deploy.

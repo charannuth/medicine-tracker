@@ -18,6 +18,8 @@ const navItems = [
 
 const CLOSE_DELAY_MS = 220
 const SIDEBAR_TRANSITION_MS = 300
+/** Desktop with mouse — hover opens; touch screens use tap only. */
+const HOVER_MENU_MEDIA = '(hover: hover) and (pointer: fine)'
 
 export function ProfileMenu() {
   const { user, signOut } = useAuth()
@@ -26,7 +28,16 @@ export function ProfileMenu() {
   const [mounted, setMounted] = useState(false)
   const [visible, setVisible] = useState(false)
   const [pinned, setPinned] = useState(false)
+  const [canHoverMenu, setCanHoverMenu] = useState(false)
   const closeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+
+  useEffect(() => {
+    const mq = window.matchMedia(HOVER_MENU_MEDIA)
+    const update = () => setCanHoverMenu(mq.matches)
+    update()
+    mq.addEventListener('change', update)
+    return () => mq.removeEventListener('change', update)
+  }, [])
 
   const cancelScheduledClose = useCallback(() => {
     if (closeTimerRef.current) {
@@ -91,28 +102,44 @@ export function ProfileMenu() {
   }, [mounted, closeMenu])
 
   function handleTriggerMouseEnter() {
+    if (!canHoverMenu) return
     openMenu()
   }
 
   function handleTriggerMouseLeave() {
-    if (!pinned) scheduleClose()
+    if (!canHoverMenu || pinned) return
+    scheduleClose()
   }
 
   function handleSidebarMouseEnter() {
+    if (!canHoverMenu) return
     openMenu()
   }
 
   function handleSidebarMouseLeave() {
-    if (!pinned) scheduleClose()
+    if (!canHoverMenu || pinned) return
+    scheduleClose()
   }
 
   function handleTriggerClick() {
     cancelScheduledClose()
-    if (visible && pinned) {
+
+    if (canHoverMenu) {
+      if (visible && pinned) {
+        closeMenu()
+        return
+      }
+      setPinned(true)
+      openMenu()
+      return
+    }
+
+    if (visible) {
       closeMenu()
       return
     }
-    setPinned(true)
+
+    setPinned(false)
     openMenu()
   }
 
@@ -139,8 +166,8 @@ export function ProfileMenu() {
               role="navigation"
               aria-label="Main menu"
               aria-hidden={!visible}
-              onMouseEnter={handleSidebarMouseEnter}
-              onMouseLeave={handleSidebarMouseLeave}
+              onMouseEnter={canHoverMenu ? handleSidebarMouseEnter : undefined}
+              onMouseLeave={canHoverMenu ? handleSidebarMouseLeave : undefined}
             >
               <div className="profile-sidebar-header">
                 <ProfileAvatar user={user} size="lg" />
@@ -185,13 +212,14 @@ export function ProfileMenu() {
     <div className="profile-menu">
       <button
         type="button"
-        className={`profile-trigger${mounted ? ' profile-trigger-open' : ''}`}
+        className={`profile-trigger${visible ? ' profile-trigger-open' : ''}`}
         aria-expanded={visible}
         aria-controls={sidebarId}
+        aria-haspopup="dialog"
         aria-label={visible ? 'Close menu' : 'Open menu'}
         onClick={handleTriggerClick}
-        onMouseEnter={handleTriggerMouseEnter}
-        onMouseLeave={handleTriggerMouseLeave}
+        onMouseEnter={canHoverMenu ? handleTriggerMouseEnter : undefined}
+        onMouseLeave={canHoverMenu ? handleTriggerMouseLeave : undefined}
       >
         <ProfileAvatar user={user} size="sm" />
       </button>

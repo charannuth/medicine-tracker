@@ -2617,7 +2617,8 @@
 }
 
 .interaction-item.interaction-minor {
-  border-color: var(--border);
+  border-color: #bfdbfe;
+  background: color-mix(in srgb, #eff6ff 55%, var(--surface));
 }
 
 .interaction-item-header {
@@ -2654,8 +2655,8 @@
 }
 
 .badge-severity-minor {
-  background: var(--border);
-  color: var(--text);
+  background: #475569;
+  color: #f8fafc;
 }
 
 .banner-success-style {
@@ -2730,6 +2731,16 @@
 [data-theme='dark'] .interaction-item.interaction-moderate {
   border-color: #78350f;
   background: color-mix(in srgb, #422006 40%, var(--surface));
+}
+
+[data-theme='dark'] .interaction-item.interaction-minor {
+  border-color: #1e40af;
+  background: color-mix(in srgb, #0c1a3d 55%, var(--surface));
+}
+
+[data-theme='dark'] .badge-severity-minor {
+  background: #2563eb;
+  color: #eff6ff;
 }
 
 .med-manage-list {

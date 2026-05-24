@@ -9,6 +9,8 @@ A personal web app to manage medications, log daily doses, track adherence strea
 Newest first. Each line is added from the commit subject when you commit (with hooks enabled).
 
 <!-- DEVLOG:START -->
+- **2026-05-24** (`187ddba`) — Add drug name autocomplete to the interactions safety check.
+
 - **2026-05-24** (`9a6eec6`) — Style minor interaction cards with a distinct blue tint.
 
 - **2026-05-24** (`e13b145`) — Add minor albuterol and montelukast pairs and tidy beta-blocker warnings.

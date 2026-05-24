@@ -15,6 +15,8 @@ type MedicationNameInputProps = {
   onChange: (value: string) => void
   onSelectSuggestion?: (suggestion: MedicationSuggestion) => void
   required?: boolean
+  placeholder?: string
+  ariaLabel?: string
 }
 
 export function MedicationNameInput({
@@ -22,6 +24,8 @@ export function MedicationNameInput({
   onChange,
   onSelectSuggestion,
   required,
+  placeholder = 'e.g. Tylenol, Albuterol',
+  ariaLabel = 'Medication name',
 }: MedicationNameInputProps) {
   const listId = useId()
   const anchorRef = useRef<HTMLDivElement>(null)
@@ -120,8 +124,9 @@ export function MedicationNameInput({
             window.setTimeout(() => setOpen(false), 200)
           }}
           onKeyDown={handleKeyDown}
-          placeholder="e.g. Tylenol, Albuterol"
+          placeholder={placeholder}
           autoComplete="off"
+          aria-label={ariaLabel}
           aria-autocomplete="list"
           aria-controls={showList ? listId : undefined}
           aria-expanded={showList}

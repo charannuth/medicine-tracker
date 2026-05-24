@@ -11,6 +11,7 @@ import {
   type FoundInteraction,
   type InteractionCheckResult,
 } from '../lib/drugInteractions'
+import { MedicationNameInput } from '../components/MedicationNameInput'
 import { filterMedicationsActiveOn } from '../lib/medicationDates'
 import { supabase } from '../lib/supabase'
 import { todayLocalDate } from '../lib/dates'
@@ -359,12 +360,14 @@ export function InteractionsPage() {
               See if a medication you are considering interacts with your current list.
             </p>
             <form className="interaction-extra-form" onSubmit={handleAddExtraDrug}>
-              <input
-                value={extraDrug}
-                onChange={(e) => setExtraDrug(e.target.value)}
-                placeholder="e.g. ibuprofen"
-                aria-label="Drug name to check"
-              />
+              <div className="interaction-extra-input">
+                <MedicationNameInput
+                  value={extraDrug}
+                  onChange={setExtraDrug}
+                  placeholder="e.g. ibuprofen, Advil, Lexapro"
+                  ariaLabel="Drug name to check"
+                />
+              </div>
               <button
                 type="submit"
                 className="btn btn-secondary"

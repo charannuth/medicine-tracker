@@ -6,6 +6,8 @@ import {
   createMedication,
   deleteMedication,
   fetchMedicationsWithStatus,
+  migrateMedicationToAsNeeded,
+  migrateMedicationToScheduled,
   markDoseTaken,
   markPrnDoseTaken,
   todayDoseTotals,
@@ -13,6 +15,7 @@ import {
   repairMedicationSchedule,
   updateMedication,
 } from '../lib/medications'
+import type { PrnDoseLogPayload } from '../lib/prnCheckIn'
 import type {
   DoseSlotStatus,
   Medication,
@@ -198,16 +201,65 @@ export function TodayPage() {
     }
   }
 
-  async function handleLogPrn(med: MedicationWithStatus) {
+  async function handleLogPrn(med: MedicationWithStatus, payload: PrnDoseLogPayload) {
     if (!user) return
     const key = `${med.id}-prn`
     setBusySlot(key)
     setError(null)
     try {
-      await markPrnDoseTaken(user.id, med.id)
+      await markPrnDoseTaken(user.id, med.id, payload)
       await reload()
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Could not log dose')
+    } finally {
+      setBusySlot(null)
+    }
+  }
+
+  async function handleMoveToAsNeeded(med: MedicationWithStatus) {
+    if (
+      !confirm(
+        `Move ${med.name} to as needed?\n\nFixed dose times will be removed. Doses you already logged today stay on this medication.`,
+      )
+    ) {
+      return
+    }
+    setBusySlot(`${med.id}-migrate-prn`)
+    setError(null)
+    try {
+      await migrateMedicationToAsNeeded(med.id)
+      await reload()
+      setTodayTab('as_needed')
+    } catch (err) {
+      setError(
+        err instanceof Error ? err.message : 'Could not move medication to as needed',
+      )
+    } finally {
+      setBusySlot(null)
+    }
+  }
+
+  async function handleMoveToDailySchedule(med: MedicationWithStatus) {
+    if (
+      !confirm(
+        `Move ${med.name} to a daily schedule?\n\nA default morning dose time (8:00 AM) will be added. Edit the medication to change or add times. PRN logs from today stay in your history.`,
+      )
+    ) {
+      return
+    }
+    setBusySlot(`${med.id}-migrate-daily`)
+    setError(null)
+    try {
+      await migrateMedicationToScheduled(med.id)
+      await reload()
+      await refreshStreakStats()
+      setTodayTab('scheduled')
+    } catch (err) {
+      setError(
+        err instanceof Error
+          ? err.message
+          : 'Could not move medication to daily schedule',
+      )
     } finally {
       setBusySlot(null)
     }
@@ -361,12 +413,14 @@ export function TodayPage() {
                   medication={med}
                   busySlot={busySlot}
                   onMarkTaken={(time) => handleMarkTaken(med, time)}
-                  onLogPrn={() => handleLogPrn(med)}
+                  onLogPrn={(payload) => handleLogPrn(med, payload)}
                   onUndo={(slot) => handleUndo(med, slot)}
                   onEdit={() => {
                     setEditing(med)
                     setFormOpen(true)
                   }}
+                  onMoveToAsNeeded={() => handleMoveToAsNeeded(med)}
+                  onMoveToDailySchedule={() => handleMoveToDailySchedule(med)}
                   onDelete={() => handleDelete(med)}
                 />
               </li>

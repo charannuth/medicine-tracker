@@ -9,6 +9,8 @@ A personal web app to manage medications, log daily doses, track adherence strea
 Newest first. Each line is added from the commit subject when you commit (with hooks enabled).
 
 <!-- DEVLOG:START -->
+- **2026-05-25** (`33c7484`) — Add PRN dose check-ins, flexible dosing, and wellness trend insights.
+
 - **2026-05-24** (`551f9c0`) — Add daily vs as-needed meds, profile stats, and Tracking hub.
 
 - **2026-05-24** (`2001cdb`) — Keep the top navbar visible while scrolling.

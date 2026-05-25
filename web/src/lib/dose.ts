@@ -8,11 +8,24 @@ export function formatDoseDisplay(med: {
   return pills || mg
 }
 
-export function normalizeDoseFields(pills: string, mg: string) {
+import type { MedicationScheduleType } from './medicationSchedule'
+import { ensureDoseConstraint } from './doseByRoute'
+
+export function normalizeDoseFields(
+  pills: string,
+  mg: string,
+  options?: {
+    schedule_type?: MedicationScheduleType
+    max_doses_per_day?: number | null
+  },
+) {
   const dose_pills = pills.trim() || null
   const dose_mg = mg.trim() || null
-  if (!dose_pills && !dose_mg) {
-    throw new Error('Enter an amount in pills, mg, or both.')
-  }
+  ensureDoseConstraint({
+    dose_pills: pills,
+    dose_mg: mg,
+    schedule_type: options?.schedule_type ?? 'scheduled',
+    max_doses_per_day: options?.max_doses_per_day ?? null,
+  })
   return { dose_pills, dose_mg }
 }

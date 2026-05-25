@@ -4,6 +4,7 @@ import { todayLocalDate } from '../lib/dates'
 import { supabase } from '../lib/supabase'
 import type { Medication } from '../lib/types'
 import type { ActiveMedicationSummary } from '../lib/wellnessReport'
+import { fetchPrnInsights, type PrnInsightsSummary } from '../lib/prnInsights'
 import {
   emptyWellnessLogInput,
   emptyWellnessProfileInput,
@@ -17,6 +18,13 @@ import {
   type WellnessLogInput,
   type WellnessProfileInput,
 } from '../lib/wellness'
+
+const emptyPrnInsights = (days: number): PrnInsightsSummary => ({
+  periodDays: days,
+  periodLabel: `Last ${days} days`,
+  meds: [],
+  hasData: false,
+})
 
 export function useWellnessPageData(
   userId: string | undefined,
@@ -36,6 +44,9 @@ export function useWellnessPageData(
   const [activeMeds, setActiveMeds] = useState<ActiveMedicationSummary[]>([])
   const [trendLogs, setTrendLogs] = useState<WellnessLog[]>([])
   const [reportLogs, setReportLogs] = useState<WellnessLog[]>([])
+  const [prnInsights, setPrnInsights] = useState<PrnInsightsSummary>(() =>
+    emptyPrnInsights(14),
+  )
   const [pageLoading, setPageLoading] = useState(true)
   const [logLoading, setLogLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -52,16 +63,18 @@ export function useWellnessPageData(
       setError(null)
 
       void (async () => {
-        const [profile, logs, trends] = await Promise.all([
+        const [profile, logs, trends, prn] = await Promise.all([
           fetchWellnessProfile(userId),
           fetchWellnessLogsForDates(userId, weekDates),
           fetchWellnessLogsForDates(userId, trendDates),
+          fetchPrnInsights(userId, trendDates.length),
         ])
         if (!active || controller.signal.aborted) return
         setProfileDraft(profileToInput(profile))
         setWeekLogs(logs)
         setTrendLogs(trends)
         setReportLogs(trends)
+        setPrnInsights(prn)
 
         if (!supabase) return
         const { data, error: medError } = await supabase
@@ -135,13 +148,15 @@ export function useWellnessPageData(
 
   async function refreshWeekLogs() {
     if (!userId) return
-    const [logs, trends] = await Promise.all([
+    const [logs, trends, prn] = await Promise.all([
       fetchWellnessLogsForDates(userId, weekDates),
       fetchWellnessLogsForDates(userId, trendDates),
+      fetchPrnInsights(userId, trendDates.length),
     ])
     setWeekLogs(logs)
     setTrendLogs(trends)
     setReportLogs(trends)
+    setPrnInsights(prn)
   }
 
   return {
@@ -155,6 +170,7 @@ export function useWellnessPageData(
     trendLogs,
     reportLogs,
     reportDates,
+    prnInsights,
     activeMeds,
     pageLoading,
     logLoading,

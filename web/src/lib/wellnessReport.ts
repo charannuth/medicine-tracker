@@ -10,6 +10,7 @@ import {
 import { formatComparisonLine, compareWeekMetrics } from './wellnessTrends'
 import { todayLocalDate } from './dates'
 import type { MedBriefingEntry } from '../hooks/useWellnessMedBriefings'
+import type { PrnInsightsSummary } from './prnInsights'
 
 export type ActiveMedicationSummary = {
   name: string
@@ -26,6 +27,7 @@ export type WellnessReportData = {
   logDates: string[]
   weekComparisons: ReturnType<typeof compareWeekMetrics>
   medReviews: { med: ActiveMedicationSummary; review: MedicationSafetyReview }[]
+  prnInsights: PrnInsightsSummary
 }
 
 export function createWellnessReportData(input: {
@@ -33,6 +35,7 @@ export function createWellnessReportData(input: {
   profile: WellnessProfileInput
   medications: ActiveMedicationSummary[]
   reportLogs: WellnessLog[]
+  prnInsights: PrnInsightsSummary
   briefingEntries: MedBriefingEntry[]
 }): WellnessReportData {
   const today = todayLocalDate()
@@ -52,6 +55,7 @@ export function createWellnessReportData(input: {
       med: e.med,
       review: e.review,
     })),
+    prnInsights: input.prnInsights,
   }
 }
 
@@ -90,6 +94,35 @@ export function buildWellnessReportHtml(data: WellnessReportData): string {
       </tr>`
     })
     .join('')
+
+  const prnMeds = data.prnInsights.meds.filter((m) => m.totalDoses14d > 0)
+  const prnSection =
+    prnMeds.length > 0
+      ? prnMeds
+          .map((med) => {
+            const observations = med.observations
+              .map((o) => `<li>${escapeHtml(o)}</li>`)
+              .join('')
+            const tips = med.copingTips
+              .map((t) => `<li>${escapeHtml(t)}</li>`)
+              .join('')
+            return `
+        <section class="med-block">
+          <h3>${escapeHtml(med.medicationName)} (as needed)</h3>
+          <p class="meta">${escapeHtml(data.prnInsights.periodLabel)} · ${med.totalDoses14d} dose(s) on ${med.daysWithDoses} day(s)${
+            med.daysAtMax > 0
+              ? ` · max limit reached ${med.daysAtMax} day(s)`
+              : ''
+          }</p>
+          <p><em>Not a diagnosis.</em> Self-reported patterns vs daily wellness logs.</p>
+          <h4>Observations</h4>
+          <ul>${observations || '<li><em>No patterns yet.</em></li>'}</ul>
+          <h4>Ideas to discuss (educational)</h4>
+          <ul>${tips}</ul>
+        </section>`
+          })
+          .join('')
+      : '<p><em>No as-needed doses logged in this period.</em></p>'
 
   const medSections = data.medReviews
     .map(({ med, review }) => {
@@ -185,6 +218,9 @@ export function buildWellnessReportHtml(data: WellnessReportData): string {
     <thead><tr><th>Date</th><th>Summary</th><th>Notes for clinician</th></tr></thead>
     <tbody>${logRows}</tbody>
   </table>
+
+  <h2>As-needed (PRN) medication patterns</h2>
+  ${prnSection}
 
   <h2>Medication briefings</h2>
   ${medSections || '<p><em>No active medications.</em></p>'}

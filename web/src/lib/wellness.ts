@@ -25,14 +25,21 @@ export function buildSymptomChipOptions(
   selected: string[],
   trackedFromProfile: string[] = [],
 ): string[] {
+  return buildPresetSymptomChipOptions(selected, [
+    ...WELLNESS_SYMPTOM_OPTIONS,
+    ...trackedFromProfile,
+  ])
+}
+
+/** Chip list from explicit presets only (e.g. PRN medication symptoms). */
+export function buildPresetSymptomChipOptions(
+  selected: string[],
+  presets: readonly string[],
+): string[] {
   const seen = new Set<string>()
   const options: string[] = []
 
-  for (const symptom of [
-    ...WELLNESS_SYMPTOM_OPTIONS,
-    ...trackedFromProfile,
-    ...selected,
-  ]) {
+  for (const symptom of [...presets, ...selected]) {
     const trimmed = symptom.trim()
     if (!trimmed || seen.has(trimmed)) continue
     seen.add(trimmed)

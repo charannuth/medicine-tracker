@@ -13,9 +13,12 @@ import {
   createMedication,
   deleteMedication,
   fetchMedicationsWithStatus,
+  migrateMedicationToAsNeeded,
+  migrateMedicationToScheduled,
   repairMedicationSchedule,
   updateMedication,
 } from '../lib/medications'
+import { isAsNeededMed } from '../lib/medicationSchedule'
 import type { Medication, MedicationInput, MedicationWithStatus } from '../lib/types'
 import { MedicationForm } from './MedicationForm'
 
@@ -26,6 +29,7 @@ export function AccountMedicationsSection() {
   const [error, setError] = useState<string | null>(null)
   const [formOpen, setFormOpen] = useState(false)
   const [editing, setEditing] = useState<Medication | null>(null)
+  const [busyMedId, setBusyMedId] = useState<string | null>(null)
 
   const reload = useCallback(async () => {
     if (!user) return
@@ -77,6 +81,52 @@ export function AccountMedicationsSection() {
       await reload()
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Could not delete')
+    }
+  }
+
+  async function handleMoveToAsNeeded(med: MedicationWithStatus) {
+    if (
+      !confirm(
+        `Move ${med.name} to as needed?\n\nFixed dose times will be removed. Doses already logged today are kept.`,
+      )
+    ) {
+      return
+    }
+    setBusyMedId(`${med.id}-prn`)
+    setError(null)
+    try {
+      await migrateMedicationToAsNeeded(med.id)
+      await reload()
+    } catch (err) {
+      setError(
+        err instanceof Error ? err.message : 'Could not move medication to as needed',
+      )
+    } finally {
+      setBusyMedId(null)
+    }
+  }
+
+  async function handleMoveToDailySchedule(med: MedicationWithStatus) {
+    if (
+      !confirm(
+        `Move ${med.name} to a daily schedule?\n\nA default morning dose time (8:00 AM) will be added. Edit the medication to change or add times.`,
+      )
+    ) {
+      return
+    }
+    setBusyMedId(`${med.id}-daily`)
+    setError(null)
+    try {
+      await migrateMedicationToScheduled(med.id)
+      await reload()
+    } catch (err) {
+      setError(
+        err instanceof Error
+          ? err.message
+          : 'Could not move medication to daily schedule',
+      )
+    } finally {
+      setBusyMedId(null)
     }
   }
 
@@ -138,6 +188,25 @@ export function AccountMedicationsSection() {
                 )}
               </div>
               <div className="med-manage-actions">
+                {!isAsNeededMed(med) ? (
+                  <button
+                    type="button"
+                    className="btn btn-ghost btn-sm"
+                    disabled={busyMedId === `${med.id}-prn`}
+                    onClick={() => void handleMoveToAsNeeded(med)}
+                  >
+                    {busyMedId === `${med.id}-prn` ? '…' : 'As needed'}
+                  </button>
+                ) : (
+                  <button
+                    type="button"
+                    className="btn btn-ghost btn-sm"
+                    disabled={busyMedId === `${med.id}-daily`}
+                    onClick={() => void handleMoveToDailySchedule(med)}
+                  >
+                    {busyMedId === `${med.id}-daily` ? '…' : 'Daily'}
+                  </button>
+                )}
                 <button
                   type="button"
                   className="btn btn-ghost btn-sm"

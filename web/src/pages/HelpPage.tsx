@@ -13,8 +13,10 @@ export function HelpPage() {
         <ul>
           <li>
             <strong>Today</strong> — mark each scheduled dose separately (e.g. morning
-            and evening are two doses). Refill and missed-dose banners appear when
-            relevant.
+            and evening are two doses). Use <strong>Move to as needed</strong> or{' '}
+            <strong>Move to daily schedule</strong> to switch types without re-adding a
+            medication. Refill and
+            missed-dose banners appear when relevant.
           </li>
           <li>
             <strong>History</strong> — 42-day calendar, weekly summary, and dose list.

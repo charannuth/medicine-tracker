@@ -14,6 +14,8 @@ import {
   validateMedicationDates,
 } from './medicationDates'
 import { isAsNeededMed } from './medicationSchedule'
+import type { PrnDoseLogPayload } from './prnCheckIn'
+import { formatPrnDoseSummary } from './prnCheckIn'
 import { syncDoseLogToTracking, removeSyncedDoseLog } from './tracking/doseSync'
 import type {
   DoseLog,
@@ -38,12 +40,17 @@ function normalizeTrackingSync(
 function buildPrnSlots(logs: DoseLog[]): DoseSlotStatus[] {
   return [...logs]
     .sort((a, b) => a.schedule_time.localeCompare(b.schedule_time))
-    .map((log) => ({
-      time: log.schedule_time,
-      label: formatScheduleTime(log.schedule_time),
-      taken: true,
-      doseLogId: log.id,
-    }))
+    .map((log) => {
+      const summary = formatPrnDoseSummary(log)
+      return {
+        time: log.schedule_time,
+        label: summary
+          ? `${formatScheduleTime(log.schedule_time)} · ${summary}`
+          : formatScheduleTime(log.schedule_time),
+        taken: true,
+        doseLogId: log.id,
+      }
+    })
 }
 
 function buildSlots(
@@ -228,6 +235,10 @@ export async function createMedication(
   const { dose_pills, dose_mg } = normalizeDoseFields(
     input.dose_pills,
     input.dose_mg,
+    {
+      schedule_type: input.schedule_type,
+      max_doses_per_day: input.max_doses_per_day,
+    },
   )
 
   const schedule_type = input.schedule_type ?? 'scheduled'
@@ -244,6 +255,9 @@ export async function createMedication(
     medication_form: input.medication_form,
     dose_pills,
     dose_mg,
+    max_doses_per_day: input.max_doses_per_day,
+    prn_amount_hints: input.prn_amount_hints ?? [],
+    prn_symptom_hints: input.prn_symptom_hints ?? [],
     schedule_type,
     schedule_times,
     tracking_sync: input.tracking_sync ?? 'none',
@@ -265,6 +279,10 @@ export async function updateMedication(
   const { dose_pills, dose_mg } = normalizeDoseFields(
     input.dose_pills,
     input.dose_mg,
+    {
+      schedule_type: input.schedule_type,
+      max_doses_per_day: input.max_doses_per_day,
+    },
   )
 
   const schedule_type = input.schedule_type ?? 'scheduled'
@@ -292,6 +310,9 @@ export async function updateMedication(
       medication_form: input.medication_form,
       dose_pills,
       dose_mg,
+      max_doses_per_day: input.max_doses_per_day,
+      prn_amount_hints: input.prn_amount_hints ?? [],
+      prn_symptom_hints: input.prn_symptom_hints ?? [],
       schedule_type,
       schedule_times: newTimes,
       tracking_sync: input.tracking_sync ?? 'none',
@@ -312,6 +333,70 @@ export async function updateMedication(
   if (scheduleChanged) {
     await reconcileDoseLogsForScheduleChange(id, oldTimes, newTimes)
   }
+}
+
+/** Switch a daily-scheduled medication to as-needed (PRN) without re-entering details. */
+export async function migrateMedicationToAsNeeded(medicationId: string): Promise<void> {
+  if (!supabase) return
+
+  const { data: existing, error: fetchError } = await supabase
+    .from('medications')
+    .select('schedule_type')
+    .eq('id', medicationId)
+    .single()
+
+  if (fetchError) throw fetchError
+  if (!existing || normalizeScheduleType(existing.schedule_type) === 'as_needed') {
+    return
+  }
+
+  const { error } = await supabase
+    .from('medications')
+    .update({
+      schedule_type: 'as_needed',
+      schedule_times: [],
+    })
+    .eq('id', medicationId)
+
+  if (error) throw error
+  // Keep today's dose logs so they still show under the As needed tab.
+}
+
+const DEFAULT_DAILY_SCHEDULE_TIMES = ['08:00:00']
+
+/** Switch an as-needed (PRN) medication to a daily schedule without re-entering details. */
+export async function migrateMedicationToScheduled(
+  medicationId: string,
+  scheduleTimes: string[] = DEFAULT_DAILY_SCHEDULE_TIMES,
+): Promise<void> {
+  if (!supabase) return
+
+  const { data: existing, error: fetchError } = await supabase
+    .from('medications')
+    .select('schedule_type')
+    .eq('id', medicationId)
+    .single()
+
+  if (fetchError) throw fetchError
+  if (!existing || normalizeScheduleType(existing.schedule_type) !== 'as_needed') {
+    return
+  }
+
+  const times = normalizeScheduleTimes(scheduleTimes)
+  if (times.length === 0) {
+    throw new Error('Add at least one dose time.')
+  }
+
+  const { error } = await supabase
+    .from('medications')
+    .update({
+      schedule_type: 'scheduled',
+      schedule_times: times,
+    })
+    .eq('id', medicationId)
+
+  if (error) throw error
+  // PRN dose logs from today remain in history; edit dose times to match your routine.
 }
 
 export async function deleteMedication(id: string): Promise<void> {
@@ -347,14 +432,19 @@ async function adjustInventoryRemaining(
 export async function markPrnDoseTaken(
   userId: string,
   medicationId: string,
+  payload: PrnDoseLogPayload | string,
 ): Promise<void> {
+  const normalized: PrnDoseLogPayload =
+    typeof payload === 'string'
+      ? { amount: payload, symptoms: [], reason: '', notes: '' }
+      : payload
   if (!supabase) return
 
   const today = todayLocalDate()
   const { data: med, error: medError } = await supabase
     .from('medications')
     .select(
-      'name, start_date, end_date, dose_pills, dose_mg, schedule_type, tracking_sync',
+      'name, start_date, end_date, dose_pills, dose_mg, schedule_type, tracking_sync, max_doses_per_day',
     )
     .eq('id', medicationId)
     .single()
@@ -367,7 +457,21 @@ export async function markPrnDoseTaken(
     throw new Error('This medication uses a fixed daily schedule.')
   }
 
+  if (med.max_doses_per_day != null && med.max_doses_per_day > 0) {
+    const { count, error: countError } = await supabase
+      .from('dose_logs')
+      .select('id', { count: 'exact', head: true })
+      .eq('medication_id', medicationId)
+      .eq('taken_on', today)
+    if (countError) throw countError
+    if ((count ?? 0) >= med.max_doses_per_day) {
+      throw new Error(`Max ${med.max_doses_per_day} doses per day for this medication.`)
+    }
+  }
+
   const scheduleTime = currentPrnScheduleTimeToken()
+  const amount = normalized.amount.trim() || null
+  if (!amount) throw new Error('Enter how much you took.')
 
   const { data: log, error } = await supabase
     .from('dose_logs')
@@ -376,6 +480,10 @@ export async function markPrnDoseTaken(
       medication_id: medicationId,
       taken_on: today,
       schedule_time: scheduleTime,
+      logged_amount: amount,
+      prn_symptoms: normalized.symptoms,
+      prn_reason: normalized.reason.trim() || null,
+      prn_notes: normalized.notes.trim() || null,
     })
     .select('id')
     .single()
@@ -387,7 +495,11 @@ export async function markPrnDoseTaken(
     throw error
   }
 
-  await adjustInventoryRemaining(medicationId, med.dose_pills, 'take')
+  await adjustInventoryRemaining(
+    medicationId,
+    amount ?? med.dose_pills,
+    'take',
+  )
 
   if (log?.id) {
     await syncDoseLogToTracking({
@@ -398,7 +510,7 @@ export async function markPrnDoseTaken(
       takenOn: today,
       scheduleTime,
       medicationName: med.name,
-      dosePills: med.dose_pills,
+      dosePills: amount ?? med.dose_pills,
       doseMg: med.dose_mg,
     })
   }

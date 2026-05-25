@@ -6,6 +6,7 @@ import { useWellnessMedBriefings } from '../hooks/useWellnessMedBriefings'
 import { WellnessBaselineForm } from '../components/WellnessBaselineForm'
 import { WellnessDailyForm } from '../components/WellnessDailyForm'
 import { WellnessDisclaimer } from '../components/WellnessDisclaimer'
+import { PrnInsightsSection } from '../components/PrnInsightsSection'
 import { WellnessTrendsSection } from '../components/WellnessTrendsSection'
 import { WellnessMedBriefings } from '../components/WellnessMedBriefings'
 import { WellnessExportReport } from '../components/WellnessExportReport'
@@ -50,6 +51,7 @@ export function WellnessPage() {
     weekLogs,
     trendLogs,
     reportLogs,
+    prnInsights,
     activeMeds,
     pageLoading,
     logLoading,
@@ -128,8 +130,11 @@ export function WellnessPage() {
             profile={profileDraft}
             medications={activeMeds}
             reportLogs={reportLogs}
+            prnInsights={prnInsights}
             briefingEntries={briefingEntries}
           />
+
+          <PrnInsightsSection insights={prnInsights} />
 
           <WellnessTrendsSection trendLogs={trendLogs} />
 

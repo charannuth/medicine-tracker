@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import {
+  buildPresetSymptomChipOptions,
   buildSymptomChipOptions,
   WELLNESS_SYMPTOM_OPTIONS,
 } from '../lib/wellness'
@@ -11,6 +12,8 @@ type SymptomTrackFieldProps = {
   onChange: (next: string[]) => void
   /** Symptoms from baseline profile to show as chips on daily logs. */
   trackedFromProfile?: string[]
+  /** When set, only these presets are shown (not wellness defaults). */
+  chipPresets?: readonly string[]
   allowCustom?: boolean
   customPlaceholder?: string
 }
@@ -21,11 +24,17 @@ export function SymptomTrackField({
   value,
   onChange,
   trackedFromProfile = [],
+  chipPresets,
   allowCustom = true,
   customPlaceholder = 'Add your own symptom',
 }: SymptomTrackFieldProps) {
   const [draft, setDraft] = useState('')
-  const chipOptions = buildSymptomChipOptions(value, trackedFromProfile)
+  const chipOptions = chipPresets
+    ? buildPresetSymptomChipOptions(value, [...chipPresets, ...trackedFromProfile])
+    : buildSymptomChipOptions(value, trackedFromProfile)
+  const presetSet = new Set(
+    chipPresets ? [...chipPresets, ...trackedFromProfile] : WELLNESS_SYMPTOM_OPTIONS,
+  )
 
   function toggle(symptom: string) {
     const has = value.includes(symptom)
@@ -48,9 +57,7 @@ export function SymptomTrackField({
 
       <div className="wellness-chip-group" role="group" aria-label={legend}>
         {chipOptions.map((symptom) => {
-          const isPreset = (WELLNESS_SYMPTOM_OPTIONS as readonly string[]).includes(
-            symptom,
-          )
+          const isPreset = presetSet.has(symptom)
           return (
             <button
               key={symptom}

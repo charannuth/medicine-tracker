@@ -4,13 +4,17 @@ import { formatMedicationType } from '../lib/medicationForms'
 import { formatMedicationDateRange } from '../lib/medicationDates'
 import { isAsNeededMed } from '../lib/medicationSchedule'
 import type { DoseSlotStatus, MedicationWithStatus } from '../lib/types'
+import type { PrnDoseLogPayload } from '../lib/prnCheckIn'
+import { PrnDoseLogPanel } from './PrnDoseLogPanel'
 
 type MedicationCardProps = {
   medication: MedicationWithStatus
   onMarkTaken: (scheduleTime: string) => void
-  onLogPrn?: () => void
+  onLogPrn?: (payload: PrnDoseLogPayload) => void
   onUndo: (slot: DoseSlotStatus) => void
   onEdit: () => void
+  onMoveToAsNeeded?: () => void
+  onMoveToDailySchedule?: () => void
   onDelete: () => void
   busySlot: string | null
 }
@@ -21,10 +25,14 @@ export function MedicationCard({
   onLogPrn,
   onUndo,
   onEdit,
+  onMoveToAsNeeded,
+  onMoveToDailySchedule,
   onDelete,
   busySlot,
 }: MedicationCardProps) {
   const asNeeded = isAsNeededMed(medication)
+  const migrateToPrnBusy = busySlot === `${medication.id}-migrate-prn`
+  const migrateToDailyBusy = busySlot === `${medication.id}-migrate-daily`
   const lowSupply =
     medication.pills_remaining != null && medication.pills_remaining <= 7
 
@@ -35,6 +43,7 @@ export function MedicationCard({
     medication.medication_form,
   )
   const prnBusy = busySlot === `${medication.id}-prn`
+  const maxPrn = medication.max_doses_per_day
 
   return (
     <article
@@ -58,7 +67,9 @@ export function MedicationCard({
         {asNeeded ? (
           dosesTakenToday > 0 ? (
             <span className="badge badge-partial">
-              {dosesTakenToday} logged today
+              {maxPrn != null && maxPrn > 0
+                ? `${dosesTakenToday}/${maxPrn} today`
+                : `${dosesTakenToday} logged today`}
             </span>
           ) : (
             <span className="badge badge-pending">As needed</span>
@@ -93,19 +104,11 @@ export function MedicationCard({
 
       {asNeeded ? (
         <>
-          <div className="med-prn-actions">
-            <button
-              type="button"
-              className="btn btn-primary btn-sm"
-              disabled={prnBusy}
-              onClick={() => onLogPrn?.()}
-            >
-              {prnBusy ? '…' : 'Log dose'}
-            </button>
-            <p className="field-hint med-prn-hint">
-              Log each time you take this medication. No fixed schedule.
-            </p>
-          </div>
+          <PrnDoseLogPanel
+            medication={medication}
+            disabled={prnBusy}
+            onLog={(payload) => onLogPrn?.(payload)}
+          />
           {medication.slots.length > 0 ? (
             <ul className="dose-slots dose-slots-prn">
               {medication.slots.map((slot, index) => {
@@ -174,6 +177,26 @@ export function MedicationCard({
       )}
 
       <div className="med-card-actions">
+        {!asNeeded && onMoveToAsNeeded && (
+          <button
+            type="button"
+            className="btn btn-ghost"
+            disabled={migrateToPrnBusy}
+            onClick={onMoveToAsNeeded}
+          >
+            {migrateToPrnBusy ? '…' : 'Move to as needed'}
+          </button>
+        )}
+        {asNeeded && onMoveToDailySchedule && (
+          <button
+            type="button"
+            className="btn btn-ghost"
+            disabled={migrateToDailyBusy}
+            onClick={onMoveToDailySchedule}
+          >
+            {migrateToDailyBusy ? '…' : 'Move to daily schedule'}
+          </button>
+        )}
         <button type="button" className="btn btn-ghost" onClick={onEdit}>
           Edit
         </button>

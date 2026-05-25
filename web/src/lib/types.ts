@@ -13,6 +13,9 @@ export type Medication = {
   medication_form: string | null
   dose_pills: string | null
   dose_mg: string | null
+  max_doses_per_day: number | null
+  prn_amount_hints: string[]
+  prn_symptom_hints: string[]
   schedule_type: MedicationScheduleType
   schedule_times: string[]
   tracking_sync: MedicationTrackingSync
@@ -31,6 +34,10 @@ export type DoseLog = {
   taken_on: string
   schedule_time: string
   taken_at: string
+  logged_amount: string | null
+  prn_symptoms: string[]
+  prn_reason: string | null
+  prn_notes: string | null
 }
 
 export type MedicationInput = {
@@ -39,6 +46,9 @@ export type MedicationInput = {
   medication_form: string
   dose_pills: string
   dose_mg: string
+  max_doses_per_day: number | null
+  prn_amount_hints: string[]
+  prn_symptom_hints: string[]
   schedule_type: MedicationScheduleType
   schedule_times: string[]
   tracking_sync: MedicationTrackingSync

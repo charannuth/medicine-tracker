@@ -27,7 +27,17 @@ import {
   requestNotificationPermission,
 } from '../lib/notifications'
 import { getReminders, setReminders } from '../lib/settings'
+import {
+  buildDoseFieldsFromWizard,
+  dosageStepTitle,
+  defaultInjectionStyle,
+  parseInjectionFromMed,
+  parseOralCount,
+  validateDosageWizard,
+  type DosageWizardValues,
+} from '../lib/doseByRoute'
 import type { Medication, MedicationInput, MedicationTrackingSync } from '../lib/types'
+import { DosageStepPanel } from './DosageStepPanel'
 import { MedicationNameInput } from './MedicationNameInput'
 import { MedicationSafetyPanel } from './MedicationSafetyPanel'
 
@@ -69,7 +79,7 @@ const STEP_TITLES: Record<WizardStep, string> = {
   form: 'What type is it?',
   dates: 'Schedule dates',
   frequency: 'How often?',
-  dosage: 'Amount per dose',
+  dosage: 'Dose amount',
   times: 'Dose times',
   notes: 'Notes',
   tracking: 'Refill tracking',
@@ -102,6 +112,79 @@ function buildDoseTimes(initial?: Medication | null): DoseTimeRow[] {
   return [newDoseTimeRow()]
 }
 
+function buildDosageWizardState(
+  initial: Medication | null | undefined,
+  route: MedicationRouteId | null,
+  scheduleType: MedicationScheduleType,
+): DosageWizardValues {
+  const form = initial?.medication_form ?? ''
+  const base: DosageWizardValues = {
+    route,
+    form,
+    scheduleType,
+    oralCount: '1',
+    doseMg: initial?.dose_mg ?? '',
+    injectionStyle: defaultInjectionStyle(form),
+    injectionAmount: '',
+    injectionUnit: 'units',
+    dermalDescription: '',
+    otherDescription: '',
+    maxDosesPerDay:
+      initial?.max_doses_per_day != null ? String(initial.max_doses_per_day) : '',
+    prnTypicalAmount: '',
+    prnHintInput: '',
+    prnAmountHints: [...(initial?.prn_amount_hints ?? [])],
+    prnSymptomHintInput: '',
+    prnSymptomHints: [...(initial?.prn_symptom_hints ?? [])],
+  }
+
+  if (!initial) return base
+
+  if (scheduleType === 'as_needed') {
+    const hints = [...(initial.prn_amount_hints ?? [])]
+    let typical = initial.dose_pills?.trim() ?? ''
+    if (typical === 'Varies') typical = ''
+    if (typical && hints.includes(typical)) {
+      return { ...base, prnTypicalAmount: typical, prnAmountHints: hints.filter((h) => h !== typical) }
+    }
+    if (typical && !hints.includes(typical)) {
+      return { ...base, prnTypicalAmount: typical, prnAmountHints: hints }
+    }
+    return { ...base, prnAmountHints: hints }
+  }
+
+  const medRoute =
+    route ??
+    (initial.medication_route && isMedicationRouteId(initial.medication_route)
+      ? initial.medication_route
+      : null)
+
+  if (medRoute === 'oral') {
+    return {
+      ...base,
+      route: medRoute,
+      oralCount: parseOralCount(initial.dose_pills),
+    }
+  }
+  if (medRoute === 'dermal') {
+    const desc = initial.dose_pills?.trim() ?? ''
+    return {
+      ...base,
+      route: medRoute,
+      dermalDescription: desc === 'Apply to skin' ? '' : desc,
+    }
+  }
+  if (medRoute === 'injection') {
+    const inj = parseInjectionFromMed(initial.dose_pills, initial.dose_mg, form)
+    return { ...base, route: medRoute, ...inj, doseMg: initial.dose_mg ?? '' }
+  }
+  return {
+    ...base,
+    route: medRoute,
+    otherDescription: initial.dose_pills?.trim() ?? '',
+  }
+}
+
 function buildFormState(
   initial?: Medication | null,
   defaultScheduleType: MedicationScheduleType = 'scheduled',
@@ -119,8 +202,6 @@ function buildFormState(
       route,
       form: initial.medication_form ?? '',
       scheduleType,
-      dosePills: initial.dose_pills ?? '',
-      doseMg: initial.dose_mg ?? '',
       doseTimes: buildDoseTimes(initial),
       notes: initial.notes ?? '',
       trackPills: initial.pills_remaining != null,
@@ -140,8 +221,6 @@ function buildFormState(
     route: null as MedicationRouteId | null,
     form: '',
     scheduleType,
-    dosePills: '',
-    doseMg: '',
     doseTimes: buildDoseTimes(),
     notes: '',
     trackPills: false,
@@ -171,8 +250,9 @@ export function MedicationForm({
   const [scheduleType, setScheduleType] = useState<MedicationScheduleType>(
     defaults.scheduleType,
   )
-  const [dosePills, setDosePills] = useState(defaults.dosePills)
-  const [doseMg, setDoseMg] = useState(defaults.doseMg)
+  const [dosageWizard, setDosageWizard] = useState<DosageWizardValues>(() =>
+    buildDosageWizardState(initial, defaults.route, defaults.scheduleType),
+  )
   const [doseTimes, setDoseTimes] = useState(defaults.doseTimes)
   const [notes, setNotes] = useState(defaults.notes)
   const [trackPills, setTrackPills] = useState(defaults.trackPills)
@@ -198,7 +278,20 @@ export function MedicationForm({
     if (wizardStep === 'form' && isOtherRoute) {
       return 'Describe how you take it'
     }
+    if (wizardStep === 'dosage') {
+      return dosageStepTitle(route, scheduleType)
+    }
     return STEP_TITLES[wizardStep]
+  }
+
+  function patchDosage(patch: Partial<DosageWizardValues>) {
+    setDosageWizard((prev) => ({
+      ...prev,
+      ...patch,
+      route,
+      form,
+      scheduleType,
+    }))
   }
 
   function updateDoseTime(id: string, patch: Partial<Pick<DoseTimeRow, 'time12' | 'period'>>) {
@@ -216,17 +309,22 @@ export function MedicationForm({
   }
 
   function applySuggestion(suggestion: MedicationSuggestion) {
-    if (!dosePills.trim() && suggestion.dosePills) {
-      setDosePills(suggestion.dosePills)
+    if (scheduleType === 'as_needed') {
+      if (!dosageWizard.prnTypicalAmount.trim() && suggestion.dosePills) {
+        patchDosage({ prnTypicalAmount: suggestion.dosePills })
+      }
+    } else if (route === 'oral' && !dosageWizard.oralCount.trim() && suggestion.dosePills) {
+      patchDosage({ oralCount: parseOralCount(suggestion.dosePills) })
     }
-    if (!doseMg.trim() && suggestion.doseMg) {
-      setDoseMg(suggestion.doseMg)
+    if (!dosageWizard.doseMg.trim() && suggestion.doseMg) {
+      patchDosage({ doseMg: suggestion.doseMg })
     }
   }
 
   function selectScheduleType(next: MedicationScheduleType) {
     setScheduleType(next)
     setError(null)
+    setDosageWizard(buildDosageWizardState(initial, route, next))
     const maxIndex = wizardStepsFor(next).length - 1
     if (stepIndex > maxIndex) setStepIndex(maxIndex)
   }
@@ -235,11 +333,15 @@ export function MedicationForm({
     setRoute(next)
     setForm('')
     setError(null)
+    setDosageWizard(buildDosageWizardState(initial, next, scheduleType))
   }
 
   function selectFormType(formId: string) {
     setForm(formId)
     setError(null)
+    patchDosage({
+      injectionStyle: defaultInjectionStyle(formId),
+    })
   }
 
   function parseScheduleTimes(): string[] {
@@ -281,10 +383,7 @@ export function MedicationForm({
         return null
       }
       case 'dosage':
-        if (!dosePills.trim() && !doseMg.trim()) {
-          return 'Enter an amount in pills, mg, or both.'
-        }
-        return null
+        return validateDosageWizard({ ...dosageWizard, route, form, scheduleType })
       case 'frequency':
         return null
       case 'times':
@@ -377,12 +476,22 @@ export function MedicationForm({
         setReminders({ enabled: remindersOn })
       }
 
+      const built = buildDoseFieldsFromWizard({
+        ...dosageWizard,
+        route,
+        form,
+        scheduleType,
+      })
+
       await onSave({
         name,
         medication_route: route,
         medication_form: form.trim(),
-        dose_pills: dosePills,
-        dose_mg: doseMg,
+        dose_pills: built.dose_pills,
+        dose_mg: built.dose_mg,
+        max_doses_per_day: built.max_doses_per_day,
+        prn_amount_hints: built.prn_amount_hints,
+        prn_symptom_hints: built.prn_symptom_hints,
         schedule_type: scheduleType,
         schedule_times,
         tracking_sync: trackingSync,
@@ -570,25 +679,12 @@ export function MedicationForm({
 
       case 'dosage':
         return (
-          <div className="med-wizard-panel-inner">
-            <p className="field-hint">Fill in pills, mg, or both (at least one required).</p>
-            <label>
-              Pills / tablets
-              <input
-                value={dosePills}
-                onChange={(e) => setDosePills(e.target.value)}
-                placeholder="e.g. 1 tablet, 2 capsules"
-              />
-            </label>
-            <label>
-              Milligrams (mg)
-              <input
-                value={doseMg}
-                onChange={(e) => setDoseMg(e.target.value)}
-                placeholder="e.g. 10 mg"
-              />
-            </label>
-          </div>
+          <DosageStepPanel
+            route={route}
+            scheduleType={scheduleType}
+            values={{ ...dosageWizard, route, form, scheduleType }}
+            onChange={patchDosage}
+          />
         )
 
       case 'times':
@@ -657,14 +753,20 @@ export function MedicationForm({
         )
 
       case 'tracking': {
+        const built = buildDoseFieldsFromWizard({
+          ...dosageWizard,
+          route,
+          form,
+          scheduleType,
+        })
         const invMed = {
-          dose_pills: dosePills,
+          dose_pills: built.dose_pills,
           medication_form: form,
           medication_route: route,
         }
         const unitPlural = inventoryUnitLabel(invMed)
         const unitSingular = inventoryUnitLabel(invMed, false)
-        const perDose = getDoseDeductionAmount(dosePills)
+        const perDose = getDoseDeductionAmount(built.dose_pills)
         const unitTitle =
           unitPlural.charAt(0).toUpperCase() + unitPlural.slice(1)
 

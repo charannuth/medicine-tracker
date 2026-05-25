@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { createWellnessReportData } from '../lib/wellnessReport'
 import type { ActiveMedicationSummary } from '../lib/wellnessReport'
 import type { WellnessLog, WellnessProfileInput } from '../lib/wellness'
+import type { PrnInsightsSummary } from '../lib/prnInsights'
 import type { MedBriefingEntry } from '../hooks/useWellnessMedBriefings'
 import { WellnessReportModal } from './WellnessReportModal'
 
@@ -10,6 +11,7 @@ type WellnessExportReportProps = {
   profile: WellnessProfileInput
   medications: ActiveMedicationSummary[]
   reportLogs: WellnessLog[]
+  prnInsights: PrnInsightsSummary
   briefingEntries: MedBriefingEntry[]
 }
 
@@ -18,6 +20,7 @@ export function WellnessExportReport({
   profile,
   medications,
   reportLogs,
+  prnInsights,
   briefingEntries,
 }: WellnessExportReportProps) {
   const [reportOpen, setReportOpen] = useState(false)
@@ -27,6 +30,7 @@ export function WellnessExportReport({
     profile,
     medications,
     reportLogs,
+    prnInsights,
     briefingEntries,
   })
 
@@ -36,8 +40,8 @@ export function WellnessExportReport({
         <h3 className="wellness-section-title">Report for your doctor</h3>
         <p className="field-hint">
           Opens a full-screen preview of your baseline, last 14 days of logs,
-          week-over-week notes, and medication briefings. Then use Print → Save as
-          PDF — no pop-up required.
+          as-needed medication patterns, week-over-week notes, and medication
+          briefings. Then use Print → Save as PDF — no pop-up required.
         </p>
 
         <button

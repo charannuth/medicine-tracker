@@ -516,16 +516,7 @@
 }
 
 .med-prn-actions {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 0.75rem;
   margin-top: 0.75rem;
-}
-
-.med-prn-hint {
-  margin: 0;
-  flex: 1 1 12rem;
 }
 
 .dose-slots-prn .dose-slot {
@@ -4891,5 +4882,202 @@
 }
 
 .empty-state-compact .btn {
+  margin-top: 0.75rem;
+}
+
+.dose-style-options {
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+  margin-bottom: 1rem;
+}
+
+.dose-style-option {
+  display: flex;
+  gap: 0.65rem;
+  align-items: flex-start;
+  padding: 0.75rem 0.85rem;
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  background: var(--bg);
+}
+
+.dose-style-option:has(input:checked) {
+  border-color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 8%, var(--surface));
+}
+
+.dose-style-option span {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+}
+
+.injection-measured-row {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 0.75rem;
+  margin-bottom: 0.75rem;
+}
+
+.prn-hints-row {
+  display: flex;
+  gap: 0.5rem;
+  align-items: stretch;
+}
+
+.prn-hints-row input {
+  flex: 1;
+}
+
+.prn-hints-list {
+  list-style: none;
+  margin: 0 0 0.75rem;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+
+.prn-hints-list li {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.25rem 0.5rem;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--accent) 12%, var(--surface));
+  font-size: 0.85rem;
+}
+
+.prn-checkin {
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+  margin-top: 0.75rem;
+  padding: 1rem;
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-sm);
+  background: color-mix(in srgb, var(--accent-soft) 18%, var(--surface));
+}
+
+.prn-checkin-fieldset {
+  border: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+}
+
+.prn-checkin-fieldset legend {
+  font-size: 0.9rem;
+  font-weight: 600;
+  padding: 0;
+  margin-bottom: 0.15rem;
+}
+
+.prn-checkin input[type='text'],
+.prn-checkin textarea {
+  font: inherit;
+  padding: 0.5rem 0.65rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--bg);
+  color: var(--text);
+  width: 100%;
+}
+
+.prn-checkin .symptom-track-field {
+  border: none;
+  margin: 0;
+  padding: 0;
+}
+
+.prn-checkin .wellness-chip,
+.prn-checkin .wellness-chip-custom {
+  border-style: solid;
+}
+
+.prn-extra-dose-callout {
+  padding: 0.75rem 0.85rem;
+  border-radius: var(--radius-sm);
+  border: 1px solid color-mix(in srgb, var(--accent) 35%, var(--border));
+  background: color-mix(in srgb, var(--accent-soft) 40%, var(--surface));
+}
+
+.prn-extra-dose-callout strong {
+  display: block;
+  margin-bottom: 0.35rem;
+}
+
+.prn-extra-dose-callout p {
+  margin: 0 0 0.35rem;
+  font-size: 0.88rem;
+  line-height: 1.45;
+}
+
+.prn-saved-banner {
+  margin: 0;
+}
+
+.prn-insights-med-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.prn-insights-med h4 {
+  margin: 0 0 0.35rem;
+}
+
+.prn-insights-stats {
+  margin: 0 0 0.65rem;
+  font-size: 0.88rem;
+  color: var(--text-muted);
+}
+
+.prn-insights-block h5 {
+  margin: 0.5rem 0 0.35rem;
+  font-size: 0.9rem;
+}
+
+.prn-insights-block ul {
+  margin: 0;
+  padding-left: 1.15rem;
+  font-size: 0.9rem;
+}
+
+.prn-insights-coping {
+  padding: 0.65rem 0.75rem;
+  border-radius: var(--radius-sm);
+  background: color-mix(in srgb, var(--accent-soft) 25%, var(--surface));
+}
+
+.prn-insights-foot {
+  margin-top: 0.75rem;
+}
+
+.prn-amount-input-label {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  font-size: 0.85rem;
+  font-weight: 500;
+}
+
+.prn-notes-label textarea {
+  resize: vertical;
+  min-height: 3rem;
+}
+
+.prn-max-hint {
+  margin: 0;
+}
+
+.dose-slots-prn {
   margin-top: 0.75rem;
 }

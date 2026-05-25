@@ -4894,6 +4894,116 @@
   margin-bottom: 1.25rem;
 }
 
+.tracking-calendar-hub {
+  margin: 1rem 0 1.25rem;
+  padding: 0.85rem 0.9rem;
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  background: var(--surface);
+}
+
+.tracking-calendar-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.35rem 0.5rem;
+  margin-bottom: 0.65rem;
+}
+
+.tracking-calendar-control {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.8rem;
+  color: var(--text-muted);
+}
+
+.tracking-calendar-control select {
+  font: inherit;
+  font-size: 0.85rem;
+  padding: 0.25rem 0.4rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+  color: var(--text);
+  max-width: 11rem;
+}
+
+.tracking-calendar-title {
+  flex: 1 1 auto;
+  min-width: 8rem;
+  margin: 0;
+  text-align: center;
+  font-size: 0.95rem;
+  font-weight: 600;
+}
+
+.tracking-calendar-loading {
+  margin: 0.35rem 0;
+  font-size: 0.85rem;
+}
+
+.tracking-calendar-empty {
+  margin: 0.5rem 0 0;
+}
+
+.tracking-calendar-legend {
+  margin-bottom: 0.5rem;
+}
+
+.tracking-calendar-body--strip {
+  overflow-x: auto;
+  padding-bottom: 0.25rem;
+}
+
+.tracking-calendar-strip {
+  display: flex;
+  gap: 0.35rem;
+  min-width: min-content;
+}
+
+.tracking-calendar-strip .tracking-calendar-day {
+  flex: 0 0 auto;
+  min-width: 3.25rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.15rem;
+  padding: 0.45rem 0.35rem;
+}
+
+.tracking-calendar-strip-dow {
+  font-size: 0.65rem;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+}
+
+.tracking-calendar-body--multi .tracking-calendar-multi {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(10.5rem, 1fr));
+  gap: 0.75rem 1rem;
+}
+
+.tracking-calendar-month--compact .tracking-calendar-grid {
+  gap: 2px;
+  margin-bottom: 0;
+}
+
+.tracking-calendar-month--compact .tracking-calendar-day--compact {
+  min-height: 1.65rem;
+  font-size: 0.7rem;
+  padding: 0.15rem;
+}
+
+.tracking-calendar-month-label {
+  margin: 0 0 0.25rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  text-align: center;
+}
+
 .cycle-calendar-legend {
   list-style: none;
   margin: 0 0 0.65rem;

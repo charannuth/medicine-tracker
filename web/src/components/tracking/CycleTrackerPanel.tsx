@@ -2,7 +2,6 @@ import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useAuth } from '../../hooks/useAuth'
 import { todayLocalDate } from '../../lib/dates'
 import {
-  buildCycleCalendarDays,
   cancelOpenPeriod,
   clearPeriodLate,
   CYCLE_SYMPTOMS_DURING,
@@ -35,7 +34,6 @@ import {
   type CycleSettings,
   type FlowLevel,
 } from '../../lib/tracking/cycle'
-import { CycleCalendar } from './CycleCalendar'
 import { CycleDayStrip } from './CycleDayStrip'
 
 const FLOW_OPTIONS: { value: FlowLevel; label: string }[] = [
@@ -52,17 +50,6 @@ function monthStart(year: number, month: number): string {
 function monthEnd(year: number, month: number): string {
   const last = new Date(year, month, 0).getDate()
   return `${year}-${String(month).padStart(2, '0')}-${String(last).padStart(2, '0')}`
-}
-
-function datesInMonth(year: number, month: number): string[] {
-  const total = new Date(year, month, 0).getDate()
-  const dates: string[] = []
-  for (let d = 1; d <= total; d++) {
-    dates.push(
-      `${year}-${String(month).padStart(2, '0')}-${String(d).padStart(2, '0')}`,
-    )
-  }
-  return dates
 }
 
 function toggleSymptom(list: string[], symptom: string): string[] {
@@ -102,26 +89,36 @@ function SymptomChipGroup({
   )
 }
 
-export function CycleTrackerPanel() {
+type CycleTrackerPanelProps = {
+  selectedDate: string
+  onSelectDate: (date: string) => void
+  onDataMutated?: () => void
+}
+
+export function CycleTrackerPanel({
+  selectedDate,
+  onSelectDate,
+  onDataMutated,
+}: CycleTrackerPanelProps) {
   const { user } = useAuth()
   const today = todayLocalDate()
-  const [viewMonth, setViewMonth] = useState(() => {
-    const d = new Date(`${today}T12:00:00`)
-    return { year: d.getFullYear(), month: d.getMonth() + 1 }
-  })
   const [settings, setSettings] = useState<CycleSettings | null>(null)
   const [periods, setPeriods] = useState<CyclePeriod[]>([])
   const [openPeriod, setOpenPeriod] = useState<CyclePeriod | null>(null)
   const [dayLogs, setDayLogs] = useState<CycleDayLog[]>([])
-  const [selectedDate, setSelectedDate] = useState(today)
   const [loading, setLoading] = useState(true)
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
+  const logMonth = useMemo(() => {
+    const d = new Date(`${selectedDate}T12:00:00`)
+    return { year: d.getFullYear(), month: d.getMonth() + 1 }
+  }, [selectedDate])
+
   const reload = useCallback(async () => {
     if (!user) return
-    const from = monthStart(viewMonth.year, viewMonth.month)
-    const to = monthEnd(viewMonth.year, viewMonth.month)
+    const from = monthStart(logMonth.year, logMonth.month)
+    const to = monthEnd(logMonth.year, logMonth.month)
 
     const [s, p, open, logs] = await Promise.all([
       fetchCycleSettings(user.id),
@@ -133,7 +130,7 @@ export function CycleTrackerPanel() {
     setPeriods(p)
     setOpenPeriod(open)
     setDayLogs(logs)
-  }, [user, viewMonth])
+  }, [user, logMonth])
 
   useEffect(() => {
     if (!user) return
@@ -168,40 +165,8 @@ export function CycleTrackerPanel() {
   const recentLengths = useMemo(() => recentCycleLengths(periods), [periods])
   const lastRecordedLength = recentLengths[0] ?? null
 
-  const monthDates = useMemo(
-    () => datesInMonth(viewMonth.year, viewMonth.month),
-    [viewMonth],
-  )
-
-  const calendarDays = useMemo(() => {
-    if (!settings) return []
-    return buildCycleCalendarDays(monthDates, periods, dayLogs, settings, today)
-  }, [monthDates, periods, dayLogs, settings, today])
-
-  const calendarByDate = useMemo(
-    () => new Map(calendarDays.map((d) => [d.date, d])),
-    [calendarDays],
-  )
-
-  const selectDate = useCallback((date: string) => {
-    setSelectedDate(date)
-    const y = parseInt(date.slice(0, 4), 10)
-    const m = parseInt(date.slice(5, 7), 10)
-    setViewMonth((prev) =>
-      prev.year === y && prev.month === m ? prev : { year: y, month: m },
-    )
-  }, [])
-
   const dayHasLog = useCallback(
     (date: string) => {
-      const meta = calendarByDate.get(date)
-      if (
-        meta?.isLoggedPeriod ||
-        meta?.hasSymptoms ||
-        meta?.hasIntercourse
-      ) {
-        return true
-      }
       const log = dayLogs.find((l) => l.log_date === date)
       if (!log) return false
       return Boolean(
@@ -213,7 +178,7 @@ export function CycleTrackerPanel() {
           log.symptoms_post.length > 0,
       )
     },
-    [calendarByDate, dayLogs],
+    [dayLogs],
   )
 
   const selectedLog = dayLogs.find((l) => l.log_date === selectedDate)
@@ -239,6 +204,7 @@ export function CycleTrackerPanel() {
     try {
       await action()
       await reload()
+      onDataMutated?.()
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Something went wrong')
     } finally {
@@ -702,34 +668,11 @@ export function CycleTrackerPanel() {
         </section>
       )}
 
-      {settings && (
-        <CycleCalendar
-          year={viewMonth.year}
-          month={viewMonth.month}
-          days={calendarDays}
-          selectedDate={selectedDate}
-          today={today}
-          onSelectDate={selectDate}
-          onPrevMonth={() =>
-            setViewMonth((m) => {
-              const d = new Date(m.year, m.month - 2, 1)
-              return { year: d.getFullYear(), month: d.getMonth() + 1 }
-            })
-          }
-          onNextMonth={() =>
-            setViewMonth((m) => {
-              const d = new Date(m.year, m.month, 1)
-              return { year: d.getFullYear(), month: d.getMonth() + 1 }
-            })
-          }
-        />
-      )}
-
       <section className="cycle-day-log">
         <CycleDayStrip
           selectedDate={selectedDate}
           today={today}
-          onSelectDate={selectDate}
+          onSelectDate={onSelectDate}
           dayHasLog={dayHasLog}
         />
 

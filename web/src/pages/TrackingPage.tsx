@@ -1,9 +1,18 @@
 import { useCallback, useEffect, useState } from 'react'
 import { useAuth } from '../hooks/useAuth'
+import { useTrackingCalendarData } from '../hooks/useTrackingCalendarData'
 import { PhysicalProfileForm } from '../components/PhysicalProfileForm'
 import { CycleTrackerPanel } from '../components/tracking/CycleTrackerPanel'
 import { HrtTrackerPanel } from '../components/tracking/HrtTrackerPanel'
 import { MedProgressPanel } from '../components/tracking/MedProgressPanel'
+import { TrackingCalendar } from '../components/tracking/TrackingCalendar'
+import {
+  calendarSourceOptions,
+  calendarSupportFor,
+  defaultCalendarSource,
+} from '../lib/tracking/calendarSources'
+import type { CalendarViewRange } from '../lib/tracking/calendarRange'
+import { todayLocalDate } from '../lib/dates'
 import {
   TRACKER_CATALOG,
   trackerCatalogEntry,
@@ -27,6 +36,7 @@ import type { MedicalRecord } from '../lib/medicalRecords'
 
 export function TrackingPage() {
   const { user } = useAuth()
+  const today = todayLocalDate()
   const [medicalRecord, setMedicalRecord] = useState<MedicalRecord | null>(null)
   const [profileDraft, setProfileDraft] = useState<PhysicalProfileInput>(
     emptyPhysicalProfileInput(),
@@ -40,6 +50,11 @@ export function TrackingPage() {
   const [trackerBusy, setTrackerBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [message, setMessage] = useState<string | null>(null)
+  const [selectedDate, setSelectedDate] = useState(today)
+  const [calendarAnchor, setCalendarAnchor] = useState(today)
+  const [calendarRange, setCalendarRange] = useState<CalendarViewRange>('month')
+  const [calendarSource, setCalendarSource] = useState<TrackerId | null>(null)
+  const [calendarRefreshKey, setCalendarRefreshKey] = useState(0)
 
   const reload = useCallback(async () => {
     if (!user) return
@@ -74,6 +89,40 @@ export function TrackingPage() {
       active = false
     }
   }, [user, reload])
+
+  useEffect(() => {
+    setCalendarSource((prev) => defaultCalendarSource(enabled, prev ?? activeTracker))
+  }, [enabled, activeTracker])
+
+  useEffect(() => {
+    if (activeTracker && calendarSupportFor(activeTracker) !== 'none') {
+      setCalendarSource(activeTracker)
+    }
+  }, [activeTracker])
+
+  const calendarOptions = calendarSourceOptions(enabled)
+  const showCalendar = calendarOptions.length > 0
+
+  const {
+    data: calendarData,
+    loading: calendarLoading,
+    error: calendarError,
+  } = useTrackingCalendarData(
+    user?.id,
+    calendarSource,
+    calendarRange,
+    calendarAnchor,
+    calendarRefreshKey,
+  )
+
+  function handleSelectDate(date: string) {
+    setSelectedDate(date)
+    setCalendarAnchor(date)
+  }
+
+  function bumpCalendarRefresh() {
+    setCalendarRefreshKey((k) => k + 1)
+  }
 
   async function handleSaveProfile() {
     if (!user) return
@@ -139,7 +188,13 @@ export function TrackingPage() {
   function renderTrackerPanel(id: TrackerId) {
     switch (id) {
       case 'cycle':
-        return <CycleTrackerPanel />
+        return (
+          <CycleTrackerPanel
+            selectedDate={selectedDate}
+            onSelectDate={handleSelectDate}
+            onDataMutated={bumpCalendarRefresh}
+          />
+        )
       case 'hrt':
         return <HrtTrackerPanel />
       case 'med_progress':
@@ -159,6 +214,7 @@ export function TrackingPage() {
       </header>
 
       {error && <p className="banner banner-error">{error}</p>}
+      {calendarError && <p className="banner banner-error">{calendarError}</p>}
       {message && <p className="banner banner-success-style">{message}</p>}
 
       {loading ? (
@@ -211,6 +267,23 @@ export function TrackingPage() {
                   )
                 })}
               </div>
+            )}
+
+            {showCalendar && calendarSource && (
+              <TrackingCalendar
+                today={today}
+                anchor={calendarAnchor}
+                range={calendarRange}
+                source={calendarSource}
+                selectedDate={selectedDate}
+                enabledTrackers={enabled}
+                data={calendarData}
+                loading={calendarLoading}
+                onAnchorChange={setCalendarAnchor}
+                onRangeChange={setCalendarRange}
+                onSourceChange={setCalendarSource}
+                onSelectDate={handleSelectDate}
+              />
             )}
 
             <div className="tracking-add-row">

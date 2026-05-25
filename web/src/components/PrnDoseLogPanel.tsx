@@ -1,8 +1,10 @@
 import { useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
+import { PrnOralAmountField } from './PrnOralAmountField'
 import {
   emptyPrnDoseLogPayload,
   isPrnLogReady,
+  usesOralPrnAmountDropdown,
   type PrnDoseLogPayload,
 } from '../lib/prnCheckIn'
 import { prnExtraDoseGuidance } from '../lib/prnMedContext'
@@ -32,6 +34,10 @@ export function PrnDoseLogPanel({
   )
   const [draft, setDraft] = useState(emptyPrnDoseLogPayload)
   const [savedMessage, setSavedMessage] = useState<string | null>(null)
+  const [amountResetKey, setAmountResetKey] = useState(0)
+  const useOralAmountDropdown = usesOralPrnAmountDropdown(
+    medication.medication_route,
+  )
 
   const extraGuidance = useMemo(
     () => prnExtraDoseGuidance(medication, medication.dosesTakenToday),
@@ -55,6 +61,7 @@ export function PrnDoseLogPanel({
       notes: draft.notes.trim(),
     })
     setDraft(emptyPrnDoseLogPayload())
+    setAmountResetKey((k) => k + 1)
     setSavedMessage(
       'Logged — saved for your doctor visit report (Wellness → View printable report).',
     )
@@ -109,22 +116,33 @@ export function PrnDoseLogPanel({
 
       <fieldset className="prn-checkin-fieldset">
         <legend>How much did you take?</legend>
-        <label className="prn-amount-input-label">
-          Amount
-          <input
-            type="text"
-            value={draft.amount}
+        {useOralAmountDropdown ? (
+          <PrnOralAmountField
+            medication={medication}
+            amount={draft.amount}
             disabled={disabled}
-            placeholder={prnAmountPlaceholder(medication)}
-            onChange={(e) => patch({ amount: e.target.value })}
-            onKeyDown={(e) => {
-              if (e.key === 'Enter') {
-                e.preventDefault()
-                handleLog()
-              }
-            }}
+            resetKey={amountResetKey}
+            onAmountChange={(amount) => patch({ amount })}
+            onEnter={handleLog}
           />
-        </label>
+        ) : (
+          <label className="prn-amount-input-label">
+            Amount
+            <input
+              type="text"
+              value={draft.amount}
+              disabled={disabled}
+              placeholder={prnAmountPlaceholder(medication)}
+              onChange={(e) => patch({ amount: e.target.value })}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') {
+                  e.preventDefault()
+                  handleLog()
+                }
+              }}
+            />
+          </label>
+        )}
       </fieldset>
 
       <label className="prn-checkin-fieldset prn-notes-label">

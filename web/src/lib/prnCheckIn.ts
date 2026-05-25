@@ -18,6 +18,30 @@ export function isPrnLogReady(payload: PrnDoseLogPayload): boolean {
   return Boolean(payload.amount.trim())
 }
 
+export function usesOralPrnAmountDropdown(
+  route: string | null | undefined,
+): boolean {
+  return route === 'oral'
+}
+
+export const ORAL_PRN_AMOUNT_PRESETS = [
+  '1',
+  '2',
+  '3',
+  '4',
+  '5',
+  '6',
+  '7',
+  '8',
+  '9',
+  '10',
+] as const
+
+export type OralPrnAmountPick =
+  | ''
+  | (typeof ORAL_PRN_AMOUNT_PRESETS)[number]
+  | 'custom'
+
 export function formatPrnDoseSummary(log: {
   logged_amount: string | null
   prn_symptoms?: string[] | null

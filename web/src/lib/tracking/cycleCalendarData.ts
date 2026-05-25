@@ -13,6 +13,7 @@ function cellFromCycleDay(day: CycleCalendarDay): TrackingCalendarCell {
   if (day.phase) classNames.push(`phase-${day.phase}`)
   if (day.isLoggedPeriod) classNames.push('logged-period')
   if (day.isPredictedPeriod) classNames.push('predicted-period')
+  if (day.isFuture) classNames.push('is-future')
   if (day.hasSymptoms) classNames.push('has-symptoms')
 
   const markers: TrackingCalendarCell['markers'] = []

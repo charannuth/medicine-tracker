@@ -64,14 +64,16 @@ function SymptomChipGroup({
   options,
   selected,
   onChange,
+  disabled = false,
 }: {
   title: string
   options: readonly string[]
   selected: string[]
   onChange: (next: string[]) => void
+  disabled?: boolean
 }) {
   return (
-    <fieldset className="cycle-symptom-group">
+    <fieldset className="cycle-symptom-group" disabled={disabled}>
       <legend>{title}</legend>
       <div className="cycle-symptom-chips">
         {options.map((symptom) => (
@@ -80,6 +82,7 @@ function SymptomChipGroup({
             type="button"
             className={`wellness-chip${selected.includes(symptom) ? ' active' : ''}`}
             aria-pressed={selected.includes(symptom)}
+            disabled={disabled}
             onClick={() => onChange(toggleSymptom(selected, symptom))}
           >
             {symptom}
@@ -187,6 +190,8 @@ export function CycleTrackerPanel({
     [dayLogs],
   )
 
+  const isFutureDay = selectedDate > today
+
   const selectedLog = dayLogs.find((l) => l.log_date === selectedDate)
   const [flow, setFlow] = useState<FlowLevel | ''>('')
   const [symptomsPre, setSymptomsPre] = useState<string[]>([])
@@ -219,7 +224,7 @@ export function CycleTrackerPanel({
   }
 
   async function saveDayLog() {
-    if (!user) return
+    if (!user || isFutureDay) return
     await runAction(async () => {
       await upsertCycleDayLog(user.id, selectedDate, {
         flow_level: flow || null,
@@ -715,10 +720,19 @@ export function CycleTrackerPanel({
           dayHasLog={dayHasLog}
         />
 
+        {isFutureDay && (
+          <p className="field-hint cycle-future-day-hint" role="status">
+            This day is in the future — you can preview predictions on the calendar, but
+            logging (symptoms, flow, intercourse, notes) unlocks on that date.
+          </p>
+        )}
+
+        <fieldset className="cycle-day-log-fields" disabled={isFutureDay}>
         <label className="cycle-intercourse-toggle">
           <input
             type="checkbox"
             checked={intercourse}
+            disabled={isFutureDay}
             onChange={(e) => setIntercourse(e.target.checked)}
           />
           <span className="cycle-intercourse-label" aria-hidden>
@@ -736,6 +750,7 @@ export function CycleTrackerPanel({
                   type="radio"
                   name="flow"
                   checked={flow === opt.value}
+                  disabled={isFutureDay}
                   onChange={() => setFlow(opt.value)}
                 />
                 {opt.label}
@@ -746,6 +761,7 @@ export function CycleTrackerPanel({
                 type="radio"
                 name="flow"
                 checked={flow === ''}
+                disabled={isFutureDay}
                 onChange={() => setFlow('')}
               />
               None
@@ -758,18 +774,21 @@ export function CycleTrackerPanel({
           options={CYCLE_SYMPTOMS_PRE}
           selected={symptomsPre}
           onChange={setSymptomsPre}
+          disabled={isFutureDay}
         />
         <SymptomChipGroup
           title="During period symptoms"
           options={CYCLE_SYMPTOMS_DURING}
           selected={symptomsDuring}
           onChange={setSymptomsDuring}
+          disabled={isFutureDay}
         />
         <SymptomChipGroup
           title="Post-menstrual symptoms"
           options={CYCLE_SYMPTOMS_POST}
           selected={symptomsPost}
           onChange={setSymptomsPost}
+          disabled={isFutureDay}
         />
 
         <label className="cycle-notes-label">
@@ -777,56 +796,68 @@ export function CycleTrackerPanel({
           <textarea
             rows={2}
             value={notes}
+            disabled={isFutureDay}
             placeholder="What might have affected your cycle today?"
             onChange={(e) => setNotes(e.target.value)}
           />
         </label>
+        </fieldset>
 
-        <div className="cycle-day-clear-section">
-          <h5 className="cycle-day-clear-title">Clear this day</h5>
-          <p className="field-hint">
-            <strong>Soft</strong> keeps flow; <strong>Hard</strong> deletes everything
-            saved for this date.
-          </p>
-          <div className="cycle-day-log-actions">
-            <button
-              type="button"
-              className="btn btn-primary"
-              disabled={busy}
-              onClick={() => void saveDayLog()}
-            >
-              Save day
-            </button>
-            <button
-              type="button"
-              className="btn btn-ghost btn-sm"
-              disabled={busy}
-              onClick={discardUnsavedEdits}
-            >
-              Discard edits
-            </button>
-            {(selectedDayHasOptional || selectedDayHasSaved) && (
+        {!isFutureDay && (
+          <div className="cycle-day-clear-section">
+            <h5 className="cycle-day-clear-title">Clear this day</h5>
+            <p className="field-hint">
+              <strong>Soft</strong> keeps flow; <strong>Hard</strong> deletes everything
+              saved for this date.
+            </p>
+            <div className="cycle-day-log-actions">
               <button
                 type="button"
-                className="btn btn-secondary btn-sm"
+                className="btn btn-primary"
                 disabled={busy}
-                onClick={() => void softClearSelectedDay()}
+                onClick={() => void saveDayLog()}
               >
-                Soft clear
+                Save day
               </button>
-            )}
-            {selectedDayHasSaved && (
               <button
                 type="button"
-                className="btn btn-ghost btn-sm cycle-btn-hard"
+                className="btn btn-ghost btn-sm"
                 disabled={busy}
-                onClick={() => void hardClearSelectedDay()}
+                onClick={discardUnsavedEdits}
               >
-                Hard clear
+                Discard edits
               </button>
-            )}
+              {(selectedDayHasOptional || selectedDayHasSaved) && (
+                <button
+                  type="button"
+                  className="btn btn-secondary btn-sm"
+                  disabled={busy}
+                  onClick={() => void softClearSelectedDay()}
+                >
+                  Soft clear
+                </button>
+              )}
+              {selectedDayHasSaved && (
+                <button
+                  type="button"
+                  className="btn btn-ghost btn-sm cycle-btn-hard"
+                  disabled={busy}
+                  onClick={() => void hardClearSelectedDay()}
+                >
+                  Hard clear
+                </button>
+              )}
+            </div>
           </div>
-        </div>
+        )}
+
+        {isFutureDay && (
+          <div className="cycle-day-log-actions">
+            <button type="button" className="btn btn-secondary btn-sm" onClick={() => onSelectDate(today)}>
+              Go to today to log
+            </button>
+          </div>
+        )}
       </section>
     </div>
   )

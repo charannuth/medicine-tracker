@@ -114,7 +114,7 @@ export function CycleDayStrip({
               key={date}
               ref={active ? activeRef : undefined}
               type="button"
-              className={`cycle-day-strip-pill${active ? ' active' : ''}${logged ? ' has-log' : ''}${date === today ? ' is-today' : ''}`}
+              className={`cycle-day-strip-pill${active ? ' active' : ''}${logged ? ' has-log' : ''}${date === today ? ' is-today' : ''}${date > today ? ' is-future' : ''}`}
               aria-pressed={active}
               aria-label={new Date(`${date}T12:00:00`).toLocaleDateString(undefined, {
                 weekday: 'long',

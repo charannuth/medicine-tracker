@@ -23,6 +23,7 @@ function dayClasses(day: CycleCalendarDay, selectedDate: string, today: string):
   if (day.phase) parts.push(`phase-${day.phase}`)
   if (day.isLoggedPeriod) parts.push('logged-period')
   if (day.isPredictedPeriod) parts.push('predicted-period')
+  if (day.isFuture) parts.push('is-future')
   if (day.hasSymptoms) parts.push('has-symptoms')
   if (day.hasIntercourse) parts.push('has-intercourse')
   if (day.date === selectedDate) parts.push('selected')

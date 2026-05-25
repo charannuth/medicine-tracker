@@ -96,6 +96,7 @@ export type CycleCalendarDay = {
   phase: CyclePhase | null
   isLoggedPeriod: boolean
   isPredictedPeriod: boolean
+  isFuture: boolean
   hasSymptoms: boolean
   hasIntercourse: boolean
 }
@@ -468,6 +469,33 @@ export function predictedPeriodDateSet(
   return set
 }
 
+/** Predicted period bleeding days for every cycle that overlaps a calendar range. */
+export function predictedPeriodDatesInRange(
+  rangeStart: string,
+  rangeEnd: string,
+  prediction: PeriodPrediction,
+  cycleLengthDays: number,
+  periodLengthDays: number,
+): Set<string> {
+  const set = new Set<string>()
+  if (!prediction.nextStart || cycleLengthDays < 1) return set
+
+  let cycleStart = prediction.nextStart
+  const periodSpan = Math.max(1, periodLengthDays)
+
+  while (cycleStart <= rangeEnd) {
+    const cycleEnd = addDaysToDate(cycleStart, periodSpan - 1)
+    let cursor = cycleStart
+    while (cursor <= cycleEnd) {
+      if (cursor >= rangeStart && cursor <= rangeEnd) set.add(cursor)
+      cursor = addDaysToDate(cursor, 1)
+    }
+    cycleStart = addDaysToDate(cycleStart, cycleLengthDays)
+  }
+
+  return set
+}
+
 export function buildCycleCalendarDays(
   dates: string[],
   periods: CyclePeriod[],
@@ -479,12 +507,21 @@ export function buildCycleCalendarDays(
   const prediction = computePeriodPrediction(periods, settings, today)
   const effectiveLen = effectiveCycleLengthForPrediction(settings, periods)
   const loggedPeriod = loggedPeriodDates(periods, logs, today)
-  const predicted = predictedPeriodDateSet(prediction)
+  const rangeStart = dates[0] ?? today
+  const rangeEnd = dates[dates.length - 1] ?? today
+  const predicted = predictedPeriodDatesInRange(
+    rangeStart,
+    rangeEnd,
+    prediction,
+    effectiveLen.days,
+    settings.avg_period_length,
+  )
   const open = periods.some((p) => !p.ended_on)
   const logByDate = new Map(logs.map((l) => [l.log_date, l]))
 
   return dates.map((date) => {
     const log = logByDate.get(date)
+    const isFuture = date > today
     const isLoggedPeriod = loggedPeriod.has(date)
     const isPredictedPeriod = predicted.has(date) && !isLoggedPeriod
 
@@ -510,6 +547,7 @@ export function buildCycleCalendarDays(
       phase,
       isLoggedPeriod,
       isPredictedPeriod,
+      isFuture,
       hasSymptoms,
       hasIntercourse: log?.intercourse ?? false,
     }

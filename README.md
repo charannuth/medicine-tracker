@@ -9,6 +9,8 @@ A personal web app to manage medications, log daily doses, track adherence strea
 Newest first. Each line is added from the commit subject when you commit (with hooks enabled).
 
 <!-- DEVLOG:START -->
+- **2026-05-25** (`c05f28a`) — Fix cycle calendar predictions and lock future-day logging.
+
 - **2026-05-25** (`67cb786`) — Add Today button to cycle day logging strip.
 
 - **2026-05-25** (`e8add4c`) — Add editable period end dates and database-backed body metric units.

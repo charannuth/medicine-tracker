@@ -81,6 +81,15 @@ export function CycleDayStrip({
         </p>
         <button
           type="button"
+          className="btn btn-secondary btn-sm cycle-day-strip-today"
+          disabled={selectedDate === today}
+          aria-label="Go to today"
+          onClick={() => onSelectDate(today)}
+        >
+          Today
+        </button>
+        <button
+          type="button"
           className="btn btn-ghost btn-sm cycle-day-strip-arrow"
           aria-label="Next day"
           onClick={goNextDay}

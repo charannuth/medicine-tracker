@@ -5330,6 +5330,10 @@
   min-width: 2.5rem;
 }
 
+.cycle-day-strip-today {
+  flex-shrink: 0;
+}
+
 .cycle-day-strip-scroll {
   display: flex;
   gap: 0.4rem;

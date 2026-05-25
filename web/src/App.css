@@ -4735,16 +4735,134 @@
   margin-bottom: 1.25rem;
 }
 
+.cycle-phase-banner {
+  padding: 0.75rem 0.85rem;
+  margin-bottom: 1rem;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border-subtle);
+  background: color-mix(in srgb, var(--accent-soft) 30%, var(--surface));
+}
+
+.cycle-phase-label {
+  margin: 0 0 0.25rem;
+  font-size: 0.95rem;
+}
+
+.cycle-phase-day {
+  font-weight: 400;
+  color: var(--text-muted);
+}
+
+.cycle-calendar-wrap {
+  margin-bottom: 1.25rem;
+}
+
+.cycle-calendar-legend {
+  list-style: none;
+  margin: 0 0 0.65rem;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem 0.85rem;
+  font-size: 0.72rem;
+  color: var(--text-muted);
+}
+
+.cycle-calendar-legend li {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+}
+
+.cycle-legend-swatch {
+  width: 0.85rem;
+  height: 0.85rem;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  flex-shrink: 0;
+}
+
+.cycle-legend-swatch.logged-period {
+  border: 2px solid #e11d48;
+  background: color-mix(in srgb, #e11d48 25%, transparent);
+}
+
+.cycle-legend-swatch.predicted-period {
+  border: 2px dashed #e11d48;
+  background: repeating-linear-gradient(
+    -45deg,
+    transparent 0 2px,
+    color-mix(in srgb, #e11d48 20%, transparent) 2px 4px
+  );
+}
+
+.cycle-legend-swatch.phase-follicular {
+  background: color-mix(in srgb, #1e3a8a 35%, var(--surface));
+}
+
+.cycle-legend-swatch.phase-ovulation {
+  background: color-mix(in srgb, #7dd3fc 55%, var(--surface));
+}
+
+.cycle-legend-swatch.phase-luteal {
+  background: color-mix(in srgb, #f9a8d4 55%, var(--surface));
+}
+
+.cycle-legend-dot.symptom {
+  width: 0.45rem;
+  height: 0.45rem;
+  border-radius: 50%;
+  background: #9333ea;
+  border: none;
+}
+
+.cycle-legend-heart {
+  color: #ec4899;
+  font-size: 0.75rem;
+  line-height: 1;
+}
+
 .cycle-calendar-day {
+  position: relative;
   aspect-ratio: 1;
-  min-height: 2.25rem;
+  min-height: 2.5rem;
   border: 1px solid transparent;
   border-radius: var(--radius-sm);
   background: var(--bg);
   font: inherit;
-  font-size: 0.85rem;
+  font-size: 0.82rem;
   cursor: pointer;
   color: var(--text);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.1rem;
+  padding: 0.15rem;
+}
+
+.cycle-day-num {
+  line-height: 1.1;
+}
+
+.cycle-day-markers {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  min-height: 0.55rem;
+}
+
+.cycle-marker-heart {
+  color: #ec4899;
+  font-size: 0.62rem;
+  line-height: 1;
+}
+
+.cycle-marker-symptom {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: #9333ea;
 }
 
 .cycle-calendar-day--empty {
@@ -4752,17 +4870,89 @@
   cursor: default;
 }
 
-.cycle-calendar-day.bleeding {
-  background: color-mix(in srgb, #e11d48 18%, var(--surface));
+.cycle-calendar-day.phase-follicular:not(.logged-period):not(.predicted-period) {
+  background: color-mix(in srgb, #1e3a8a 14%, var(--bg));
+}
+
+.cycle-calendar-day.phase-ovulation:not(.logged-period):not(.predicted-period) {
+  background: color-mix(in srgb, #7dd3fc 28%, var(--bg));
+}
+
+.cycle-calendar-day.phase-luteal:not(.logged-period):not(.predicted-period) {
+  background: color-mix(in srgb, #f9a8d4 30%, var(--bg));
+}
+
+.cycle-calendar-day.phase-menstrual:not(.logged-period):not(.predicted-period) {
+  background: color-mix(in srgb, #fda4af 18%, var(--bg));
+}
+
+.cycle-calendar-day.logged-period {
+  box-shadow: inset 0 0 0 2.5px #e11d48;
+  background: color-mix(in srgb, #e11d48 22%, var(--surface));
+}
+
+.cycle-calendar-day.predicted-period {
+  background-color: var(--bg);
+  background-image: repeating-linear-gradient(
+    -45deg,
+    transparent 0 5px,
+    color-mix(in srgb, #e11d48 22%, transparent) 5px 10px
+  );
+  box-shadow: inset 0 0 0 2px color-mix(in srgb, #e11d48 50%, transparent);
 }
 
 .cycle-calendar-day.selected {
-  border-color: var(--accent);
-  box-shadow: 0 0 0 1px var(--accent);
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+  z-index: 1;
 }
 
-.cycle-calendar-day.today {
+.cycle-calendar-day.today .cycle-day-num {
   font-weight: 700;
+}
+
+.cycle-intercourse-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  margin-bottom: 0.85rem;
+  font-size: 0.9rem;
+  cursor: pointer;
+}
+
+.cycle-intercourse-label {
+  color: #ec4899;
+  font-size: 1rem;
+}
+
+.cycle-symptom-group {
+  border: none;
+  margin: 0 0 0.85rem;
+  padding: 0;
+}
+
+.cycle-symptom-group legend {
+  font-size: 0.88rem;
+  font-weight: 600;
+  margin-bottom: 0.4rem;
+}
+
+.cycle-notes-label {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  font-size: 0.88rem;
+  margin-bottom: 0.75rem;
+}
+
+.cycle-notes-label textarea {
+  font: inherit;
+  padding: 0.5rem 0.65rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--bg);
+  color: var(--text);
+  resize: vertical;
 }
 
 .cycle-day-log h4 {

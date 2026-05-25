@@ -1,15 +1,21 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useAuth } from '../../hooks/useAuth'
+import { todayLocalDate } from '../../lib/dates'
 import {
-  CYCLE_SYMPTOM_OPTIONS,
-  bleedingDatesFromPeriods,
-  cycleDayInPeriod,
+  buildCycleCalendarDays,
+  clearPeriodLate,
+  CYCLE_SYMPTOMS_DURING,
+  CYCLE_SYMPTOMS_POST,
+  CYCLE_SYMPTOMS_PRE,
   endPeriod,
   fetchCycleDayLogs,
   fetchCyclePeriods,
   fetchCycleSettings,
   fetchOpenPeriod,
-  predictNextPeriodStart,
+  getCyclePrediction,
+  markPeriodLate,
+  PHASE_HINTS,
+  PHASE_LABELS,
   startPeriod,
   updateCycleSettings,
   upsertCycleDayLog,
@@ -18,7 +24,7 @@ import {
   type CycleSettings,
   type FlowLevel,
 } from '../../lib/tracking/cycle'
-import { todayLocalDate } from '../../lib/dates'
+import { CycleCalendar } from './CycleCalendar'
 
 const FLOW_OPTIONS: { value: FlowLevel; label: string }[] = [
   { value: 'spotting', label: 'Spotting' },
@@ -27,14 +33,61 @@ const FLOW_OPTIONS: { value: FlowLevel; label: string }[] = [
   { value: 'heavy', label: 'Heavy' },
 ]
 
-function monthStart(date: Date): string {
-  const y = date.getFullYear()
-  const m = String(date.getMonth() + 1).padStart(2, '0')
-  return `${y}-${m}-01`
+function monthStart(year: number, month: number): string {
+  return `${year}-${String(month).padStart(2, '0')}-01`
 }
 
-function daysInMonth(year: number, month: number): number {
-  return new Date(year, month, 0).getDate()
+function monthEnd(year: number, month: number): string {
+  const last = new Date(year, month, 0).getDate()
+  return `${year}-${String(month).padStart(2, '0')}-${String(last).padStart(2, '0')}`
+}
+
+function datesInMonth(year: number, month: number): string[] {
+  const total = new Date(year, month, 0).getDate()
+  const dates: string[] = []
+  for (let d = 1; d <= total; d++) {
+    dates.push(
+      `${year}-${String(month).padStart(2, '0')}-${String(d).padStart(2, '0')}`,
+    )
+  }
+  return dates
+}
+
+function toggleSymptom(list: string[], symptom: string): string[] {
+  return list.includes(symptom)
+    ? list.filter((s) => s !== symptom)
+    : [...list, symptom]
+}
+
+function SymptomChipGroup({
+  title,
+  options,
+  selected,
+  onChange,
+}: {
+  title: string
+  options: readonly string[]
+  selected: string[]
+  onChange: (next: string[]) => void
+}) {
+  return (
+    <fieldset className="cycle-symptom-group">
+      <legend>{title}</legend>
+      <div className="cycle-symptom-chips">
+        {options.map((symptom) => (
+          <button
+            key={symptom}
+            type="button"
+            className={`wellness-chip${selected.includes(symptom) ? ' active' : ''}`}
+            aria-pressed={selected.includes(symptom)}
+            onClick={() => onChange(toggleSymptom(selected, symptom))}
+          >
+            {symptom}
+          </button>
+        ))}
+      </div>
+    </fieldset>
+  )
 }
 
 export function CycleTrackerPanel() {
@@ -55,9 +108,8 @@ export function CycleTrackerPanel() {
 
   const reload = useCallback(async () => {
     if (!user) return
-    const from = monthStart(new Date(viewMonth.year, viewMonth.month - 1, 1))
-    const lastDay = daysInMonth(viewMonth.year, viewMonth.month)
-    const to = `${viewMonth.year}-${String(viewMonth.month).padStart(2, '0')}-${String(lastDay).padStart(2, '0')}`
+    const from = monthStart(viewMonth.year, viewMonth.month)
+    const to = monthEnd(viewMonth.year, viewMonth.month)
 
     const [s, p, open, logs] = await Promise.all([
       fetchCycleSettings(user.id),
@@ -89,33 +141,38 @@ export function CycleTrackerPanel() {
     }
   }, [user, reload])
 
-  const bleedingDates = useMemo(
-    () => bleedingDatesFromPeriods(periods, today),
-    [periods, today],
+  const prediction = useMemo(
+    () =>
+      settings ? getCyclePrediction(periods, settings, today) : null,
+    [settings, periods, today],
   )
 
-  const nextPredicted = settings ? predictNextPeriodStart(periods, settings) : null
+  const monthDates = useMemo(
+    () => datesInMonth(viewMonth.year, viewMonth.month),
+    [viewMonth],
+  )
+
+  const calendarDays = useMemo(() => {
+    if (!settings) return []
+    return buildCycleCalendarDays(monthDates, periods, dayLogs, settings, today)
+  }, [monthDates, periods, dayLogs, settings, today])
 
   const selectedLog = dayLogs.find((l) => l.log_date === selectedDate)
   const [flow, setFlow] = useState<FlowLevel | ''>('')
-  const [symptoms, setSymptoms] = useState<string[]>([])
+  const [symptomsPre, setSymptomsPre] = useState<string[]>([])
+  const [symptomsDuring, setSymptomsDuring] = useState<string[]>([])
+  const [symptomsPost, setSymptomsPost] = useState<string[]>([])
+  const [intercourse, setIntercourse] = useState(false)
+  const [notes, setNotes] = useState('')
 
   useEffect(() => {
     setFlow(selectedLog?.flow_level ?? '')
-    setSymptoms(selectedLog?.symptoms ?? [])
+    setSymptomsPre(selectedLog?.symptoms_pre ?? [])
+    setSymptomsDuring(selectedLog?.symptoms ?? [])
+    setSymptomsPost(selectedLog?.symptoms_post ?? [])
+    setIntercourse(selectedLog?.intercourse ?? false)
+    setNotes(selectedLog?.notes ?? '')
   }, [selectedLog, selectedDate])
-
-  const calendarCells = useMemo(() => {
-    const firstDow = new Date(viewMonth.year, viewMonth.month - 1, 1).getDay()
-    const total = daysInMonth(viewMonth.year, viewMonth.month)
-    const cells: { date: string | null; label: string }[] = []
-    for (let i = 0; i < firstDow; i++) cells.push({ date: null, label: '' })
-    for (let day = 1; day <= total; day++) {
-      const date = `${viewMonth.year}-${String(viewMonth.month).padStart(2, '0')}-${String(day).padStart(2, '0')}`
-      cells.push({ date, label: String(day) })
-    }
-    return cells
-  }, [viewMonth])
 
   async function runAction(action: () => Promise<void>) {
     setBusy(true)
@@ -135,10 +192,21 @@ export function CycleTrackerPanel() {
     await runAction(async () => {
       await upsertCycleDayLog(user.id, selectedDate, {
         flow_level: flow || null,
-        symptoms,
+        symptoms: symptomsDuring,
+        symptoms_pre: symptomsPre,
+        symptoms_post: symptomsPost,
+        intercourse,
+        notes,
       })
     })
   }
+
+  const canMarkLate =
+    prediction &&
+    !openPeriod &&
+    prediction.nextStart &&
+    today >= prediction.nextStart &&
+    periods.length > 0
 
   if (loading && !settings) {
     return <p className="loading">Loading cycle tracker…</p>
@@ -147,11 +215,24 @@ export function CycleTrackerPanel() {
   return (
     <div className="tracker-panel cycle-tracker-panel">
       <p className="tracker-disclaimer" role="note">
-        Not for contraception or diagnosis. Log period start/end and daily flow; predictions
-        are estimates only.
+        For personal tracking only — not contraception or diagnosis. Predictions use your
+        average cycle length; stress, diet, and other factors can shift timing. Share logs
+        with your clinician.
       </p>
 
       {error && <p className="banner banner-error">{error}</p>}
+
+      {prediction?.currentPhase && (
+        <div className="cycle-phase-banner">
+          <p className="cycle-phase-label">
+            Today: <strong>{PHASE_LABELS[prediction.currentPhase]}</strong> phase
+            {prediction.cycleDay != null && (
+              <span className="cycle-phase-day"> · Day {prediction.cycleDay}</span>
+            )}
+          </p>
+          <p className="field-hint">{PHASE_HINTS[prediction.currentPhase]}</p>
+        </div>
+      )}
 
       <div className="cycle-period-actions">
         {openPeriod ? (
@@ -182,21 +263,71 @@ export function CycleTrackerPanel() {
             Period started
           </button>
         )}
-        {nextPredicted && (
-          <p className="field-hint cycle-prediction">
-            Next period estimated ~{' '}
-            {new Date(`${nextPredicted}T12:00:00`).toLocaleDateString(undefined, {
-              month: 'short',
-              day: 'numeric',
-            })}
-          </p>
+
+        {canMarkLate && (
+          <button
+            type="button"
+            className="btn btn-secondary"
+            disabled={busy}
+            onClick={() =>
+              void runAction(async () => {
+                await markPeriodLate(user!.id)
+              })
+            }
+          >
+            Mark period late
+          </button>
+        )}
+
+        {settings?.period_late && !openPeriod && (
+          <button
+            type="button"
+            className="btn btn-ghost btn-sm"
+            disabled={busy}
+            onClick={() => void runAction(() => clearPeriodLate(user!.id))}
+          >
+            Clear late flag
+          </button>
         )}
       </div>
+
+      {prediction?.nextStart && (
+        <p className="field-hint cycle-prediction">
+          {prediction.isLate ? (
+            <>
+              Period is <strong>{prediction.daysLate || 'several'} day(s) late</strong>
+              {settings?.prediction_push_days
+                ? ` · prediction adjusted +${settings.prediction_push_days} days`
+                : ''}
+              . Next estimated start{' '}
+            </>
+          ) : (
+            <>Next period estimated </>
+          )}
+          <strong>
+            {new Date(`${prediction.nextStart}T12:00:00`).toLocaleDateString(undefined, {
+              month: 'short',
+              day: 'numeric',
+              year: prediction.nextStart.slice(0, 4) !== today.slice(0, 4) ? 'numeric' : undefined,
+            })}
+          </strong>
+          {prediction.nextEnd && (
+            <>
+              {' '}
+              –{' '}
+              {new Date(`${prediction.nextEnd}T12:00:00`).toLocaleDateString(undefined, {
+                month: 'short',
+                day: 'numeric',
+              })}
+            </>
+          )}
+        </p>
+      )}
 
       {settings && (
         <div className="cycle-settings-row">
           <label>
-            Avg cycle (days)
+            Average cycle length (days)
             <input
               type="number"
               min={15}
@@ -219,7 +350,7 @@ export function CycleTrackerPanel() {
             />
           </label>
           <label>
-            Avg period (days)
+            Average period length (days)
             <input
               type="number"
               min={1}
@@ -244,60 +375,28 @@ export function CycleTrackerPanel() {
         </div>
       )}
 
-      <div className="cycle-calendar-header">
-        <button
-          type="button"
-          className="btn btn-ghost btn-sm"
-          onClick={() =>
+      {settings && (
+        <CycleCalendar
+          year={viewMonth.year}
+          month={viewMonth.month}
+          days={calendarDays}
+          selectedDate={selectedDate}
+          today={today}
+          onSelectDate={setSelectedDate}
+          onPrevMonth={() =>
             setViewMonth((m) => {
               const d = new Date(m.year, m.month - 2, 1)
               return { year: d.getFullYear(), month: d.getMonth() + 1 }
             })
           }
-        >
-          ←
-        </button>
-        <h4>
-          {new Date(viewMonth.year, viewMonth.month - 1, 1).toLocaleDateString(undefined, {
-            month: 'long',
-            year: 'numeric',
-          })}
-        </h4>
-        <button
-          type="button"
-          className="btn btn-ghost btn-sm"
-          onClick={() =>
+          onNextMonth={() =>
             setViewMonth((m) => {
               const d = new Date(m.year, m.month, 1)
               return { year: d.getFullYear(), month: d.getMonth() + 1 }
             })
           }
-        >
-          →
-        </button>
-      </div>
-
-      <div className="cycle-calendar-weekdays">
-        {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map((d) => (
-          <span key={d}>{d}</span>
-        ))}
-      </div>
-      <div className="cycle-calendar-grid">
-        {calendarCells.map((cell, i) =>
-          cell.date ? (
-            <button
-              key={cell.date}
-              type="button"
-              className={`cycle-calendar-day${bleedingDates.has(cell.date) ? ' bleeding' : ''}${cell.date === selectedDate ? ' selected' : ''}${cell.date === today ? ' today' : ''}${cycleDayInPeriod(cell.date, periods) ? ' in-period' : ''}`}
-              onClick={() => setSelectedDate(cell.date!)}
-            >
-              {cell.label}
-            </button>
-          ) : (
-            <span key={`pad-${i}`} className="cycle-calendar-day cycle-calendar-day--empty" />
-          ),
-        )}
-      </div>
+        />
+      )}
 
       <section className="cycle-day-log">
         <h4>
@@ -309,8 +408,21 @@ export function CycleTrackerPanel() {
                 day: 'numeric',
               })}
         </h4>
+
+        <label className="cycle-intercourse-toggle">
+          <input
+            type="checkbox"
+            checked={intercourse}
+            onChange={(e) => setIntercourse(e.target.checked)}
+          />
+          <span className="cycle-intercourse-label" aria-hidden>
+            ♥
+          </span>
+          Sexual intercourse
+        </label>
+
         <fieldset className="cycle-flow-fieldset">
-          <legend>Flow</legend>
+          <legend>Flow (menstruation)</legend>
           <div className="cycle-flow-options">
             {FLOW_OPTIONS.map((opt) => (
               <label key={opt.value} className="cycle-flow-chip">
@@ -334,27 +446,39 @@ export function CycleTrackerPanel() {
             </label>
           </div>
         </fieldset>
-        <div className="cycle-symptom-chips">
-          {CYCLE_SYMPTOM_OPTIONS.map((symptom) => (
-            <button
-              key={symptom}
-              type="button"
-              className={`btn btn-sm${symptoms.includes(symptom) ? ' btn-primary' : ' btn-secondary'}`}
-              onClick={() =>
-                setSymptoms((prev) =>
-                  prev.includes(symptom)
-                    ? prev.filter((s) => s !== symptom)
-                    : [...prev, symptom],
-                )
-              }
-            >
-              {symptom}
-            </button>
-          ))}
-        </div>
+
+        <SymptomChipGroup
+          title="Pre-menstrual symptoms"
+          options={CYCLE_SYMPTOMS_PRE}
+          selected={symptomsPre}
+          onChange={setSymptomsPre}
+        />
+        <SymptomChipGroup
+          title="During period symptoms"
+          options={CYCLE_SYMPTOMS_DURING}
+          selected={symptomsDuring}
+          onChange={setSymptomsDuring}
+        />
+        <SymptomChipGroup
+          title="Post-menstrual symptoms"
+          options={CYCLE_SYMPTOMS_POST}
+          selected={symptomsPost}
+          onChange={setSymptomsPost}
+        />
+
+        <label className="cycle-notes-label">
+          Notes (stress, diet, sleep…)
+          <textarea
+            rows={2}
+            value={notes}
+            placeholder="What might have affected your cycle today?"
+            onChange={(e) => setNotes(e.target.value)}
+          />
+        </label>
+
         <button
           type="button"
-          className="btn btn-secondary"
+          className="btn btn-primary"
           disabled={busy}
           onClick={() => void saveDayLog()}
         >

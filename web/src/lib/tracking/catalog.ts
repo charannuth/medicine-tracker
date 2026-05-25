@@ -20,14 +20,15 @@ export const TRACKER_CATALOG: TrackerCatalogEntry[] = [
   {
     id: 'cycle',
     label: 'Cycle & period',
-    description: 'Period start/end, flow, calendar, and predictions',
+    description:
+      'Period calendar, phases, ovulation estimate, symptoms, intercourse, and predictions',
     available: true,
   },
   {
     id: 'hrt',
     label: 'HRT & hormones',
     description: 'Doses logged on Today sync here automatically',
-    available: true,
+    available: false,
   },
   {
     id: 'med_progress',

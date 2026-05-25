@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom'
+import { AccountMedicationsSection } from '../components/AccountMedicationsSection'
 import { AccountSettings } from '../components/AccountSettings'
 import { ProfileStreakSummary } from '../components/ProfileStreakSummary'
 import { StreakBadges } from '../components/StreakBadges'
@@ -58,6 +59,8 @@ export function AccountPage() {
           </div>
         </>
       )}
+
+      <AccountMedicationsSection />
 
       <AccountSettings />
 

@@ -14,7 +14,7 @@ export function RefillBanner({ alerts }: { alerts: RefillAlert[] }) {
         </span>
       ))}
       .{' '}
-      <Link to="/medications">Update supply</Link>
+      <Link to="/account#medications">Update supply</Link>
     </div>
   )
 }

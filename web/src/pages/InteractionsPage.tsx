@@ -184,7 +184,7 @@ export function InteractionsPage() {
             {result.inputNames.length === 0 ? (
               <p>
                 No active medications today.{' '}
-                <Link to="/medications">Add medications</Link> to run a check.
+                <Link to="/account#medications">Add medications</Link> to run a check.
               </p>
             ) : (
               <ul className="interaction-med-list">

@@ -12,7 +12,7 @@ import { isOnboardingDone, setOnboardingDone } from './lib/settings'
 import { AccountPage } from './pages/AccountPage'
 import { HelpPage } from './pages/HelpPage'
 import { HistoryPage } from './pages/HistoryPage'
-import { MedicationsPage } from './pages/MedicationsPage'
+import { TrackingPage } from './pages/TrackingPage'
 import { InteractionsPage } from './pages/InteractionsPage'
 import { TodayPage } from './pages/TodayPage'
 import { MedicalRecordsPage } from './pages/MedicalRecordsPage'
@@ -79,7 +79,8 @@ function AuthenticatedRoutes({ user }: { user: User }) {
           <Route path="history" element={<HistoryPage />} />
           <Route path="account" element={<AccountPage />} />
           <Route path="streaks" element={<StreaksPage />} />
-          <Route path="medications" element={<MedicationsPage />} />
+          <Route path="tracking" element={<TrackingPage />} />
+          <Route path="medications" element={<Navigate to="/tracking" replace />} />
           <Route path="interactions" element={<InteractionsPage />} />
           <Route path="medical-records" element={<MedicalRecordsPage />} />
           <Route path="wellness" element={<WellnessPage />} />

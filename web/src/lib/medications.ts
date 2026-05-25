@@ -3,6 +3,7 @@ import {
   formatScheduleTime,
   normalizeScheduleTimes,
   todayLocalDate,
+  currentPrnScheduleTimeToken,
 } from './dates'
 import { normalizeDoseFields } from './dose'
 import { getDoseDeductionAmount } from './inventory'
@@ -12,13 +13,38 @@ import {
   isMedicationActiveOn,
   validateMedicationDates,
 } from './medicationDates'
+import { isAsNeededMed } from './medicationSchedule'
+import { syncDoseLogToTracking, removeSyncedDoseLog } from './tracking/doseSync'
 import type {
   DoseLog,
   DoseSlotStatus,
   Medication,
   MedicationInput,
+  MedicationScheduleType,
+  MedicationTrackingSync,
   MedicationWithStatus,
 } from './types'
+
+function normalizeScheduleType(value: string | null | undefined): MedicationScheduleType {
+  return value === 'as_needed' ? 'as_needed' : 'scheduled'
+}
+
+function normalizeTrackingSync(
+  value: string | null | undefined,
+): MedicationTrackingSync {
+  return value === 'hrt' ? 'hrt' : 'none'
+}
+
+function buildPrnSlots(logs: DoseLog[]): DoseSlotStatus[] {
+  return [...logs]
+    .sort((a, b) => a.schedule_time.localeCompare(b.schedule_time))
+    .map((log) => ({
+      time: log.schedule_time,
+      label: formatScheduleTime(log.schedule_time),
+      taken: true,
+      doseLogId: log.id,
+    }))
+}
 
 function buildSlots(
   scheduleTimes: string[],
@@ -149,14 +175,32 @@ export async function fetchMedicationsWithStatus(
   }
 
   return meds.map((med) => {
+    const schedule_type = normalizeScheduleType(med.schedule_type)
     const schedule_times = normalizeScheduleTimes(med.schedule_times ?? [])
     const activeToday = getMedicationScheduleStatus(med, forDate) === 'active'
-    const slots = activeToday
-      ? buildSlots(schedule_times, logsByMed.get(med.id) ?? [])
-      : []
+    const medLogs = logsByMed.get(med.id) ?? []
+
+    if (isAsNeededMed({ schedule_type })) {
+      const prnSlots = activeToday ? buildPrnSlots(medLogs) : []
+      return {
+        ...med,
+        schedule_type,
+        tracking_sync: normalizeTrackingSync(med.tracking_sync),
+        schedule_times: [],
+        slots: prnSlots,
+        dosesTakenToday: prnSlots.length,
+        dosesTotalToday: 0,
+        allDosesTakenToday: false,
+        scheduleStatus: getMedicationScheduleStatus(med, forDate),
+      }
+    }
+
+    const slots = activeToday ? buildSlots(schedule_times, medLogs) : []
     const dosesTakenToday = slots.filter((s) => s.taken).length
     return {
       ...med,
+      schedule_type,
+      tracking_sync: normalizeTrackingSync(med.tracking_sync),
       schedule_times,
       slots,
       dosesTakenToday,
@@ -169,8 +213,9 @@ export async function fetchMedicationsWithStatus(
 }
 
 export function todayDoseTotals(medications: MedicationWithStatus[]) {
-  const taken = medications.reduce((sum, m) => sum + m.dosesTakenToday, 0)
-  const total = medications.reduce((sum, m) => sum + m.dosesTotalToday, 0)
+  const scheduled = medications.filter((m) => !isAsNeededMed(m))
+  const taken = scheduled.reduce((sum, m) => sum + m.dosesTakenToday, 0)
+  const total = scheduled.reduce((sum, m) => sum + m.dosesTotalToday, 0)
   return { taken, total }
 }
 
@@ -185,7 +230,11 @@ export async function createMedication(
     input.dose_mg,
   )
 
-  const schedule_times = normalizeScheduleTimes(input.schedule_times)
+  const schedule_type = input.schedule_type ?? 'scheduled'
+  const schedule_times =
+    schedule_type === 'as_needed'
+      ? []
+      : normalizeScheduleTimes(input.schedule_times)
   validateMedicationDates(input.start_date, input.end_date)
 
   const { error } = await supabase.from('medications').insert({
@@ -195,7 +244,9 @@ export async function createMedication(
     medication_form: input.medication_form,
     dose_pills,
     dose_mg,
+    schedule_type,
     schedule_times,
+    tracking_sync: input.tracking_sync ?? 'none',
     notes: input.notes.trim() || null,
     pills_remaining: input.pills_remaining,
     start_date: input.start_date,
@@ -216,12 +267,16 @@ export async function updateMedication(
     input.dose_mg,
   )
 
-  const newTimes = normalizeScheduleTimes(input.schedule_times)
+  const schedule_type = input.schedule_type ?? 'scheduled'
+  const newTimes =
+    schedule_type === 'as_needed'
+      ? []
+      : normalizeScheduleTimes(input.schedule_times)
   validateMedicationDates(input.start_date, input.end_date)
 
   const { data: existing, error: fetchError } = await supabase
     .from('medications')
-    .select('schedule_times')
+    .select('schedule_times, schedule_type')
     .eq('id', id)
     .single()
 
@@ -237,7 +292,9 @@ export async function updateMedication(
       medication_form: input.medication_form,
       dose_pills,
       dose_mg,
+      schedule_type,
       schedule_times: newTimes,
+      tracking_sync: input.tracking_sync ?? 'none',
       notes: input.notes.trim() || null,
       pills_remaining: input.pills_remaining,
       start_date: input.start_date,
@@ -248,6 +305,7 @@ export async function updateMedication(
   if (error) throw error
 
   const scheduleChanged =
+    schedule_type !== normalizeScheduleType(existing?.schedule_type) ||
     oldTimes.length !== newTimes.length ||
     oldTimes.some((t, i) => t !== newTimes[i])
 
@@ -286,6 +344,66 @@ async function adjustInventoryRemaining(
     .eq('id', medicationId)
 }
 
+export async function markPrnDoseTaken(
+  userId: string,
+  medicationId: string,
+): Promise<void> {
+  if (!supabase) return
+
+  const today = todayLocalDate()
+  const { data: med, error: medError } = await supabase
+    .from('medications')
+    .select(
+      'name, start_date, end_date, dose_pills, dose_mg, schedule_type, tracking_sync',
+    )
+    .eq('id', medicationId)
+    .single()
+
+  if (medError) throw medError
+  if (!med || !isMedicationActiveOn(med, today)) {
+    throw new Error('This medication is not active today.')
+  }
+  if (!isAsNeededMed(med)) {
+    throw new Error('This medication uses a fixed daily schedule.')
+  }
+
+  const scheduleTime = currentPrnScheduleTimeToken()
+
+  const { data: log, error } = await supabase
+    .from('dose_logs')
+    .insert({
+      user_id: userId,
+      medication_id: medicationId,
+      taken_on: today,
+      schedule_time: scheduleTime,
+    })
+    .select('id')
+    .single()
+
+  if (error) {
+    if (error.code === '23505') {
+      throw new Error('Try again in a second — dose already logged.')
+    }
+    throw error
+  }
+
+  await adjustInventoryRemaining(medicationId, med.dose_pills, 'take')
+
+  if (log?.id) {
+    await syncDoseLogToTracking({
+      userId,
+      medicationId,
+      doseLogId: log.id,
+      trackingSync: normalizeTrackingSync(med.tracking_sync),
+      takenOn: today,
+      scheduleTime,
+      medicationName: med.name,
+      dosePills: med.dose_pills,
+      doseMg: med.dose_mg,
+    })
+  }
+}
+
 export async function markDoseTaken(
   userId: string,
   medicationId: string,
@@ -296,7 +414,9 @@ export async function markDoseTaken(
   const today = todayLocalDate()
   const { data: med, error: medError } = await supabase
     .from('medications')
-    .select('start_date, end_date, dose_pills')
+    .select(
+      'name, start_date, end_date, dose_pills, dose_mg, schedule_type, tracking_sync',
+    )
     .eq('id', medicationId)
     .single()
 
@@ -304,13 +424,20 @@ export async function markDoseTaken(
   if (!med || !isMedicationActiveOn(med, today)) {
     throw new Error('This medication is not active today.')
   }
+  if (isAsNeededMed(med)) {
+    throw new Error('Use Log dose for as-needed medications.')
+  }
 
-  const { error } = await supabase.from('dose_logs').insert({
-    user_id: userId,
-    medication_id: medicationId,
-    taken_on: today,
-    schedule_time: scheduleTime,
-  })
+  const { data: log, error } = await supabase
+    .from('dose_logs')
+    .insert({
+      user_id: userId,
+      medication_id: medicationId,
+      taken_on: today,
+      schedule_time: scheduleTime,
+    })
+    .select('id')
+    .single()
 
   if (error) {
     if (error.code === '23505') {
@@ -320,6 +447,20 @@ export async function markDoseTaken(
   }
 
   await adjustInventoryRemaining(medicationId, med.dose_pills, 'take')
+
+  if (log?.id) {
+    await syncDoseLogToTracking({
+      userId,
+      medicationId,
+      doseLogId: log.id,
+      trackingSync: normalizeTrackingSync(med.tracking_sync),
+      takenOn: today,
+      scheduleTime,
+      medicationName: med.name,
+      dosePills: med.dose_pills,
+      doseMg: med.dose_mg,
+    })
+  }
 }
 
 export async function undoDose(doseLogId: string, medicationId: string): Promise<void> {
@@ -336,6 +477,7 @@ export async function undoDose(doseLogId: string, medicationId: string): Promise
   const { error } = await supabase.from('dose_logs').delete().eq('id', doseLogId)
   if (error) throw error
 
+  await removeSyncedDoseLog(doseLogId)
   await adjustInventoryRemaining(medicationId, med?.dose_pills ?? null, 'undo')
 }
 

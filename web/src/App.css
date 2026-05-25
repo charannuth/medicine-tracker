@@ -452,6 +452,86 @@
   color: var(--text-muted);
 }
 
+.today-tabs {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 1.25rem;
+  padding: 0.25rem;
+  border-radius: var(--radius);
+  background: color-mix(in srgb, var(--border-subtle) 55%, var(--surface));
+  border: 1px solid var(--border-subtle);
+}
+
+.today-tab {
+  flex: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  padding: 0.55rem 0.75rem;
+  border: none;
+  border-radius: calc(var(--radius) - 2px);
+  background: transparent;
+  color: var(--text-muted);
+  font: inherit;
+  font-size: 0.9rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition:
+    background 0.15s ease,
+    color 0.15s ease,
+    box-shadow 0.15s ease;
+}
+
+.today-tab:hover {
+  color: var(--text);
+}
+
+.today-tab.active {
+  background: var(--surface);
+  color: var(--text);
+  box-shadow: var(--shadow-sm, 0 1px 2px rgb(0 0 0 / 0.06));
+}
+
+.today-tab-count {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 1.35rem;
+  height: 1.35rem;
+  padding: 0 0.35rem;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--accent) 14%, var(--surface));
+  color: var(--accent);
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.today-tab.active .today-tab-count {
+  background: color-mix(in srgb, var(--accent) 18%, var(--bg));
+}
+
+.med-card-prn {
+  border-style: dashed;
+}
+
+.med-prn-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem;
+  margin-top: 0.75rem;
+}
+
+.med-prn-hint {
+  margin: 0;
+  flex: 1 1 12rem;
+}
+
+.dose-slots-prn .dose-slot {
+  justify-content: space-between;
+}
+
 .med-list {
   list-style: none;
   margin: 0;
@@ -4336,6 +4416,38 @@
   line-height: 1.5;
 }
 
+.medical-records-section {
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+  padding: 1rem 0;
+  border-top: 1px solid var(--border-subtle);
+}
+
+.medical-records-section:first-of-type {
+  border-top: none;
+  padding-top: 0;
+}
+
+.medical-records-section h3 {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: 1.05rem;
+  font-weight: 600;
+}
+
+.medical-records-stats-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.85rem;
+}
+
+@media (max-width: 480px) {
+  .medical-records-stats-row {
+    grid-template-columns: 1fr;
+  }
+}
+
 .medical-records-field {
   display: flex;
   flex-direction: column;
@@ -4443,4 +4555,341 @@
 .interaction-allergy-section h3 {
   margin: 0 0 0.35rem;
   font-size: 1rem;
+}
+
+/* Tracking hub */
+.tracking-page .tracking-section {
+  margin-bottom: 2rem;
+}
+
+.tracking-section-toggle {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.5rem 1rem;
+  width: 100%;
+  padding: 0;
+  border: none;
+  background: none;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  color: inherit;
+}
+
+.tracking-section-toggle h3 {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: 1.05rem;
+}
+
+.tracking-section-summary {
+  font-size: 0.9rem;
+  color: var(--text-muted);
+  font-weight: 400;
+}
+
+.physical-profile-form,
+.tracking-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  max-width: 28rem;
+}
+
+.tracking-stats-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.85rem;
+}
+
+.tracking-add-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 0.75rem;
+  margin: 1rem 0;
+}
+
+.tracking-add-label {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  font-size: 0.9rem;
+  font-weight: 500;
+  min-width: 12rem;
+  flex: 1;
+}
+
+.tracking-add-label select {
+  font: inherit;
+  padding: 0.5rem 0.65rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--bg);
+  color: var(--text);
+}
+
+.tracker-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-bottom: 0.75rem;
+}
+
+.tracker-tab {
+  padding: 0.45rem 0.85rem;
+  border: 1px solid var(--border-subtle);
+  border-radius: 999px;
+  background: var(--surface);
+  font: inherit;
+  font-size: 0.85rem;
+  cursor: pointer;
+  color: var(--text-muted);
+}
+
+.tracker-tab.active {
+  border-color: var(--accent);
+  color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 10%, var(--surface));
+}
+
+.tracking-module-panel {
+  margin-top: 1rem;
+  padding: 1.25rem;
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius);
+  background: var(--surface);
+}
+
+.tracking-module-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 0.35rem;
+}
+
+.tracking-module-header h4 {
+  margin: 0;
+  font-size: 1rem;
+}
+
+.tracker-disclaimer {
+  padding: 0.75rem 0.85rem;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border-subtle);
+  background: color-mix(in srgb, var(--accent-soft) 35%, var(--surface));
+  font-size: 0.88rem;
+  line-height: 1.5;
+  margin: 0 0 1rem;
+}
+
+.cycle-period-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem 1rem;
+  margin-bottom: 1rem;
+}
+
+.cycle-settings-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.cycle-settings-row label {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  font-size: 0.85rem;
+}
+
+.cycle-settings-row input {
+  width: 5rem;
+  font: inherit;
+  padding: 0.4rem 0.5rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+}
+
+.cycle-calendar-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.5rem;
+}
+
+.cycle-calendar-header h4 {
+  margin: 0;
+  font-size: 1rem;
+}
+
+.cycle-calendar-weekdays {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 2px;
+  font-size: 0.7rem;
+  color: var(--text-muted);
+  text-align: center;
+  margin-bottom: 0.25rem;
+}
+
+.cycle-calendar-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 4px;
+  margin-bottom: 1.25rem;
+}
+
+.cycle-calendar-day {
+  aspect-ratio: 1;
+  min-height: 2.25rem;
+  border: 1px solid transparent;
+  border-radius: var(--radius-sm);
+  background: var(--bg);
+  font: inherit;
+  font-size: 0.85rem;
+  cursor: pointer;
+  color: var(--text);
+}
+
+.cycle-calendar-day--empty {
+  background: transparent;
+  cursor: default;
+}
+
+.cycle-calendar-day.bleeding {
+  background: color-mix(in srgb, #e11d48 18%, var(--surface));
+}
+
+.cycle-calendar-day.selected {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 1px var(--accent);
+}
+
+.cycle-calendar-day.today {
+  font-weight: 700;
+}
+
+.cycle-day-log h4 {
+  margin: 0 0 0.75rem;
+  font-size: 0.95rem;
+}
+
+.cycle-flow-fieldset {
+  border: none;
+  padding: 0;
+  margin: 0 0 0.75rem;
+}
+
+.cycle-flow-options {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+
+.cycle-flow-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  font-size: 0.85rem;
+  cursor: pointer;
+}
+
+.cycle-symptom-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  margin-bottom: 0.75rem;
+}
+
+.hrt-dose-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+}
+
+.hrt-dose-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 1rem;
+  padding: 0.75rem 0.85rem;
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-sm);
+  background: var(--bg);
+}
+
+.hrt-dose-meta {
+  display: block;
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  font-weight: 400;
+}
+
+.med-progress-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(10rem, 1fr));
+  gap: 0.75rem;
+  margin: 1rem 0;
+}
+
+.med-progress-card {
+  padding: 0.85rem 1rem;
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-sm);
+  background: var(--bg);
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.med-progress-card-warn {
+  border-color: var(--warning-border, #fcd34d);
+}
+
+.med-progress-label {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+}
+
+.med-progress-value {
+  font-size: 1.25rem;
+}
+
+.med-progress-link {
+  font-size: 0.85rem;
+}
+
+.med-progress-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.tracking-sync-row {
+  margin-top: 1rem;
+}
+
+.account-section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 0.35rem;
+}
+
+.empty-state-compact {
+  padding: 1.25rem;
+  text-align: center;
+}
+
+.empty-state-compact .btn {
+  margin-top: 0.75rem;
 }

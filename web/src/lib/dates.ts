@@ -56,7 +56,9 @@ export type TwelveHourTime = {
 }
 
 export function scheduleTimeToTwelveHour(time24: string): TwelveHourTime {
-  const [h, m] = time24.split(':').map(Number)
+  const parts = time24.trim().split(':')
+  const h = Number(parts[0])
+  const m = Number(parts[1] ?? 0)
   if (Number.isNaN(h) || Number.isNaN(m)) {
     return { time12: '8:00', period: 'AM' }
   }
@@ -66,6 +68,15 @@ export function scheduleTimeToTwelveHour(time24: string): TwelveHourTime {
     time12: `${hour12}:${String(m).padStart(2, '0')}`,
     period,
   }
+}
+
+/** Unique schedule_time token for as-needed dose logs (HH:mm:ss). */
+export function currentPrnScheduleTimeToken(): string {
+  const now = new Date()
+  const h = String(now.getHours()).padStart(2, '0')
+  const m = String(now.getMinutes()).padStart(2, '0')
+  const s = String(now.getSeconds()).padStart(2, '0')
+  return `${h}:${m}:${s}`
 }
 
 export function twelveHourToScheduleTime(

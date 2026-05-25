@@ -4,6 +4,8 @@ import {
   COMMON_CONDITION_SUGGESTIONS,
 } from '../lib/allergyCheck'
 import type { MedicalRecordInput } from '../lib/medicalRecords'
+import { ageFromDateOfBirth, GENDER_OPTIONS } from '../lib/profileStats'
+import { Link } from 'react-router-dom'
 import { TagListField } from './TagListField'
 
 type MedicalRecordsFormProps = {
@@ -37,6 +39,74 @@ export function MedicalRecordsForm({
         medications. Always consult your physician or pharmacist for diagnosis and
         treatment decisions.
       </div>
+
+      <section className="medical-records-section">
+        <h3>About you</h3>
+        <p className="field-hint">
+          Optional basics — also editable on <Link to="/tracking">Tracking</Link>. Update
+          weight and height anytime as things change.
+        </p>
+
+        <label className="medical-records-field">
+          Date of birth
+          <input
+            type="date"
+            value={value.date_of_birth}
+            max={new Date().toISOString().slice(0, 10)}
+            onChange={(e) => patch({ date_of_birth: e.target.value })}
+          />
+          {value.date_of_birth && ageFromDateOfBirth(value.date_of_birth) != null && (
+            <span className="field-hint">
+              Age {ageFromDateOfBirth(value.date_of_birth)} years
+            </span>
+          )}
+        </label>
+
+        <label className="medical-records-field">
+          Gender
+          <select
+            value={value.gender}
+            onChange={(e) => patch({ gender: e.target.value })}
+          >
+            {GENDER_OPTIONS.map((opt) => (
+              <option key={opt.value || 'none'} value={opt.value}>
+                {opt.label}
+              </option>
+            ))}
+          </select>
+        </label>
+
+        <div className="medical-records-stats-row">
+          <label className="medical-records-field">
+            Height (cm)
+            <input
+              type="number"
+              min={0}
+              step={0.1}
+              value={value.height_cm}
+              onChange={(e) => patch({ height_cm: e.target.value })}
+              placeholder="e.g. 170"
+            />
+          </label>
+          <label className="medical-records-field">
+            Weight (kg)
+            <input
+              type="number"
+              min={0}
+              step={0.1}
+              value={value.weight_kg}
+              onChange={(e) => patch({ weight_kg: e.target.value })}
+              placeholder="e.g. 68"
+            />
+          </label>
+        </div>
+        <p className="field-hint">
+          Metric units are stored. 170 cm ≈ 5&apos;7&quot;; 68 kg ≈ 150 lb.
+        </p>
+      </section>
+
+      <section className="medical-records-section">
+        <h3>Clinical history</h3>
 
       <label className="medical-records-field">
         Blood type
@@ -122,6 +192,8 @@ export function MedicalRecordsForm({
           placeholder="Anything else your care team should know"
         />
       </label>
+
+      </section>
 
       <button type="submit" className="btn btn-primary" disabled={busy}>
         {busy ? 'Saving…' : 'Save medical record'}

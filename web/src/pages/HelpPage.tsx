@@ -21,8 +21,14 @@ export function HelpPage() {
             Tap a day to filter.
           </li>
           <li>
-            <strong>All medications</strong> — add, edit, or remove medications. When
-            you type a name, suggestions come from a built-in list plus{' '}
+            <strong>Tracking</strong> — optional modules (cycle, HRT, medication progress).
+            Set your physical profile (editable anytime). HRT doses logged on Today sync
+            here when you enable <strong>Sync doses to Tracking → HRT</strong> on a
+            medication.
+          </li>
+          <li>
+            <strong>My account → Medications</strong> — add, edit, or remove medications.
+            When you type a name, suggestions come from a built-in list plus{' '}
             <a href="https://www.nlm.nih.gov/research/umls/rxnorm/index.html" target="_blank" rel="noreferrer">
               RxNorm (NIH)
             </a>{' '}

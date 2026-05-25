@@ -9,6 +9,8 @@ A personal web app to manage medications, log daily doses, track adherence strea
 Newest first. Each line is added from the commit subject when you commit (with hooks enabled).
 
 <!-- DEVLOG:START -->
+- **2026-05-24** (`551f9c0`) — Add daily vs as-needed meds, profile stats, and Tracking hub.
+
 - **2026-05-24** (`2001cdb`) — Keep the top navbar visible while scrolling.
 
 - **2026-05-24** (`187ddba`) — Add drug name autocomplete to the interactions safety check.

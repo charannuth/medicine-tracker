@@ -10,7 +10,7 @@ const navItems = [
   { to: '/wellness', label: 'Wellness', end: false },
   { to: '/streaks', label: 'Streaks', end: false },
   { to: '/account', label: 'My account', end: false },
-  { to: '/medications', label: 'All medications', end: false },
+  { to: '/tracking', label: 'Tracking', end: false },
   { to: '/medical-records', label: 'Medical records', end: false },
   { to: '/interactions', label: 'Drug safety check', end: false },
   { to: '/help', label: 'Help & safety', end: false },

@@ -5,6 +5,7 @@ import {
   expectedDosesForActiveMedicationsOnDate,
   filterMedicationsActiveOn,
 } from './medicationDates'
+import { isAsNeededMed } from './medicationSchedule'
 import type { DoseLog, Medication } from './types'
 
 export type StreakDayStatus = 'perfect' | 'partial' | 'missed' | 'none'
@@ -55,6 +56,7 @@ function isPerfectDay(
   )
 
   for (const med of active) {
+    if (isAsNeededMed(med)) continue
     for (const time of normalizeScheduleTimes(med.schedule_times ?? [])) {
       if (!logged.has(`${med.id}|${time}`)) return false
     }

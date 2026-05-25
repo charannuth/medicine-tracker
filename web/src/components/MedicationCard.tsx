@@ -2,11 +2,13 @@ import { formatDoseDisplay } from '../lib/dose'
 import { formatInventoryRemaining } from '../lib/inventory'
 import { formatMedicationType } from '../lib/medicationForms'
 import { formatMedicationDateRange } from '../lib/medicationDates'
+import { isAsNeededMed } from '../lib/medicationSchedule'
 import type { DoseSlotStatus, MedicationWithStatus } from '../lib/types'
 
 type MedicationCardProps = {
   medication: MedicationWithStatus
   onMarkTaken: (scheduleTime: string) => void
+  onLogPrn?: () => void
   onUndo: (slot: DoseSlotStatus) => void
   onEdit: () => void
   onDelete: () => void
@@ -16,11 +18,13 @@ type MedicationCardProps = {
 export function MedicationCard({
   medication,
   onMarkTaken,
+  onLogPrn,
   onUndo,
   onEdit,
   onDelete,
   busySlot,
 }: MedicationCardProps) {
+  const asNeeded = isAsNeededMed(medication)
   const lowSupply =
     medication.pills_remaining != null && medication.pills_remaining <= 7
 
@@ -30,23 +34,36 @@ export function MedicationCard({
     medication.medication_route,
     medication.medication_form,
   )
+  const prnBusy = busySlot === `${medication.id}-prn`
 
   return (
-    <article className={`med-card ${allDosesTakenToday ? 'taken' : ''}`}>
+    <article
+      className={`med-card ${!asNeeded && allDosesTakenToday ? 'taken' : ''}${asNeeded ? ' med-card-prn' : ''}`}
+    >
       <div className="med-card-header">
         <div>
           <h3>{medication.name}</h3>
           {typeLabel && <p className="med-type-label">{typeLabel}</p>}
           <p className="med-dosage">
             {formatDoseDisplay(medication)}
-            {dosesTotalToday > 1
-              ? ` · ${dosesTotalToday} doses per day`
-              : dosesTotalToday === 1
-                ? ' · once daily'
-                : ''}
+            {asNeeded
+              ? ' · as needed (PRN)'
+              : dosesTotalToday > 1
+                ? ` · ${dosesTotalToday} doses per day`
+                : dosesTotalToday === 1
+                  ? ' · once daily'
+                  : ''}
           </p>
         </div>
-        {dosesTotalToday > 0 ? (
+        {asNeeded ? (
+          dosesTakenToday > 0 ? (
+            <span className="badge badge-partial">
+              {dosesTakenToday} logged today
+            </span>
+          ) : (
+            <span className="badge badge-pending">As needed</span>
+          )
+        ) : dosesTotalToday > 0 ? (
           allDosesTakenToday ? (
             <span className="badge badge-success">All doses taken</span>
           ) : dosesTakenToday > 0 ? (
@@ -74,7 +91,49 @@ export function MedicationCard({
         </p>
       )}
 
-      {medication.slots.length > 0 ? (
+      {asNeeded ? (
+        <>
+          <div className="med-prn-actions">
+            <button
+              type="button"
+              className="btn btn-primary btn-sm"
+              disabled={prnBusy}
+              onClick={() => onLogPrn?.()}
+            >
+              {prnBusy ? '…' : 'Log dose'}
+            </button>
+            <p className="field-hint med-prn-hint">
+              Log each time you take this medication. No fixed schedule.
+            </p>
+          </div>
+          {medication.slots.length > 0 ? (
+            <ul className="dose-slots dose-slots-prn">
+              {medication.slots.map((slot, index) => {
+                const slotKey = `${medication.id}-${slot.time}`
+                const busy = busySlot === slotKey
+                return (
+                  <li
+                    key={`${slot.time}-${index}`}
+                    className="dose-slot dose-slot-taken"
+                  >
+                    <span className="dose-slot-time">Taken {slot.label}</span>
+                    <button
+                      type="button"
+                      className="btn btn-secondary btn-sm"
+                      disabled={busy}
+                      onClick={() => onUndo(slot)}
+                    >
+                      {busy ? '…' : 'Undo'}
+                    </button>
+                  </li>
+                )
+              })}
+            </ul>
+          ) : (
+            <p className="med-times med-times-empty">No doses logged today yet.</p>
+          )}
+        </>
+      ) : medication.slots.length > 0 ? (
         <ul className="dose-slots">
           {medication.slots.map((slot, index) => {
             const slotKey = `${medication.id}-${slot.time}`

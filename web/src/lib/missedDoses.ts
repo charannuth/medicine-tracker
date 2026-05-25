@@ -10,6 +10,7 @@ import {
 } from './dates'
 import { formatDoseDisplay } from './dose'
 import { filterMedicationsActiveOn } from './medicationDates'
+import { isAsNeededMed } from './medicationSchedule'
 import type { DoseLog, Medication } from './types'
 
 export type MissedDoseItem = {
@@ -37,6 +38,7 @@ function findMissedForDate(
   const nowMins = currentMinutesSinceMidnight()
 
   for (const med of filterMedicationsActiveOn(medications, date)) {
+    if (isAsNeededMed(med)) continue
     for (const time of normalizeScheduleTimes(med.schedule_times ?? [])) {
       if (logged.has(`${med.id}|${time}`)) continue
 

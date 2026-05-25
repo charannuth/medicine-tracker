@@ -62,7 +62,7 @@ export function MedicalRecordsPage() {
       <header className="page-header">
         <h2>Medical records</h2>
         <p className="page-subtitle">
-          Self-reported history — allergies, blood type, and conditions
+          Self-reported history — allergies, conditions, and optional profile basics
         </p>
       </header>
 

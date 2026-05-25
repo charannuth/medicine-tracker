@@ -1,4 +1,9 @@
 import type { MedicationScheduleStatus } from './medicationDates'
+import type { MedicationScheduleType } from './medicationSchedule'
+
+export type { MedicationScheduleType } from './medicationSchedule'
+
+export type MedicationTrackingSync = 'none' | 'hrt'
 
 export type Medication = {
   id: string
@@ -8,7 +13,9 @@ export type Medication = {
   medication_form: string | null
   dose_pills: string | null
   dose_mg: string | null
+  schedule_type: MedicationScheduleType
   schedule_times: string[]
+  tracking_sync: MedicationTrackingSync
   notes: string | null
   pills_remaining: number | null
   start_date: string
@@ -32,7 +39,9 @@ export type MedicationInput = {
   medication_form: string
   dose_pills: string
   dose_mg: string
+  schedule_type: MedicationScheduleType
   schedule_times: string[]
+  tracking_sync: MedicationTrackingSync
   notes: string
   pills_remaining: number | null
   start_date: string

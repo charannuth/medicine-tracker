@@ -15,6 +15,10 @@ export type BloodType =
 export type MedicalRecord = {
   user_id: string
   blood_type: BloodType
+  date_of_birth: string | null
+  gender: string | null
+  height_cm: number | null
+  weight_kg: number | null
   known_allergies: string[]
   known_conditions: string[]
   past_surgeries: string | null
@@ -27,6 +31,10 @@ export type MedicalRecord = {
 
 export type MedicalRecordInput = {
   blood_type: string
+  date_of_birth: string
+  gender: string
+  height_cm: string
+  weight_kg: string
   known_allergies: string[]
   known_conditions: string[]
   past_surgeries: string
@@ -37,6 +45,10 @@ export type MedicalRecordInput = {
 
 export const emptyMedicalRecordInput = (): MedicalRecordInput => ({
   blood_type: '',
+  date_of_birth: '',
+  gender: '',
+  height_cm: '',
+  weight_kg: '',
   known_allergies: [],
   known_conditions: [],
   past_surgeries: '',
@@ -49,6 +61,10 @@ export function recordToInput(record: MedicalRecord | null): MedicalRecordInput 
   if (!record) return emptyMedicalRecordInput()
   return {
     blood_type: record.blood_type ?? '',
+    date_of_birth: record.date_of_birth ?? '',
+    gender: record.gender ?? '',
+    height_cm: record.height_cm != null ? String(record.height_cm) : '',
+    weight_kg: record.weight_kg != null ? String(record.weight_kg) : '',
     known_allergies: [...record.known_allergies],
     known_conditions: [...record.known_conditions],
     past_surgeries: record.past_surgeries ?? '',
@@ -61,6 +77,10 @@ export function recordToInput(record: MedicalRecord | null): MedicalRecordInput 
 export function isMedicalRecordFilled(input: MedicalRecordInput): boolean {
   return (
     Boolean(input.blood_type) ||
+    Boolean(input.date_of_birth) ||
+    Boolean(input.gender) ||
+    Boolean(input.height_cm.trim()) ||
+    Boolean(input.weight_kg.trim()) ||
     input.known_allergies.length > 0 ||
     input.known_conditions.length > 0 ||
     input.past_surgeries.trim().length > 0 ||
@@ -68,6 +88,14 @@ export function isMedicalRecordFilled(input: MedicalRecordInput): boolean {
     input.emergency_notes.trim().length > 0 ||
     input.other_notes.trim().length > 0
   )
+}
+
+function parseOptionalNumber(value: string): number | null {
+  const trimmed = value.trim()
+  if (!trimmed) return null
+  const n = Number(trimmed)
+  if (!Number.isFinite(n) || n <= 0) return null
+  return n
 }
 
 export async function fetchMedicalRecord(
@@ -92,6 +120,10 @@ export async function upsertMedicalRecord(
   const payload = {
     user_id: userId,
     blood_type: input.blood_type || null,
+    date_of_birth: input.date_of_birth.trim() || null,
+    gender: input.gender.trim() || null,
+    height_cm: parseOptionalNumber(input.height_cm),
+    weight_kg: parseOptionalNumber(input.weight_kg),
     known_allergies: input.known_allergies,
     known_conditions: input.known_conditions,
     past_surgeries: input.past_surgeries.trim() || null,

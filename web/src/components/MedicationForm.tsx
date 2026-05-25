@@ -20,55 +20,67 @@ import {
   inventoryUnitLabel,
 } from '../lib/inventory'
 import { validateMedicationDates } from '../lib/medicationDates'
+import type { MedicationScheduleType } from '../lib/medicationSchedule'
 import type { MedicationSuggestion } from '../lib/medicationSuggestions'
 import {
   canUseNotifications,
   requestNotificationPermission,
 } from '../lib/notifications'
 import { getReminders, setReminders } from '../lib/settings'
-import type { Medication, MedicationInput } from '../lib/types'
+import type { Medication, MedicationInput, MedicationTrackingSync } from '../lib/types'
 import { MedicationNameInput } from './MedicationNameInput'
 import { MedicationSafetyPanel } from './MedicationSafetyPanel'
 
 type MedicationFormProps = {
   initial?: Medication | null
   existingMedicationNames?: string[]
+  defaultScheduleType?: MedicationScheduleType
   onSave: (input: MedicationInput) => Promise<void>
   onCancel: () => void
 }
 
-type DoseTimeRow = {
-  id: string
-  time12: string
-  period: Meridiem
-}
-
-const WIZARD_STEPS = [
+const BASE_STEPS = [
   'name',
   'route',
   'form',
   'dates',
+  'frequency',
   'dosage',
-  'times',
-  'notes',
-  'tracking',
-  'notifications',
-  'safety',
 ] as const
 
-type WizardStep = (typeof WIZARD_STEPS)[number]
+const TAIL_SCHEDULED = ['times', 'notes', 'tracking', 'notifications', 'safety'] as const
+const TAIL_AS_NEEDED = ['notes', 'tracking', 'safety'] as const
+
+type WizardStep =
+  | (typeof BASE_STEPS)[number]
+  | (typeof TAIL_SCHEDULED)[number]
+  | (typeof TAIL_AS_NEEDED)[number]
+
+function wizardStepsFor(scheduleType: MedicationScheduleType): WizardStep[] {
+  if (scheduleType === 'as_needed') {
+    return [...BASE_STEPS, ...TAIL_AS_NEEDED]
+  }
+  return [...BASE_STEPS, ...TAIL_SCHEDULED]
+}
 
 const STEP_TITLES: Record<WizardStep, string> = {
   name: 'Medication name',
   route: 'How do you take it?',
   form: 'What type is it?',
   dates: 'Schedule dates',
+  frequency: 'How often?',
   dosage: 'Amount per dose',
   times: 'Dose times',
   notes: 'Notes',
   tracking: 'Refill tracking',
   notifications: 'Reminders',
   safety: 'Safety review',
+}
+
+type DoseTimeRow = {
+  id: string
+  time12: string
+  period: Meridiem
 }
 
 function newDoseTimeRow(time24?: string): DoseTimeRow {
@@ -90,17 +102,23 @@ function buildDoseTimes(initial?: Medication | null): DoseTimeRow[] {
   return [newDoseTimeRow()]
 }
 
-function buildFormState(initial?: Medication | null) {
+function buildFormState(
+  initial?: Medication | null,
+  defaultScheduleType: MedicationScheduleType = 'scheduled',
+) {
   const route =
     initial?.medication_route && isMedicationRouteId(initial.medication_route)
       ? initial.medication_route
       : null
+  const scheduleType: MedicationScheduleType =
+    initial?.schedule_type === 'as_needed' ? 'as_needed' : defaultScheduleType
 
   if (initial) {
     return {
       name: initial.name,
       route,
       form: initial.medication_form ?? '',
+      scheduleType,
       dosePills: initial.dose_pills ?? '',
       doseMg: initial.dose_mg ?? '',
       doseTimes: buildDoseTimes(initial),
@@ -112,6 +130,8 @@ function buildFormState(initial?: Medication | null) {
       hasEndDate: Boolean(initial.end_date),
       endDate: initial.end_date ?? '',
       remindersOn: getReminders().enabled,
+      trackingSync:
+        initial.tracking_sync === 'hrt' ? ('hrt' as MedicationTrackingSync) : 'none',
     }
   }
 
@@ -119,6 +139,7 @@ function buildFormState(initial?: Medication | null) {
     name: '',
     route: null as MedicationRouteId | null,
     form: '',
+    scheduleType,
     dosePills: '',
     doseMg: '',
     doseTimes: buildDoseTimes(),
@@ -129,22 +150,27 @@ function buildFormState(initial?: Medication | null) {
     hasEndDate: false,
     endDate: '',
     remindersOn: getReminders().enabled,
+    trackingSync: 'none' as MedicationTrackingSync,
   }
 }
 
 export function MedicationForm({
   initial,
   existingMedicationNames = [],
+  defaultScheduleType = 'scheduled',
   onSave,
   onCancel,
 }: MedicationFormProps) {
-  const defaults = buildFormState(initial)
+  const defaults = buildFormState(initial, defaultScheduleType)
   const [stepIndex, setStepIndex] = useState(0)
   const [slideDirection, setSlideDirection] = useState<'forward' | 'back'>('forward')
 
   const [name, setName] = useState(defaults.name)
   const [route, setRoute] = useState<MedicationRouteId | null>(defaults.route)
   const [form, setForm] = useState(defaults.form)
+  const [scheduleType, setScheduleType] = useState<MedicationScheduleType>(
+    defaults.scheduleType,
+  )
   const [dosePills, setDosePills] = useState(defaults.dosePills)
   const [doseMg, setDoseMg] = useState(defaults.doseMg)
   const [doseTimes, setDoseTimes] = useState(defaults.doseTimes)
@@ -155,11 +181,15 @@ export function MedicationForm({
   const [hasEndDate, setHasEndDate] = useState(defaults.hasEndDate)
   const [endDate, setEndDate] = useState(defaults.endDate)
   const [remindersOn, setRemindersOn] = useState(defaults.remindersOn)
+  const [trackingSync, setTrackingSync] = useState<MedicationTrackingSync>(
+    defaults.trackingSync,
+  )
   const [error, setError] = useState<string | null>(null)
   const [busy, setBusy] = useState(false)
 
-  const step = WIZARD_STEPS[stepIndex]
-  const isLastStep = stepIndex === WIZARD_STEPS.length - 1
+  const wizardSteps = wizardStepsFor(scheduleType)
+  const step = wizardSteps[stepIndex] ?? wizardSteps[0]
+  const isLastStep = stepIndex === wizardSteps.length - 1
   const isOtherRoute = route === 'other'
   const formOptions =
     route && !isOtherRoute ? MEDICATION_FORMS_BY_ROUTE[route] : []
@@ -192,6 +222,13 @@ export function MedicationForm({
     if (!doseMg.trim() && suggestion.doseMg) {
       setDoseMg(suggestion.doseMg)
     }
+  }
+
+  function selectScheduleType(next: MedicationScheduleType) {
+    setScheduleType(next)
+    setError(null)
+    const maxIndex = wizardStepsFor(next).length - 1
+    if (stepIndex > maxIndex) setStepIndex(maxIndex)
   }
 
   function selectRoute(next: MedicationRouteId) {
@@ -248,7 +285,10 @@ export function MedicationForm({
           return 'Enter an amount in pills, mg, or both.'
         }
         return null
+      case 'frequency':
+        return null
       case 'times':
+        if (scheduleType === 'as_needed') return null
         try {
           if (parseScheduleTimes().length === 0) {
             return 'Add at least one dose time.'
@@ -278,7 +318,7 @@ export function MedicationForm({
     }
     setError(null)
     setSlideDirection('forward')
-    setStepIndex((i) => Math.min(i + 1, WIZARD_STEPS.length - 1))
+    setStepIndex((i) => Math.min(i + 1, wizardStepsFor(scheduleType).length - 1))
   }
 
   function goBack() {
@@ -319,7 +359,8 @@ export function MedicationForm({
     try {
       if (!route) throw new Error('Choose how you take this medication.')
 
-      const schedule_times = parseScheduleTimes()
+      const schedule_times =
+        scheduleType === 'as_needed' ? [] : parseScheduleTimes()
       const end_date = hasEndDate && endDate.trim() ? endDate.trim() : null
       validateMedicationDates(startDate, end_date)
 
@@ -332,7 +373,9 @@ export function MedicationForm({
         pills = n
       }
 
-      setReminders({ enabled: remindersOn })
+      if (scheduleType === 'scheduled') {
+        setReminders({ enabled: remindersOn })
+      }
 
       await onSave({
         name,
@@ -340,7 +383,9 @@ export function MedicationForm({
         medication_form: form.trim(),
         dose_pills: dosePills,
         dose_mg: doseMg,
+        schedule_type: scheduleType,
         schedule_times,
+        tracking_sync: trackingSync,
         notes,
         pills_remaining: pills,
         start_date: startDate,
@@ -489,6 +534,40 @@ export function MedicationForm({
           </div>
         )
 
+      case 'frequency':
+        return (
+          <div className="med-wizard-panel-inner">
+            <p className="field-hint">
+              Daily medications use fixed reminder times. As-needed (PRN) meds are logged
+              when you take them — no fixed schedule.
+            </p>
+            <div className="med-type-grid med-type-grid-route">
+              <button
+                type="button"
+                className={`med-type-card${scheduleType === 'scheduled' ? ' selected' : ''}`}
+                onClick={() => selectScheduleType('scheduled')}
+                aria-pressed={scheduleType === 'scheduled'}
+              >
+                <span className="med-type-card-label">Daily schedule</span>
+                <span className="med-type-card-desc">
+                  Fixed times each day (morning, evening, etc.)
+                </span>
+              </button>
+              <button
+                type="button"
+                className={`med-type-card${scheduleType === 'as_needed' ? ' selected' : ''}`}
+                onClick={() => selectScheduleType('as_needed')}
+                aria-pressed={scheduleType === 'as_needed'}
+              >
+                <span className="med-type-card-label">As needed (PRN)</span>
+                <span className="med-type-card-desc">
+                  Pain relievers, rescue inhalers — log when taken
+                </span>
+              </button>
+            </div>
+          </div>
+        )
+
       case 'dosage':
         return (
           <div className="med-wizard-panel-inner">
@@ -560,6 +639,20 @@ export function MedicationForm({
                 placeholder="Take with food, avoid alcohol, etc."
               />
             </label>
+            <label className="checkbox-row tracking-sync-row">
+              <input
+                type="checkbox"
+                checked={trackingSync === 'hrt'}
+                onChange={(e) =>
+                  setTrackingSync(e.target.checked ? 'hrt' : 'none')
+                }
+              />
+              Sync doses to <strong>Tracking → HRT</strong> when logged on Today
+            </label>
+            <p className="field-hint">
+              Use for hormone therapy (patches, gel, injections, etc.). Logging still
+              happens on Today; this copies each dose into your HRT tracker.
+            </p>
           </div>
         )
 
@@ -663,18 +756,18 @@ export function MedicationForm({
         <div className="med-wizard-header">
           <h2 id="med-form-title">{initial ? 'Edit medication' : 'Add medication'}</h2>
           <p className="med-wizard-step-label">
-            Step {stepIndex + 1} of {WIZARD_STEPS.length} — {stepLabel(step)}
+            Step {stepIndex + 1} of {wizardSteps.length} — {stepLabel(step)}
           </p>
           <div
             className="med-wizard-progress"
             role="progressbar"
             aria-valuenow={stepIndex + 1}
             aria-valuemin={1}
-            aria-valuemax={WIZARD_STEPS.length}
+            aria-valuemax={wizardSteps.length}
           >
-            {WIZARD_STEPS.map((_, i) => (
+            {wizardSteps.map((wizardStep, i) => (
               <span
-                key={WIZARD_STEPS[i]}
+                key={wizardStep}
                 className={`med-wizard-dot${i <= stepIndex ? ' filled' : ''}${i === stepIndex ? ' current' : ''}`}
               />
             ))}

@@ -1,4 +1,5 @@
 import { normalizeScheduleTimes, todayLocalDate } from './dates'
+import { isAsNeededMed } from './medicationSchedule'
 import type { DoseLog, Medication } from './types'
 
 export type MedicationScheduleStatus = 'active' | 'upcoming' | 'ended'
@@ -35,6 +36,7 @@ export function countScheduledDosesTakenOnDate(
 ): { taken: number; expected: number; extraLogs: number } {
   const expectedKeys = new Set<string>()
   for (const med of filterMedicationsActiveOn(medications, dateStr)) {
+    if (isAsNeededMed(med)) continue
     for (const time of normalizeScheduleTimes(med.schedule_times ?? [])) {
       expectedKeys.add(`${med.id}|${time}`)
     }

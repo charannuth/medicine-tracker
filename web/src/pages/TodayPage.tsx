@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useLocation, useNavigate, useOutletContext } from 'react-router-dom'
 import type { LayoutOutletContext } from '../components/AppLayout'
 import { useAuth } from '../hooks/useAuth'
@@ -7,6 +7,7 @@ import {
   deleteMedication,
   fetchMedicationsWithStatus,
   markDoseTaken,
+  markPrnDoseTaken,
   todayDoseTotals,
   undoDose,
   repairMedicationSchedule,
@@ -34,8 +35,12 @@ import {
   isMissedDosesBannerDismissed,
 } from '../lib/settings'
 import { todayLocalDate } from '../lib/dates'
+import { isAsNeededMed } from '../lib/medicationSchedule'
+import type { MedicationScheduleType } from '../lib/medicationSchedule'
 import { getRefillAlerts } from '../lib/refills'
 import { fetchStreakStats, type StreakStats } from '../lib/streaks'
+
+type TodayTab = 'scheduled' | 'as_needed'
 
 export function TodayPage() {
   const { registerAddHandler } = useOutletContext<LayoutOutletContext>()
@@ -50,6 +55,8 @@ export function TodayPage() {
   const [error, setError] = useState<string | null>(null)
   const [busySlot, setBusySlot] = useState<string | null>(null)
   const [formOpen, setFormOpen] = useState(openAddFromNav)
+  const [todayTab, setTodayTab] = useState<TodayTab>('scheduled')
+  const [addScheduleType, setAddScheduleType] = useState<MedicationScheduleType>('scheduled')
   const [editing, setEditing] = useState<Medication | null>(null)
   const [streakStats, setStreakStats] = useState<StreakStats | null>(null)
   const [missedDoses, setMissedDoses] = useState<MissedDoseItem[]>([])
@@ -61,15 +68,16 @@ export function TodayPage() {
     streakStats,
   )
 
-  const openAddForm = useCallback(() => {
+  const openAddForm = useCallback((scheduleType: MedicationScheduleType = 'scheduled') => {
     setEditing(null)
+    setAddScheduleType(scheduleType)
     setFormOpen(true)
   }, [])
 
   useEffect(() => {
-    registerAddHandler(openAddForm)
+    registerAddHandler(() => openAddForm(todayTab))
     return () => registerAddHandler(null)
-  }, [registerAddHandler, openAddForm])
+  }, [registerAddHandler, openAddForm, todayTab])
 
   useEffect(() => {
     if (!openAddFromNav) return
@@ -190,6 +198,21 @@ export function TodayPage() {
     }
   }
 
+  async function handleLogPrn(med: MedicationWithStatus) {
+    if (!user) return
+    const key = `${med.id}-prn`
+    setBusySlot(key)
+    setError(null)
+    try {
+      await markPrnDoseTaken(user.id, med.id)
+      await reload()
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Could not log dose')
+    } finally {
+      setBusySlot(null)
+    }
+  }
+
   async function handleDelete(med: MedicationWithStatus) {
     if (!confirm(`Delete ${med.name}? This cannot be undone.`)) return
     setBusySlot(med.id)
@@ -204,20 +227,74 @@ export function TodayPage() {
   }
 
   const { taken: dosesTaken, total: dosesTotal } = todayDoseTotals(medications)
+  const scheduledMeds = useMemo(
+    () => medications.filter((m) => !isAsNeededMed(m)),
+    [medications],
+  )
+  const prnMeds = useMemo(
+    () => medications.filter((m) => isAsNeededMed(m)),
+    [medications],
+  )
+  const visibleMeds = todayTab === 'scheduled' ? scheduledMeds : prnMeds
+  const prnLoggedToday = prnMeds.reduce((sum, m) => sum + m.dosesTakenToday, 0)
   const refillAlerts = getRefillAlerts(medications)
+
+  const summaryText =
+    todayTab === 'scheduled'
+      ? dosesTotal === 0
+        ? scheduledMeds.length === 0
+          ? 'No daily medications yet'
+          : 'No dose times scheduled today'
+        : `${dosesTaken} of ${dosesTotal} dose${dosesTotal === 1 ? '' : 's'} taken`
+      : prnMeds.length === 0
+        ? 'No as-needed medications yet'
+        : prnLoggedToday === 0
+          ? 'Log a dose when you take one'
+          : `${prnLoggedToday} dose${prnLoggedToday === 1 ? '' : 's'} logged today`
 
   return (
     <>
       <main className="page dashboard">
         <section className="today-summary">
           <h2>Today</h2>
-          <p>
-            {dosesTotal === 0
-              ? 'No dose times scheduled'
-              : `${dosesTaken} of ${dosesTotal} dose${dosesTotal === 1 ? '' : 's'} taken`}
-          </p>
-          <StreakSnippet stats={streakStats} />
+          <p>{summaryText}</p>
+          {todayTab === 'scheduled' && <StreakSnippet stats={streakStats} />}
         </section>
+
+        <div
+          className="today-tabs"
+          role="tablist"
+          aria-label="Medication schedule type"
+        >
+          <button
+            type="button"
+            role="tab"
+            id="today-tab-scheduled"
+            aria-selected={todayTab === 'scheduled'}
+            aria-controls="today-panel-scheduled"
+            className={`today-tab${todayTab === 'scheduled' ? ' active' : ''}`}
+            onClick={() => setTodayTab('scheduled')}
+          >
+            Daily schedule
+            {scheduledMeds.length > 0 && (
+              <span className="today-tab-count">{scheduledMeds.length}</span>
+            )}
+          </button>
+          <button
+            type="button"
+            role="tab"
+            id="today-tab-prn"
+            aria-selected={todayTab === 'as_needed'}
+            aria-controls="today-panel-prn"
+            className={`today-tab${todayTab === 'as_needed' ? ' active' : ''}`}
+            onClick={() => setTodayTab('as_needed')}
+          >
+            As needed
+            {prnMeds.length > 0 && (
+              <span className="today-tab-count">{prnMeds.length}</span>
+            )}
+          </button>
+        </div>
 
         <RefillBanner alerts={refillAlerts} />
         <DueNowBanner items={missedDoses} />
@@ -242,19 +319,49 @@ export function TodayPage() {
             <button
               type="button"
               className="btn btn-primary"
-              onClick={openAddForm}
+              onClick={() => openAddForm('scheduled')}
             >
               Add your first medication
             </button>
           </div>
+        ) : visibleMeds.length === 0 ? (
+          <div
+            className="empty-state"
+            role="tabpanel"
+            id={todayTab === 'scheduled' ? 'today-panel-scheduled' : 'today-panel-prn'}
+            aria-labelledby={
+              todayTab === 'scheduled' ? 'today-tab-scheduled' : 'today-tab-prn'
+            }
+          >
+            <p>
+              {todayTab === 'scheduled'
+                ? 'No daily medications yet. Add one with fixed reminder times.'
+                : 'No as-needed medications yet. Add PRN meds like pain relievers or rescue inhalers.'}
+            </p>
+            <button
+              type="button"
+              className="btn btn-primary"
+              onClick={() => openAddForm(todayTab === 'scheduled' ? 'scheduled' : 'as_needed')}
+            >
+              {todayTab === 'scheduled' ? 'Add daily medication' : 'Add as-needed medication'}
+            </button>
+          </div>
         ) : (
-          <ul className="med-list">
-            {medications.map((med) => (
+          <ul
+            className="med-list"
+            role="tabpanel"
+            id={todayTab === 'scheduled' ? 'today-panel-scheduled' : 'today-panel-prn'}
+            aria-labelledby={
+              todayTab === 'scheduled' ? 'today-tab-scheduled' : 'today-tab-prn'
+            }
+          >
+            {visibleMeds.map((med) => (
               <li key={med.id}>
                 <MedicationCard
                   medication={med}
                   busySlot={busySlot}
                   onMarkTaken={(time) => handleMarkTaken(med, time)}
+                  onLogPrn={() => handleLogPrn(med)}
                   onUndo={(slot) => handleUndo(med, slot)}
                   onEdit={() => {
                     setEditing(med)
@@ -285,6 +392,7 @@ export function TodayPage() {
               : 'new'
           }
           initial={editing}
+          defaultScheduleType={addScheduleType}
           existingMedicationNames={medications.map((m) => m.name)}
           onCancel={() => {
             setFormOpen(false)

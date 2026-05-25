@@ -5,6 +5,7 @@ import {
 } from './dates'
 import { formatDoseDisplay } from './dose'
 import { filterMedicationsActiveOn } from './medicationDates'
+import { isAsNeededMed } from './medicationSchedule'
 import {
   fetchWellnessLog,
   isWellnessLogFilled,
@@ -70,6 +71,24 @@ export async function fetchDayDetail(
 
   const slots: DayDoseSlot[] = []
   for (const med of medications) {
+    if (isAsNeededMed(med)) {
+      const prnLogs = ((logsResult.data ?? []) as DoseLog[])
+        .filter((log) => log.medication_id === med.id)
+        .sort((a, b) => a.schedule_time.localeCompare(b.schedule_time))
+      for (const log of prnLogs) {
+        slots.push({
+          medicationId: med.id,
+          medicationName: med.name,
+          doseLabel: formatDoseDisplay(med),
+          scheduleTime: log.schedule_time,
+          scheduleLabel: formatScheduleTime(log.schedule_time),
+          taken: true,
+          takenAt: log.taken_at,
+          medicationNotes: med.notes?.trim() || null,
+        })
+      }
+      continue
+    }
     for (const time of normalizeScheduleTimes(med.schedule_times ?? [])) {
       const log = logBySlot.get(`${med.id}|${time}`)
       slots.push({

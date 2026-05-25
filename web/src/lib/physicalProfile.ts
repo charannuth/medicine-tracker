@@ -4,13 +4,21 @@ import {
   type MedicalRecord,
   type MedicalRecordInput,
 } from './medicalRecords'
-import { ageFromDateOfBirth, formatHeightCm, formatWeightKg } from './profileStats'
+import {
+  formatHeightForUnit,
+  formatWeightForUnit,
+  normalizeBodyMetricUnit,
+  type BodyMetricUnit,
+} from './bodyMetrics'
+import { ageFromDateOfBirth } from './profileStats'
 
 export type PhysicalProfileInput = {
   date_of_birth: string
   gender: string
   height_cm: string
   weight_kg: string
+  height_unit: BodyMetricUnit
+  weight_unit: BodyMetricUnit
 }
 
 export function emptyPhysicalProfileInput(): PhysicalProfileInput {
@@ -19,6 +27,8 @@ export function emptyPhysicalProfileInput(): PhysicalProfileInput {
     gender: '',
     height_cm: '',
     weight_kg: '',
+    height_unit: 'metric',
+    weight_unit: 'metric',
   }
 }
 
@@ -31,6 +41,8 @@ export function physicalProfileFromRecord(
     gender: record.gender ?? '',
     height_cm: record.height_cm != null ? String(record.height_cm) : '',
     weight_kg: record.weight_kg != null ? String(record.weight_kg) : '',
+    height_unit: normalizeBodyMetricUnit(record.height_unit),
+    weight_unit: normalizeBodyMetricUnit(record.weight_unit),
   }
 }
 
@@ -50,9 +62,15 @@ export function physicalProfileSummary(record: MedicalRecord | null): string | n
     ? ageFromDateOfBirth(record.date_of_birth)
     : null
   if (age != null) parts.push(`Age ${age}`)
-  const height = formatHeightCm(record.height_cm)
+  const height = formatHeightForUnit(
+    record.height_cm,
+    normalizeBodyMetricUnit(record.height_unit),
+  )
   if (height) parts.push(height)
-  const weight = formatWeightKg(record.weight_kg)
+  const weight = formatWeightForUnit(
+    record.weight_kg,
+    normalizeBodyMetricUnit(record.weight_unit),
+  )
   if (weight) parts.push(weight)
   return parts.length > 0 ? parts.join(' · ') : null
 }
@@ -70,6 +88,8 @@ export async function upsertPhysicalProfile(
         gender: physical.gender,
         height_cm: physical.height_cm,
         weight_kg: physical.weight_kg,
+        height_unit: physical.height_unit,
+        weight_unit: physical.weight_unit,
         known_allergies: [...existing.known_allergies],
         known_conditions: [...existing.known_conditions],
         past_surgeries: existing.past_surgeries ?? '',
@@ -83,6 +103,8 @@ export async function upsertPhysicalProfile(
         gender: physical.gender,
         height_cm: physical.height_cm,
         weight_kg: physical.weight_kg,
+        height_unit: physical.height_unit,
+        weight_unit: physical.weight_unit,
         known_allergies: [],
         known_conditions: [],
         past_surgeries: '',

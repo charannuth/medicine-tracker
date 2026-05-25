@@ -1,3 +1,4 @@
+import { normalizeBodyMetricUnit, type BodyMetricUnit } from './bodyMetrics'
 import { supabase } from './supabase'
 
 export type BloodType =
@@ -19,6 +20,8 @@ export type MedicalRecord = {
   gender: string | null
   height_cm: number | null
   weight_kg: number | null
+  height_unit: BodyMetricUnit
+  weight_unit: BodyMetricUnit
   known_allergies: string[]
   known_conditions: string[]
   past_surgeries: string | null
@@ -35,6 +38,8 @@ export type MedicalRecordInput = {
   gender: string
   height_cm: string
   weight_kg: string
+  height_unit: BodyMetricUnit
+  weight_unit: BodyMetricUnit
   known_allergies: string[]
   known_conditions: string[]
   past_surgeries: string
@@ -49,6 +54,8 @@ export const emptyMedicalRecordInput = (): MedicalRecordInput => ({
   gender: '',
   height_cm: '',
   weight_kg: '',
+  height_unit: 'metric',
+  weight_unit: 'metric',
   known_allergies: [],
   known_conditions: [],
   past_surgeries: '',
@@ -65,6 +72,8 @@ export function recordToInput(record: MedicalRecord | null): MedicalRecordInput 
     gender: record.gender ?? '',
     height_cm: record.height_cm != null ? String(record.height_cm) : '',
     weight_kg: record.weight_kg != null ? String(record.weight_kg) : '',
+    height_unit: normalizeBodyMetricUnit(record.height_unit),
+    weight_unit: normalizeBodyMetricUnit(record.weight_unit),
     known_allergies: [...record.known_allergies],
     known_conditions: [...record.known_conditions],
     past_surgeries: record.past_surgeries ?? '',
@@ -124,6 +133,8 @@ export async function upsertMedicalRecord(
     gender: input.gender.trim() || null,
     height_cm: parseOptionalNumber(input.height_cm),
     weight_kg: parseOptionalNumber(input.weight_kg),
+    height_unit: input.height_unit,
+    weight_unit: input.weight_unit,
     known_allergies: input.known_allergies,
     known_conditions: input.known_conditions,
     past_surgeries: input.past_surgeries.trim() || null,
@@ -135,6 +146,45 @@ export async function upsertMedicalRecord(
   const { data, error } = await supabase
     .from('medical_records')
     .upsert(payload, { onConflict: 'user_id' })
+    .select('*')
+    .single()
+
+  if (error) throw error
+  return data as MedicalRecord
+}
+
+/** Persist unit preference immediately (creates a row if needed). */
+export async function updateBodyMetricUnits(
+  userId: string,
+  units: { height_unit?: BodyMetricUnit; weight_unit?: BodyMetricUnit },
+): Promise<MedicalRecord> {
+  if (!supabase) throw new Error('Supabase is not configured')
+
+  const existing = await fetchMedicalRecord(userId)
+  if (!existing) {
+    const { data, error } = await supabase
+      .from('medical_records')
+      .insert({
+        user_id: userId,
+        height_unit: units.height_unit ?? 'metric',
+        weight_unit: units.weight_unit ?? 'metric',
+        known_allergies: [],
+        known_conditions: [],
+      })
+      .select('*')
+      .single()
+    if (error) throw error
+    return data as MedicalRecord
+  }
+
+  const patch: { height_unit?: BodyMetricUnit; weight_unit?: BodyMetricUnit } = {}
+  if (units.height_unit != null) patch.height_unit = units.height_unit
+  if (units.weight_unit != null) patch.weight_unit = units.weight_unit
+
+  const { data, error } = await supabase
+    .from('medical_records')
+    .update(patch)
+    .eq('user_id', userId)
     .select('*')
     .single()
 

@@ -3,14 +3,18 @@ import {
   COMMON_ALLERGY_SUGGESTIONS,
   COMMON_CONDITION_SUGGESTIONS,
 } from '../lib/allergyCheck'
+import type { BodyMetricUnit } from '../lib/bodyMetrics'
 import type { MedicalRecordInput } from '../lib/medicalRecords'
 import { ageFromDateOfBirth, GENDER_OPTIONS } from '../lib/profileStats'
 import { Link } from 'react-router-dom'
+import { HeightWeightFields } from './HeightWeightFields'
 import { TagListField } from './TagListField'
 
 type MedicalRecordsFormProps = {
   value: MedicalRecordInput
   onChange: (next: MedicalRecordInput) => void
+  onHeightUnitChange: (unit: BodyMetricUnit) => void
+  onWeightUnitChange: (unit: BodyMetricUnit) => void
   onSubmit: () => void
   busy?: boolean
 }
@@ -18,6 +22,8 @@ type MedicalRecordsFormProps = {
 export function MedicalRecordsForm({
   value,
   onChange,
+  onHeightUnitChange,
+  onWeightUnitChange,
   onSubmit,
   busy = false,
 }: MedicalRecordsFormProps) {
@@ -76,32 +82,20 @@ export function MedicalRecordsForm({
           </select>
         </label>
 
-        <div className="medical-records-stats-row">
-          <label className="medical-records-field">
-            Height (cm)
-            <input
-              type="number"
-              min={0}
-              step={0.1}
-              value={value.height_cm}
-              onChange={(e) => patch({ height_cm: e.target.value })}
-              placeholder="e.g. 170"
-            />
-          </label>
-          <label className="medical-records-field">
-            Weight (kg)
-            <input
-              type="number"
-              min={0}
-              step={0.1}
-              value={value.weight_kg}
-              onChange={(e) => patch({ weight_kg: e.target.value })}
-              placeholder="e.g. 68"
-            />
-          </label>
-        </div>
+        <HeightWeightFields
+          height_cm={value.height_cm}
+          weight_kg={value.weight_kg}
+          height_unit={value.height_unit}
+          weight_unit={value.weight_unit}
+          onHeightChange={(height_cm) => patch({ height_cm })}
+          onWeightChange={(weight_kg) => patch({ weight_kg })}
+          onHeightUnitChange={onHeightUnitChange}
+          onWeightUnitChange={onWeightUnitChange}
+          fieldClassName="medical-records-field"
+          rowClassName="medical-records-stats-row body-metrics-row"
+        />
         <p className="field-hint">
-          Metric units are stored. 170 cm ≈ 5&apos;7&quot;; 68 kg ≈ 150 lb.
+          Unit preference is saved to your account. Values are stored as cm and kg.
         </p>
       </section>
 

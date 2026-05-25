@@ -2,11 +2,13 @@ import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { MedicalRecordsForm } from '../components/MedicalRecordsForm'
 import { useAuth } from '../hooks/useAuth'
+import type { BodyMetricUnit } from '../lib/bodyMetrics'
 import {
   emptyMedicalRecordInput,
   fetchMedicalRecord,
   isMedicalRecordFilled,
   recordToInput,
+  updateBodyMetricUnits,
   upsertMedicalRecord,
   type MedicalRecordInput,
 } from '../lib/medicalRecords'
@@ -41,6 +43,28 @@ export function MedicalRecordsPage() {
       active = false
     }
   }, [user])
+
+  async function handleHeightUnitChange(unit: BodyMetricUnit) {
+    setDraft((d) => ({ ...d, height_unit: unit }))
+    if (!user) return
+    try {
+      const saved = await updateBodyMetricUnits(user.id, { height_unit: unit })
+      setDraft(recordToInput(saved))
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Could not save unit preference')
+    }
+  }
+
+  async function handleWeightUnitChange(unit: BodyMetricUnit) {
+    setDraft((d) => ({ ...d, weight_unit: unit }))
+    if (!user) return
+    try {
+      const saved = await updateBodyMetricUnits(user.id, { weight_unit: unit })
+      setDraft(recordToInput(saved))
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Could not save unit preference')
+    }
+  }
 
   async function handleSave() {
     if (!user) return
@@ -83,6 +107,8 @@ export function MedicalRecordsPage() {
           <MedicalRecordsForm
             value={draft}
             onChange={setDraft}
+            onHeightUnitChange={(unit) => void handleHeightUnitChange(unit)}
+            onWeightUnitChange={(unit) => void handleWeightUnitChange(unit)}
             onSubmit={() => void handleSave()}
             busy={busy}
           />

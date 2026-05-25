@@ -4594,6 +4594,68 @@
   gap: 0.85rem;
 }
 
+.body-metrics-row {
+  max-width: 36rem;
+}
+
+.body-metric-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.body-metric-field-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.body-metric-field-title {
+  font-size: 0.9rem;
+  font-weight: 500;
+}
+
+.body-metric-unit-select select {
+  font: inherit;
+  font-size: 0.78rem;
+  padding: 0.2rem 0.35rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+  color: var(--text);
+}
+
+.body-metric-field > .tracking-field,
+.body-metric-field > .medical-records-field {
+  flex-direction: row;
+  align-items: center;
+  gap: 0.4rem;
+  max-width: none;
+}
+
+.body-metric-imperial-height {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.body-metric-imperial-height .tracking-field,
+.body-metric-imperial-height .medical-records-field {
+  flex: 1;
+  min-width: 0;
+}
+
+.body-metric-suffix,
+.body-metric-suffix-label {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  flex-shrink: 0;
+}
+
+.cycle-period-end-edit {
+  margin-top: 0.35rem;
+}
+
 .tracking-add-row {
   display: flex;
   flex-wrap: wrap;

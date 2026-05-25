@@ -1,10 +1,14 @@
 import { Link } from 'react-router-dom'
+import { HeightWeightFields } from './HeightWeightFields'
 import { GENDER_OPTIONS, ageFromDateOfBirth } from '../lib/profileStats'
+import type { BodyMetricUnit } from '../lib/bodyMetrics'
 import type { PhysicalProfileInput } from '../lib/physicalProfile'
 
 type PhysicalProfileFormProps = {
   value: PhysicalProfileInput
   onChange: (next: PhysicalProfileInput) => void
+  onHeightUnitChange: (unit: BodyMetricUnit) => void
+  onWeightUnitChange: (unit: BodyMetricUnit) => void
   onSubmit: () => void
   busy?: boolean
 }
@@ -12,6 +16,8 @@ type PhysicalProfileFormProps = {
 export function PhysicalProfileForm({
   value,
   onChange,
+  onHeightUnitChange,
+  onWeightUnitChange,
   onSubmit,
   busy = false,
 }: PhysicalProfileFormProps) {
@@ -57,30 +63,20 @@ export function PhysicalProfileForm({
         </select>
       </label>
 
-      <div className="tracking-stats-row">
-        <label className="tracking-field">
-          Height (cm)
-          <input
-            type="number"
-            min={0}
-            step={0.1}
-            value={value.height_cm}
-            onChange={(e) => patch({ height_cm: e.target.value })}
-            placeholder="e.g. 170"
-          />
-        </label>
-        <label className="tracking-field">
-          Weight (kg)
-          <input
-            type="number"
-            min={0}
-            step={0.1}
-            value={value.weight_kg}
-            onChange={(e) => patch({ weight_kg: e.target.value })}
-            placeholder="e.g. 68"
-          />
-        </label>
-      </div>
+      <HeightWeightFields
+        height_cm={value.height_cm}
+        weight_kg={value.weight_kg}
+        height_unit={value.height_unit}
+        weight_unit={value.weight_unit}
+        onHeightChange={(height_cm) => patch({ height_cm })}
+        onWeightChange={(weight_kg) => patch({ weight_kg })}
+        onHeightUnitChange={onHeightUnitChange}
+        onWeightUnitChange={onWeightUnitChange}
+      />
+      <p className="field-hint">
+        Unit preference is saved to your account. Height and weight values are stored as
+        cm and kg.
+      </p>
 
       <button type="submit" className="btn btn-primary" disabled={busy}>
         {busy ? 'Saving…' : 'Save profile'}

@@ -24,6 +24,7 @@ import {
   recentCycleLengths,
   undoLastPeriodEnd,
   updatePeriodStart,
+  updatePeriodEnd,
   PHASE_HINTS,
   PHASE_LABELS,
   startPeriod,
@@ -109,6 +110,7 @@ export function CycleTrackerPanel({
   const [loading, setLoading] = useState(true)
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [periodEndDraft, setPeriodEndDraft] = useState(today)
 
   const logMonth = useMemo(() => {
     const d = new Date(`${selectedDate}T12:00:00`)
@@ -131,6 +133,10 @@ export function CycleTrackerPanel({
     setOpenPeriod(open)
     setDayLogs(logs)
   }, [user, logMonth])
+
+  useEffect(() => {
+    if (openPeriod) setPeriodEndDraft(today)
+  }, [openPeriod?.id, today])
 
   useEffect(() => {
     if (!user) return
@@ -354,11 +360,24 @@ export function CycleTrackerPanel({
                 }}
               />
             </label>
+            <label className="cycle-period-start-edit">
+              Period end date
+              <input
+                type="date"
+                value={periodEndDraft}
+                disabled={busy}
+                min={openPeriod.started_on}
+                max={today}
+                onChange={(e) => setPeriodEndDraft(e.target.value)}
+              />
+            </label>
             <button
               type="button"
               className="btn btn-primary"
-              disabled={busy}
-              onClick={() => void runAction(() => endPeriod(user!.id))}
+              disabled={busy || !periodEndDraft}
+              onClick={() =>
+                void runAction(() => endPeriod(user!.id, periodEndDraft))
+              }
             >
               Period ended
             </button>
@@ -400,6 +419,26 @@ export function CycleTrackerPanel({
           </button>
         )}
       </div>
+
+      {!openPeriod && lastClosedPeriod?.ended_on && (
+        <label className="cycle-period-start-edit cycle-period-end-edit">
+          Last period ended
+          <input
+            type="date"
+            value={lastClosedPeriod.ended_on}
+            disabled={busy}
+            min={lastClosedPeriod.started_on}
+            max={today}
+            onChange={(e) => {
+              const next = e.target.value
+              if (!next || next === lastClosedPeriod.ended_on) return
+              void runAction(() =>
+                updatePeriodEnd(user!.id, lastClosedPeriod.id, next),
+              )
+            }}
+          />
+        </label>
+      )}
 
       {(openPeriod || lastClosedPeriod || periods.length > 0) && (
         <details className="cycle-fix-mistakes">

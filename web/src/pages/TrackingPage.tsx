@@ -12,7 +12,9 @@ import {
   defaultCalendarSource,
 } from '../lib/tracking/calendarSources'
 import type { CalendarViewRange } from '../lib/tracking/calendarRange'
+import type { BodyMetricUnit } from '../lib/bodyMetrics'
 import { todayLocalDate } from '../lib/dates'
+import { updateBodyMetricUnits } from '../lib/medicalRecords'
 import {
   TRACKER_CATALOG,
   trackerCatalogEntry,
@@ -122,6 +124,30 @@ export function TrackingPage() {
 
   function bumpCalendarRefresh() {
     setCalendarRefreshKey((k) => k + 1)
+  }
+
+  async function handleHeightUnitChange(unit: BodyMetricUnit) {
+    setProfileDraft((d) => ({ ...d, height_unit: unit }))
+    if (!user) return
+    try {
+      const saved = await updateBodyMetricUnits(user.id, { height_unit: unit })
+      setMedicalRecord(saved)
+      setProfileDraft(physicalProfileFromRecord(saved))
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Could not save unit preference')
+    }
+  }
+
+  async function handleWeightUnitChange(unit: BodyMetricUnit) {
+    setProfileDraft((d) => ({ ...d, weight_unit: unit }))
+    if (!user) return
+    try {
+      const saved = await updateBodyMetricUnits(user.id, { weight_unit: unit })
+      setMedicalRecord(saved)
+      setProfileDraft(physicalProfileFromRecord(saved))
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Could not save unit preference')
+    }
   }
 
   async function handleSaveProfile() {
@@ -237,6 +263,8 @@ export function TrackingPage() {
               <PhysicalProfileForm
                 value={profileDraft}
                 onChange={setProfileDraft}
+                onHeightUnitChange={(unit) => void handleHeightUnitChange(unit)}
+                onWeightUnitChange={(unit) => void handleWeightUnitChange(unit)}
                 onSubmit={() => void handleSaveProfile()}
                 busy={profileBusy}
               />

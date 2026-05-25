@@ -289,6 +289,29 @@ export async function updatePeriodStart(
   if (error) throw error
 }
 
+export async function updatePeriodEnd(
+  userId: string,
+  periodId: string,
+  endedOn: string,
+): Promise<void> {
+  if (!supabase) return
+  const periods = await fetchCyclePeriods(userId, 24)
+  const period = periods.find((p) => p.id === periodId)
+  if (!period?.ended_on) {
+    throw new Error('Only a completed period end date can be edited.')
+  }
+  if (endedOn < period.started_on) {
+    throw new Error('End date cannot be before period start.')
+  }
+
+  const { error } = await supabase
+    .from('cycle_periods')
+    .update({ ended_on: endedOn })
+    .eq('id', periodId)
+    .eq('user_id', userId)
+  if (error) throw error
+}
+
 export async function deleteCycleDayLog(userId: string, logDate: string): Promise<void> {
   if (!supabase) return
   const { error } = await supabase

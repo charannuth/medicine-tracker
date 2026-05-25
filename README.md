@@ -9,6 +9,8 @@ A personal web app to manage medications, log daily doses, track adherence strea
 Newest first. Each line is added from the commit subject when you commit (with hooks enabled).
 
 <!-- DEVLOG:START -->
+- **2026-05-25** (`31fd90f`) — Improve cycle tracking UX, predictions, and per-cycle length learning.
+
 - **2026-05-25** (`a313f2c`) — Add menstrual cycle calendar with phases, predictions, and daily logs.
 
 - **2026-05-25** (`53dced2`) — Add oral PRN amount dropdown with 1–10 and custom entry.

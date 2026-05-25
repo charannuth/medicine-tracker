@@ -4684,11 +4684,148 @@
   margin-bottom: 1rem;
 }
 
+.cycle-period-start-edit {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  font-size: 0.85rem;
+  font-weight: 500;
+}
+
+.cycle-period-start-edit input {
+  font: inherit;
+  padding: 0.4rem 0.5rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--bg);
+  color: var(--text);
+}
+
+.cycle-fix-mistakes {
+  margin-bottom: 1rem;
+  padding: 0.65rem 0.85rem;
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-sm);
+  background: color-mix(in srgb, var(--surface-muted) 50%, var(--surface));
+}
+
+.cycle-fix-mistakes summary {
+  cursor: pointer;
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: var(--text-muted);
+}
+
+.cycle-fix-mistakes[open] summary {
+  margin-bottom: 0.65rem;
+  color: var(--text);
+}
+
+.cycle-clear-explainer {
+  margin: 0 0 0.85rem;
+  line-height: 1.45;
+}
+
+.cycle-fix-group {
+  margin-bottom: 0.85rem;
+}
+
+.cycle-fix-group:last-child {
+  margin-bottom: 0;
+}
+
+.cycle-fix-group-title {
+  margin: 0 0 0.4rem;
+  font-size: 0.8rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--text-muted);
+}
+
+.cycle-fix-group-hard .cycle-fix-group-title {
+  color: color-mix(in srgb, #e11d48 70%, var(--text-muted));
+}
+
+.cycle-btn-hard {
+  color: #e11d48 !important;
+  border-color: color-mix(in srgb, #e11d48 40%, var(--border)) !important;
+}
+
+.cycle-btn-hard:hover {
+  background: color-mix(in srgb, #e11d48 12%, var(--surface)) !important;
+}
+
+.cycle-day-clear-section {
+  margin-top: 0.5rem;
+  padding-top: 0.85rem;
+  border-top: 1px solid var(--border-subtle);
+}
+
+.cycle-day-clear-title {
+  margin: 0 0 0.25rem;
+  font-size: 0.88rem;
+  font-weight: 600;
+}
+
+.cycle-fix-actions {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.cycle-fix-actions li {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.25rem;
+}
+
+.cycle-day-log-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.cycle-prediction-block {
+  margin-bottom: 1rem;
+}
+
+.cycle-prediction-source {
+  margin: 0.35rem 0 0;
+}
+
+.cycle-settings-section {
+  margin-bottom: 1.25rem;
+  padding: 0.85rem 1rem;
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-sm);
+  background: color-mix(in srgb, var(--surface-muted) 40%, var(--surface));
+}
+
+.cycle-settings-heading {
+  margin: 0 0 0.35rem;
+  font-size: 0.95rem;
+}
+
+.cycle-last-length {
+  margin: 0 0 0.65rem;
+}
+
 .cycle-settings-row {
   display: flex;
   flex-wrap: wrap;
   gap: 1rem;
-  margin-bottom: 1rem;
+  margin-bottom: 0.65rem;
+}
+
+.cycle-settings-row label {
+  flex: 1 1 10rem;
+  min-width: 8rem;
 }
 
 .cycle-settings-row label {
@@ -4886,6 +5023,42 @@
   background: color-mix(in srgb, #fda4af 18%, var(--bg));
 }
 
+/* Dark mode: stronger phase tints + edge so follicular / ovulation / luteal read clearly */
+[data-theme='dark'] .cycle-legend-swatch.phase-follicular {
+  background: color-mix(in srgb, #3b82f6 65%, var(--surface));
+  border-color: #60a5fa;
+}
+
+[data-theme='dark'] .cycle-legend-swatch.phase-ovulation {
+  background: color-mix(in srgb, #22d3ee 60%, var(--surface));
+  border-color: #67e8f9;
+}
+
+[data-theme='dark'] .cycle-legend-swatch.phase-luteal {
+  background: color-mix(in srgb, #f472b6 62%, var(--surface));
+  border-color: #fb7185;
+}
+
+[data-theme='dark'] .cycle-calendar-day.phase-follicular:not(.logged-period):not(.predicted-period) {
+  background: color-mix(in srgb, #2563eb 42%, var(--bg));
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, #60a5fa 55%, transparent);
+}
+
+[data-theme='dark'] .cycle-calendar-day.phase-ovulation:not(.logged-period):not(.predicted-period) {
+  background: color-mix(in srgb, #06b6d4 44%, var(--bg));
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, #67e8f9 60%, transparent);
+}
+
+[data-theme='dark'] .cycle-calendar-day.phase-luteal:not(.logged-period):not(.predicted-period) {
+  background: color-mix(in srgb, #ec4899 40%, var(--bg));
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, #f9a8d4 55%, transparent);
+}
+
+[data-theme='dark'] .cycle-calendar-day.phase-menstrual:not(.logged-period):not(.predicted-period) {
+  background: color-mix(in srgb, #f43f5e 30%, var(--bg));
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, #fb7185 40%, transparent);
+}
+
 .cycle-calendar-day.logged-period {
   box-shadow: inset 0 0 0 2.5px #e11d48;
   background: color-mix(in srgb, #e11d48 22%, var(--surface));
@@ -4958,6 +5131,108 @@
 .cycle-day-log h4 {
   margin: 0 0 0.75rem;
   font-size: 0.95rem;
+}
+
+.cycle-day-strip {
+  margin-bottom: 1rem;
+}
+
+.cycle-day-strip-nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  margin-bottom: 0.65rem;
+}
+
+.cycle-day-strip-title {
+  margin: 0;
+  flex: 1;
+  text-align: center;
+  font-size: 0.95rem;
+  font-weight: 600;
+}
+
+.cycle-day-strip-arrow {
+  flex-shrink: 0;
+  min-width: 2.5rem;
+}
+
+.cycle-day-strip-scroll {
+  display: flex;
+  gap: 0.4rem;
+  overflow-x: auto;
+  padding: 0.25rem 0.15rem 0.5rem;
+  scroll-snap-type: x proximity;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: thin;
+}
+
+.cycle-day-strip-pill {
+  position: relative;
+  flex: 0 0 auto;
+  scroll-snap-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.1rem;
+  min-width: 3.1rem;
+  padding: 0.45rem 0.5rem 0.4rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--bg);
+  color: var(--text-muted);
+  font: inherit;
+  font-size: 0.72rem;
+  cursor: pointer;
+}
+
+.cycle-day-strip-pill:hover {
+  border-color: var(--accent);
+  color: var(--text);
+}
+
+.cycle-day-strip-pill.active {
+  border-color: var(--accent);
+  background: color-mix(in srgb, var(--accent-soft) 55%, var(--surface));
+  color: var(--text);
+  box-shadow: 0 0 0 1px var(--accent);
+}
+
+.cycle-day-strip-pill.is-today:not(.active) {
+  border-color: color-mix(in srgb, var(--accent) 45%, var(--border));
+}
+
+.cycle-day-strip-pill.has-log:not(.active) {
+  border-color: color-mix(in srgb, #9333ea 35%, var(--border));
+}
+
+.cycle-day-strip-dow {
+  font-size: 0.65rem;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+}
+
+.cycle-day-strip-num {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--text);
+  line-height: 1.1;
+}
+
+.cycle-day-strip-month {
+  font-size: 0.58rem;
+  opacity: 0.85;
+}
+
+.cycle-day-strip-dot {
+  position: absolute;
+  top: 0.2rem;
+  right: 0.25rem;
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: #9333ea;
 }
 
 .cycle-flow-fieldset {

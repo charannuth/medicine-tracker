@@ -1,0 +1,16 @@
+{
+  "name": "dr-dose",
+  "private": true,
+  "workspaces": [
+    "web",
+    "packages/*"
+  ],
+  "scripts": {
+    "build": "npm run -w @dr-dose/shared build && npm run -w medicine-tracker-web build",
+    "lint": "npm run -w medicine-tracker-web lint"
+  },
+  "devDependencies": {
+    "typescript": "~6.0.2"
+  }
+}
+

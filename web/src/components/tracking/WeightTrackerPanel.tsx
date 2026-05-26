@@ -91,6 +91,7 @@ export function WeightTrackerPanel({
   const [workoutCaloriesDraft, setWorkoutCaloriesDraft] = useState('')
   const [weightKgDraft, setWeightKgDraft] = useState('') // always in kg storage units
   const [notesDraft, setNotesDraft] = useState('')
+  const [dayLogExpanded, setDayLogExpanded] = useState(true)
 
   const [settingsDraft, setSettingsDraft] = useState<{
     baseline_height_cm: string
@@ -160,6 +161,11 @@ export function WeightTrackerPanel({
   useEffect(() => {
     void reload()
   }, [reload])
+
+  // If the user switches dates, expand the form when there is no existing log.
+  useEffect(() => {
+    setDayLogExpanded(selectedLog == null)
+  }, [selectedDate, selectedLog])
 
   const allowedWeightForSelectedDate = useMemo(() => {
     if (!settings) return true
@@ -297,6 +303,7 @@ export function WeightTrackerPanel({
 
       await reload()
       onDataMutated?.()
+      setDayLogExpanded(false)
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Could not save weight log')
     } finally {
@@ -321,6 +328,18 @@ export function WeightTrackerPanel({
   ])
 
   if (!user) return null
+
+  const caloriesIn =
+    (parseMaybeInt(breakfastDraft) ?? 0) +
+    (parseMaybeInt(lunchDraft) ?? 0) +
+    (parseMaybeInt(dinnerDraft) ?? 0)
+  const caloriesBurned = didWorkoutDraft ? parseMaybeInt(workoutCaloriesDraft) ?? 0 : 0
+  const weightDisplay =
+    weightKgDraft.trim() === ''
+      ? null
+      : weightUnit === 'metric'
+        ? `${weightKgDraft} kg`
+        : `${kgToLbString(weightKgDraft)} lb`
 
   return (
     <div className="tracker-panel weight-tracker-panel">
@@ -503,128 +522,155 @@ export function WeightTrackerPanel({
               </p>
             )}
 
-            <fieldset className="cycle-day-log-fields" disabled={isFutureDay}>
-              <div className="weight-meals-grid">
-                <label className="tracking-field">
-                  Breakfast (kcal)
-                  <input
-                    type="number"
-                    min={0}
-                    step={1}
-                    value={breakfastDraft}
-                    placeholder="e.g. 400"
-                    onChange={(e) => setBreakfastDraft(e.target.value)}
-                  />
-                </label>
-                <label className="tracking-field">
-                  Lunch (kcal)
-                  <input
-                    type="number"
-                    min={0}
-                    step={1}
-                    value={lunchDraft}
-                    placeholder="e.g. 650"
-                    onChange={(e) => setLunchDraft(e.target.value)}
-                  />
-                </label>
-                <label className="tracking-field">
-                  Dinner (kcal)
-                  <input
-                    type="number"
-                    min={0}
-                    step={1}
-                    value={dinnerDraft}
-                    placeholder="e.g. 750"
-                    onChange={(e) => setDinnerDraft(e.target.value)}
-                  />
-                </label>
-              </div>
-
-              <div className="weight-workout-row">
-                <label className="cycle-intercourse-toggle">
-                  <input
-                    type="checkbox"
-                    checked={didWorkoutDraft}
-                    onChange={(e) => setDidWorkoutDraft(e.target.checked)}
-                  />
-                  <span className="cycle-intercourse-label" aria-hidden>
-                    ♥
+            {!dayLogExpanded ? (
+              <div className="weight-day-log-saved" role="status">
+                <div className="weight-day-log-saved-row">
+                  <strong>Saved for {selectedDate}</strong>
+                  <button
+                    type="button"
+                    className="btn btn-ghost btn-sm"
+                    onClick={() => setDayLogExpanded(true)}
+                  >
+                    Edit
+                  </button>
+                </div>
+                <div className="weight-day-log-summary">
+                  <span>
+                    Calories: <strong>{caloriesIn}</strong> in
+                    {didWorkoutDraft ? (
+                      <>
+                        {' '}
+                        · <strong>{caloriesBurned}</strong> burned
+                      </>
+                    ) : null}
                   </span>
-                  Workout / cardio
-                </label>
-                <label className="tracking-field">
-                  Calories burned
-                  <input
-                    type="number"
-                    min={0}
-                    step={1}
-                    value={workoutCaloriesDraft}
-                    disabled={!didWorkoutDraft}
-                    placeholder="e.g. 250"
-                    onChange={(e) => setWorkoutCaloriesDraft(e.target.value)}
-                  />
-                </label>
+                  {weightDisplay ? (
+                    <span>
+                      Weight: <strong>{weightDisplay}</strong>
+                    </span>
+                  ) : null}
+                </div>
               </div>
+            ) : (
+              <>
+                <fieldset className="cycle-day-log-fields" disabled={isFutureDay}>
+                  <div className="weight-meals-grid">
+                    <label className="tracking-field">
+                      Breakfast (kcal)
+                      <input
+                        type="number"
+                        min={0}
+                        step={1}
+                        value={breakfastDraft}
+                        placeholder="e.g. 400"
+                        onChange={(e) => setBreakfastDraft(e.target.value)}
+                      />
+                    </label>
+                    <label className="tracking-field">
+                      Lunch (kcal)
+                      <input
+                        type="number"
+                        min={0}
+                        step={1}
+                        value={lunchDraft}
+                        placeholder="e.g. 650"
+                        onChange={(e) => setLunchDraft(e.target.value)}
+                      />
+                    </label>
+                    <label className="tracking-field">
+                      Dinner (kcal)
+                      <input
+                        type="number"
+                        min={0}
+                        step={1}
+                        value={dinnerDraft}
+                        placeholder="e.g. 750"
+                        onChange={(e) => setDinnerDraft(e.target.value)}
+                      />
+                    </label>
+                  </div>
 
-              <div className="weight-scale-row">
-                <label className="tracking-field">
-                  Weight
-                  <input
-                    type="number"
-                    min={0}
-                    step={weightUnit === 'metric' ? 0.1 : 0.1}
-                    value={
-                      weightUnit === 'metric'
-                        ? weightKgDraft
-                        : kgToLbString(weightKgDraft)
-                    }
-                    disabled={!allowedWeightForSelectedDate}
-                    placeholder={
-                      weightUnit === 'metric' ? 'e.g. 68.4' : 'e.g. 150'
-                    }
-                    onChange={(e) => {
-                      const next = e.target.value
-                      if (weightUnit === 'metric') setWeightKgDraft(next)
-                      else setWeightKgDraft(lbStringToKg(next))
-                    }}
-                  />
-                  <span className="field-hint">
-                    {allowedWeightForSelectedDate
-                      ? 'Logged on schedule.'
-                      : `Weight logs are ${freqLabel(settings.log_frequency_days)}. This date is locked.`}
-                  </span>
-                </label>
-              </div>
+                  <div className="weight-workout-row">
+                    <label className="cycle-intercourse-toggle">
+                      <input
+                        type="checkbox"
+                        checked={didWorkoutDraft}
+                        onChange={(e) => setDidWorkoutDraft(e.target.checked)}
+                      />
+                      <span className="cycle-intercourse-label" aria-hidden>
+                        ♥
+                      </span>
+                      Workout / cardio
+                    </label>
+                    <label className="tracking-field">
+                      Calories burned
+                      <input
+                        type="number"
+                        min={0}
+                        step={1}
+                        value={workoutCaloriesDraft}
+                        disabled={!didWorkoutDraft}
+                        placeholder="e.g. 250"
+                        onChange={(e) => setWorkoutCaloriesDraft(e.target.value)}
+                      />
+                    </label>
+                  </div>
 
-              <label className="cycle-notes-label">
-                Notes
-                <textarea
-                  rows={2}
-                  value={notesDraft}
-                  placeholder="Anything that impacted calories or body changes today?"
-                  onChange={(e) => setNotesDraft(e.target.value)}
-                />
-              </label>
-            </fieldset>
+                  <div className="weight-scale-row">
+                    <label className="tracking-field">
+                      Weight
+                      <input
+                        type="number"
+                        min={0}
+                        step={weightUnit === 'metric' ? 0.1 : 0.1}
+                        value={weightUnit === 'metric' ? weightKgDraft : kgToLbString(weightKgDraft)}
+                        disabled={!allowedWeightForSelectedDate}
+                        placeholder={weightUnit === 'metric' ? 'e.g. 68.4' : 'e.g. 150'}
+                        onChange={(e) => {
+                          const next = e.target.value
+                          if (weightUnit === 'metric') setWeightKgDraft(next)
+                          else setWeightKgDraft(lbStringToKg(next))
+                        }}
+                      />
+                      <span className="field-hint">
+                        {allowedWeightForSelectedDate
+                          ? 'Logged on schedule.'
+                          : `Weight logs are ${freqLabel(settings.log_frequency_days)}. This date is locked.`}
+                      </span>
+                    </label>
+                  </div>
 
-            <div className="cycle-day-log-actions">
-              <button
-                type="button"
-                className="btn btn-primary"
-                disabled={busy || isFutureDay}
-                onClick={() => void saveDayLog()}
-              >
-                Save day
-              </button>
-              <button
-                type="button"
-                className="btn btn-ghost btn-sm"
-                disabled={busy}
-                onClick={discardDayEdits}
-              >
-                Discard edits
-              </button>
-            </div>
+                  <label className="cycle-notes-label">
+                    Notes
+                    <textarea
+                      rows={2}
+                      value={notesDraft}
+                      placeholder="Anything that impacted calories or body changes today?"
+                      onChange={(e) => setNotesDraft(e.target.value)}
+                    />
+                  </label>
+                </fieldset>
+
+                <div className="cycle-day-log-actions">
+                  <button
+                    type="button"
+                    className="btn btn-primary"
+                    disabled={busy || isFutureDay}
+                    onClick={() => void saveDayLog()}
+                  >
+                    Save day
+                  </button>
+                  <button
+                    type="button"
+                    className="btn btn-ghost btn-sm"
+                    disabled={busy}
+                    onClick={discardDayEdits}
+                  >
+                    Discard edits
+                  </button>
+                </div>
+              </>
+            )}
           </section>
         </>
       )}

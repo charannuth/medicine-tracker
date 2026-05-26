@@ -16,11 +16,12 @@ function bouquetColorsForMinDays(minDays: number): string[] {
   // 1/3-day keep the single purple tulip. Starting at 7 days, shift into
   // an assorted bouquet that grows with each milestone.
   if (minDays < 7) return ['#7c3aed']
-  if (minDays < 14) return ['#f8fafc', '#facc15'] // white + yellow
-  if (minDays < 30) return ['#f8fafc', '#facc15', '#fb923c'] // + orange
-  if (minDays < 60) return ['#f8fafc', '#facc15', '#fb923c', '#f472b6'] // + pink
-  if (minDays < 100) return ['#f8fafc', '#facc15', '#fb923c', '#f472b6', '#a855f7'] // + purple
-  return ['#f8fafc', '#facc15', '#fb923c', '#f472b6', '#a855f7', '#ef4444'] // + red
+  // 7-day starts the bouquet: purple + yellow
+  if (minDays < 14) return ['#7c3aed', '#facc15']
+  if (minDays < 30) return ['#7c3aed', '#facc15', '#fb923c'] // + orange
+  if (minDays < 60) return ['#7c3aed', '#facc15', '#fb923c', '#f472b6'] // + pink
+  if (minDays < 100) return ['#7c3aed', '#facc15', '#fb923c', '#f472b6', '#f8fafc'] // + white
+  return ['#7c3aed', '#facc15', '#fb923c', '#f472b6', '#f8fafc', '#ef4444'] // + red
 }
 
 function Tulip({

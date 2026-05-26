@@ -94,7 +94,9 @@ export function TrackingPage() {
   }, [user, reload])
 
   useEffect(() => {
-    setCalendarSource((prev) => defaultCalendarSource(enabled, prev ?? activeTracker))
+    setCalendarSource((prev) =>
+      defaultCalendarSource(enabled, activeTracker ?? prev),
+    )
   }, [enabled, activeTracker])
 
   useEffect(() => {
@@ -103,13 +105,12 @@ export function TrackingPage() {
     }
   }, [activeTracker])
 
-  // If the user picks a different tracker from the calendar "Show" dropdown,
-  // align the module panel below to match that selection.
-  useEffect(() => {
-    if (!calendarSource) return
-    if (!enabled.includes(calendarSource)) return
-    setActiveTracker((prev) => (prev === calendarSource ? prev : calendarSource))
-  }, [calendarSource, enabled])
+  function handleCalendarSourceChange(next: TrackerId) {
+    setCalendarSource(next)
+    if (enabled.includes(next)) {
+      setActiveTracker(next)
+    }
+  }
 
   const calendarOptions = calendarSourceOptions(enabled)
   const showCalendar = calendarOptions.length > 0
@@ -346,7 +347,7 @@ export function TrackingPage() {
                 loading={calendarLoading}
                 onAnchorChange={setCalendarAnchor}
                 onRangeChange={setCalendarRange}
-                onSourceChange={setCalendarSource}
+                onSourceChange={handleCalendarSourceChange}
                 onSelectDate={handleSelectDate}
               />
             )}

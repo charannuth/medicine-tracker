@@ -22,8 +22,10 @@ Dr. Dose uses **Supabase PostgreSQL** with migrations in `supabase/migrations/`.
 | 014 | `014_cycle_tracking_enhancements.sql` | Intercourse, pre/post symptoms, late flag | Cycle tracker |
 | 015 | `015_cycle_length_history.sql` | `cycle_length_days`, `expected_next_cycle_days` | Variable cycle predictions |
 | 016 | `016_body_metric_units.sql` | `height_unit`, `weight_unit` on medical records | Metric / imperial preference |
+| 017 | `017_weight_tracking.sql` | Weight baseline + calories + weight logs + frequency | Weight tracker calendar |
+| 018 | `018_hrt_tracking.sql` | HRT day journaling (bodily + mood changes) | HRT tracker calendar |
 
-**Production:** If your Supabase project already has migrations **002–016** applied (as of May 2026), it matches this repo. No migration `017+` exists yet.
+**Production:** If your Supabase project already has migrations **002–018** applied (as of May 2026), it matches this repo. No migration `019+` exists yet.
 
 ### `schema.sql` vs migrations
 
@@ -44,7 +46,8 @@ where table_schema = 'public'
   and table_name in (
     'medications', 'dose_logs', 'wellness_profiles', 'wellness_logs',
     'medical_records', 'user_trackers', 'cycle_settings', 'cycle_periods',
-    'cycle_day_logs', 'tracker_dose_events'
+    'cycle_day_logs', 'tracker_dose_events',
+    'weight_settings', 'weight_logs', 'hrt_day_logs'
   )
 order by table_name;
 
@@ -56,7 +59,7 @@ where table_schema = 'public'
   and column_name in ('height_unit', 'weight_unit');
 ```
 
-You should see **10 tables** and both unit columns. Also confirm `medications.schedule_type` and `dose_logs.logged_amount` exist.
+You should see the expected tables and both unit columns. Also confirm `medications.schedule_type` and `dose_logs.logged_amount` exist.
 
 ### Objects by area
 
@@ -66,6 +69,7 @@ You should see **10 tables** and both unit columns. Also confirm `medications.sc
 | Wellness | `wellness_profiles`, `wellness_logs` |
 | Profile | `medical_records`, storage `avatars` |
 | Tracking | `user_trackers`, `cycle_settings`, `cycle_periods`, `cycle_day_logs`, `tracker_dose_events` |
+| Weight & HRT | `weight_settings`, `weight_logs`, `hrt_day_logs` |
 
 All user tables use **RLS** (`auth.uid() = user_id` or equivalent).
 
@@ -87,6 +91,8 @@ All user tables use **RLS** (`auth.uid() = user_id` or equivalent).
 14. `supabase/migrations/014_cycle_tracking_enhancements.sql`
 15. `supabase/migrations/015_cycle_length_history.sql`
 16. `supabase/migrations/016_body_metric_units.sql`
+17. `supabase/migrations/017_weight_tracking.sql`
+18. `supabase/migrations/018_hrt_tracking.sql`
 
 ## Troubleshooting
 
@@ -98,5 +104,7 @@ All user tables use **RLS** (`auth.uid() = user_id` or equivalent).
 | Unit preference not saving | Run `016_body_metric_units.sql` |
 | Profile photo upload fails | Run `007_avatars_storage.sql` |
 | PRN check-in errors | Run `011`–`013` |
+| Weight tracker errors | Run `017_weight_tracking.sql` |
+| HRT tracker errors | Run `018_hrt_tracking.sql` |
 
 See also [SUPABASE_SETUP.md](SUPABASE_SETUP.md) and [DEPLOY.md](DEPLOY.md).

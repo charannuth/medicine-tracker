@@ -6,7 +6,18 @@ import {
   fetchCycleSettings,
   type CycleCalendarDay,
 } from './cycle'
-import type { TrackingCalendarCell, TrackingCalendarData } from './calendarTypes'
+import type {
+  TrackingCalendarCell,
+  TrackingCalendarData,
+  TrackingCalendarEvent,
+} from './calendarTypes'
+
+function phaseLabel(phase: NonNullable<CycleCalendarDay['phase']>): string {
+  if (phase === 'ovulation') return 'Ovulation'
+  if (phase === 'follicular') return 'Follicular'
+  if (phase === 'luteal') return 'Luteal'
+  return 'Menstrual'
+}
 
 function cellFromCycleDay(day: CycleCalendarDay): TrackingCalendarCell {
   const classNames: string[] = []
@@ -20,7 +31,27 @@ function cellFromCycleDay(day: CycleCalendarDay): TrackingCalendarCell {
   if (day.hasIntercourse) markers.push('heart')
   if (day.hasSymptoms) markers.push('dot')
 
-  return { date: day.date, classNames, markers }
+  const events: TrackingCalendarEvent[] = []
+  if (day.isLoggedPeriod) {
+    events.push({ id: 'period', label: 'Period', tone: 'cycle-period' })
+  } else if (day.isPredictedPeriod) {
+    events.push({ id: 'predicted', label: 'Predicted period', tone: 'cycle-period' })
+  }
+  if (day.phase && !day.isLoggedPeriod) {
+    events.push({
+      id: `phase-${day.phase}`,
+      label: phaseLabel(day.phase),
+      tone: 'cycle-phase',
+    })
+  }
+  if (day.hasSymptoms) {
+    events.push({ id: 'symptoms', label: 'Symptoms', tone: 'cycle-symptom' })
+  }
+  if (day.hasIntercourse) {
+    events.push({ id: 'intercourse', label: 'Intercourse', tone: 'cycle-symptom' })
+  }
+
+  return { date: day.date, classNames, markers, events }
 }
 
 const CYCLE_LEGEND = [

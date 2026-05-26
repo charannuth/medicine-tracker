@@ -1,7 +1,12 @@
 import { useCallback, useEffect, useState } from 'react'
 import type { CalendarViewRange } from '../lib/tracking/calendarRange'
 import { getCalendarWindow } from '../lib/tracking/calendarRange'
-import { calendarSupportFor } from '../lib/tracking/calendarSources'
+import {
+  CALENDAR_SOURCE_ALL,
+  calendarSupportFor,
+  type CalendarSourceId,
+} from '../lib/tracking/calendarSources'
+import { loadAllTrackersCalendarData } from '../lib/tracking/allTrackersCalendarData'
 import { loadCycleCalendarData } from '../lib/tracking/cycleCalendarData'
 import { loadWeightCalendarData } from '../lib/tracking/weightCalendarData'
 import { loadHrtCalendarData } from '../lib/tracking/hrtCalendarData'
@@ -17,7 +22,8 @@ const EMPTY: TrackingCalendarData = {
 
 export function useTrackingCalendarData(
   userId: string | undefined,
-  source: TrackerId | null,
+  source: CalendarSourceId | null,
+  enabledTrackers: TrackerId[],
   range: CalendarViewRange,
   anchor: string,
   refreshKey = 0,
@@ -51,18 +57,22 @@ export function useTrackingCalendarData(
     setLoading(true)
     setError(null)
     try {
-      if (source === 'cycle') {
-        const cycleData = await loadCycleCalendarData(userId, window.start, window.end)
-        setData(cycleData)
+      if (source === CALENDAR_SOURCE_ALL) {
+        const allData = await loadAllTrackersCalendarData(
+          userId,
+          enabledTrackers,
+          window.start,
+          window.end,
+        )
+        setData(allData)
+      } else if (source === 'cycle') {
+        setData(await loadCycleCalendarData(userId, window.start, window.end))
       } else if (source === 'weight') {
-        const weightData = await loadWeightCalendarData(userId, window.start, window.end)
-        setData(weightData)
+        setData(await loadWeightCalendarData(userId, window.start, window.end))
       } else if (source === 'hrt') {
-        const hrtData = await loadHrtCalendarData(userId, window.start, window.end)
-        setData(hrtData)
+        setData(await loadHrtCalendarData(userId, window.start, window.end))
       } else if (source === 'med_progress') {
-        const mp = await loadMedProgressCalendarData(userId, window.start, window.end)
-        setData(mp)
+        setData(await loadMedProgressCalendarData(userId, window.start, window.end))
       } else {
         setData(EMPTY)
       }
@@ -72,7 +82,7 @@ export function useTrackingCalendarData(
     } finally {
       setLoading(false)
     }
-  }, [userId, source, range, anchor])
+  }, [userId, source, enabledTrackers, range, anchor])
 
   useEffect(() => {
     void reload()

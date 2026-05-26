@@ -34,7 +34,12 @@ function cellFromHrt(input: {
   const markers: TrackingCalendarCell['markers'] = []
   if (hasDose) markers.push('heart')
   if (log) markers.push('dot')
-  return { date, classNames, markers }
+
+  const events: TrackingCalendarCell['events'] = []
+  if (log) events.push({ id: 'journal', label: 'HRT journal', tone: 'hrt' })
+  if (hasDose) events.push({ id: 'dose', label: 'HRT dose', tone: 'hrt' })
+
+  return { date, classNames, markers, events }
 }
 
 const HRT_LEGEND: TrackingCalendarData['legend'] = [

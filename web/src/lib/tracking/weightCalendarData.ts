@@ -1,3 +1,5 @@
+import { formatWeightForUnit, normalizeBodyMetricUnit, type BodyMetricUnit } from '../bodyMetrics'
+import { fetchMedicalRecord } from '../medicalRecords'
 import { todayLocalDate } from '../dates'
 import type { TrackingCalendarData, TrackingCalendarCell } from './calendarTypes'
 import {
@@ -13,8 +15,9 @@ function cellFromWeightDay(input: {
   today: string
   settings: WeightSettings
   log: WeightLog | null
+  weightUnit: BodyMetricUnit
 }): TrackingCalendarCell {
-  const { date, today, settings, log } = input
+  const { date, today, settings, log, weightUnit } = input
 
   const classNames: string[] = []
   const isFuture = date > today
@@ -49,7 +52,18 @@ function cellFromWeightDay(input: {
   if (hasWorkout) markers.push('heart')
   if (hasWeight || hasMeals) markers.push('dot')
 
-  return { date, classNames, markers }
+  const events: TrackingCalendarCell['events'] = []
+  if (hasWeight && log?.weight_kg != null) {
+    const label = formatWeightForUnit(log.weight_kg, weightUnit) ?? 'Weight'
+    events.push({ id: 'weight', label, tone: 'weight' })
+  } else if (hasMeals) {
+    events.push({ id: 'meals', label: 'Meals logged', tone: 'weight' })
+  }
+  if (hasWorkout) {
+    events.push({ id: 'workout', label: 'Workout / cardio', tone: 'weight' })
+  }
+
+  return { date, classNames, markers, events }
 }
 
 const WEIGHT_LEGEND: TrackingCalendarData['legend'] = [
@@ -80,10 +94,12 @@ export async function loadWeightCalendarData(
   end: string,
 ): Promise<TrackingCalendarData> {
   const today = todayLocalDate()
-  const [settings, logs] = await Promise.all([
+  const [settings, logs, medical] = await Promise.all([
     fetchWeightSettings(userId),
     fetchWeightLogs(userId, start, end),
+    fetchMedicalRecord(userId),
   ])
+  const weightUnit = normalizeBodyMetricUnit(medical?.weight_unit)
 
   const byDate = new Map<string, WeightLog>()
   for (const log of logs) byDate.set(log.log_date, log)
@@ -97,6 +113,7 @@ export async function loadWeightCalendarData(
       today,
       settings,
       log: byDate.get(date) ?? null,
+      weightUnit,
     })
     cells.set(date, cell)
   }

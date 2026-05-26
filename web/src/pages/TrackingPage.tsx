@@ -11,6 +11,7 @@ import {
   calendarSourceOptions,
   calendarSupportFor,
   defaultCalendarSource,
+  type CalendarSourceId,
 } from '../lib/tracking/calendarSources'
 import type { CalendarViewRange } from '../lib/tracking/calendarRange'
 import type { BodyMetricUnit } from '../lib/bodyMetrics'
@@ -56,7 +57,7 @@ export function TrackingPage() {
   const [selectedDate, setSelectedDate] = useState(today)
   const [calendarAnchor, setCalendarAnchor] = useState(today)
   const [calendarRange, setCalendarRange] = useState<CalendarViewRange>('month')
-  const [calendarSource, setCalendarSource] = useState<TrackerId | null>(null)
+  const [calendarSource, setCalendarSource] = useState<CalendarSourceId | null>(null)
   const [calendarRefreshKey, setCalendarRefreshKey] = useState(0)
 
   const reload = useCallback(async () => {
@@ -105,9 +106,9 @@ export function TrackingPage() {
     }
   }, [activeTracker])
 
-  function handleCalendarSourceChange(next: TrackerId) {
+  function handleCalendarSourceChange(next: CalendarSourceId) {
     setCalendarSource(next)
-    if (enabled.includes(next)) {
+    if (next !== 'all' && enabled.includes(next)) {
       setActiveTracker(next)
     }
   }
@@ -122,6 +123,7 @@ export function TrackingPage() {
   } = useTrackingCalendarData(
     user?.id,
     calendarSource,
+    enabled,
     calendarRange,
     calendarAnchor,
     calendarRefreshKey,

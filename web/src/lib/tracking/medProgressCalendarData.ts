@@ -99,6 +99,11 @@ export async function loadMedProgressCalendarData(
   const cells = new Map<string, TrackingCalendarCell>()
   for (const date of datesInRange(start, end)) {
     const logsForDay = logsByDate.get(date) ?? []
+    const { expected, taken } = countScheduledDosesTakenOnDate(
+      medications,
+      logsForDay,
+      date,
+    )
     const s = statusForDay(medications, logsForDay, date, today)
 
     const classNames: string[] = []
@@ -112,7 +117,18 @@ export async function loadMedProgressCalendarData(
     if (s === 'partial') markers.push('dot')
     if (s === 'missed') markers.push('heart')
 
-    cells.set(date, { date, classNames, markers })
+    const events: TrackingCalendarCell['events'] = []
+    if (s === 'perfect') {
+      events.push({ id: 'perfect', label: 'All doses taken', tone: 'med-perfect' })
+    } else if (s === 'partial') {
+      const label =
+        expected > 0 ? `${taken}/${expected} doses` : 'Some doses taken'
+      events.push({ id: 'partial', label, tone: 'med-partial' })
+    } else if (s === 'missed') {
+      events.push({ id: 'missed', label: 'Missed doses', tone: 'med-missed' })
+    }
+
+    cells.set(date, { date, classNames, markers, events })
   }
 
   return {

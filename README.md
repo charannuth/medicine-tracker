@@ -9,6 +9,8 @@ A personal web app to manage medications, log daily doses, track adherence strea
 Newest first. Each line is added from the commit subject when you commit (with hooks enabled).
 
 <!-- DEVLOG:START -->
+- **2026-05-26** (`f42baa3`) — Add birds-eye tracking calendar with detailed day breakdowns.
+
 - **2026-05-26** (`a7dcf06`) — Celebrate 7-day streaks with dual tulips and in-scene butterfly animation.
 
 - **2026-05-26** (`04ed47b`) — Fix tracker tab/calendar source sync.

@@ -4580,6 +4580,32 @@
   font-weight: 400;
 }
 
+.tracking-section-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.tracking-section-toggle-btn {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.75rem;
+  background: transparent;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  text-align: left;
+  color: inherit;
+}
+
+.tracking-section-toggle-btn h3 {
+  margin: 0;
+}
+
 .physical-profile-form,
 .tracking-field {
   display: flex;

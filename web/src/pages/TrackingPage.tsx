@@ -46,7 +46,7 @@ export function TrackingPage() {
   )
   const [enabled, setEnabled] = useState<TrackerId[]>([])
   const [activeTracker, setActiveTracker] = useState<TrackerId | null>(null)
-  const [profileExpanded, setProfileExpanded] = useState(true)
+  const [profileExpanded, setProfileExpanded] = useState(false)
   const [addTrackerId, setAddTrackerId] = useState('')
   const [loading, setLoading] = useState(true)
   const [profileBusy, setProfileBusy] = useState(false)
@@ -66,14 +66,14 @@ export function TrackingPage() {
       fetchEnabledTrackers(user.id),
     ])
     setMedicalRecord(record)
+    const filled = isPhysicalProfileFilled(physicalProfileFromRecord(record))
     setProfileDraft(physicalProfileFromRecord(record))
     setEnabled(trackers)
     setActiveTracker((prev) =>
       prev && trackers.includes(prev) ? prev : trackers[0] ?? null,
     )
-    if (!isPhysicalProfileFilled(physicalProfileFromRecord(record))) {
-      setProfileExpanded(true)
-    }
+    // If the profile is filled, default to a "saved" summary view on next login.
+    setProfileExpanded(!filled)
   }, [user])
 
   useEffect(() => {
@@ -271,17 +271,27 @@ export function TrackingPage() {
       ) : (
         <>
           <section className="tracking-section tracking-profile-section">
-            <button
-              type="button"
-              className="tracking-section-toggle"
-              aria-expanded={profileExpanded}
-              onClick={() => setProfileExpanded((v) => !v)}
-            >
-              <h3>Physical profile</h3>
-              {!profileExpanded && profileSummary && (
-                <span className="tracking-section-summary">{profileSummary}</span>
+            <div className="tracking-section-toggle" aria-expanded={profileExpanded}>
+              <button
+                type="button"
+                className="tracking-section-toggle-btn"
+                onClick={() => setProfileExpanded((v) => !v)}
+              >
+                <h3>Physical profile</h3>
+                {!profileExpanded && profileSummary && (
+                  <span className="tracking-section-summary">{profileSummary}</span>
+                )}
+              </button>
+              {!profileExpanded && (
+                <button
+                  type="button"
+                  className="btn btn-ghost btn-sm"
+                  onClick={() => setProfileExpanded(true)}
+                >
+                  Edit
+                </button>
               )}
-            </button>
+            </div>
             {profileExpanded && (
               <PhysicalProfileForm
                 value={profileDraft}
@@ -296,6 +306,10 @@ export function TrackingPage() {
 
           <section className="tracking-section">
             <h3>My trackers</h3>
+            <p className="field-hint">
+              Enabled trackers are saved to your account and will still be here when you log back in.
+              Remove a tracker to stop tracking it.
+            </p>
             {enabled.length === 0 ? (
               <p className="field-hint">
                 Choose a tracker below to get started. Wellness stays on its own page for now.

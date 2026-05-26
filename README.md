@@ -9,6 +9,8 @@ A personal web app to manage medications, log daily doses, track adherence strea
 Newest first. Each line is added from the commit subject when you commit (with hooks enabled).
 
 <!-- DEVLOG:START -->
+- **2026-05-26** (`f767724`) — Improve weight plan form layout and calorie target display.
+
 - **2026-05-26** (`b913b04`) — Document weight + HRT migrations
 
 - **2026-05-26** (`3c4fd87`) — Add weight and HRT tracking calendars

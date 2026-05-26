@@ -416,10 +416,10 @@ export function WeightTrackerPanel({
                     )
                   }
                 >
-                  <option value="sedentary">Sedentary</option>
-                  <option value="light">Light</option>
-                  <option value="moderate">Moderate</option>
-                  <option value="active">Active</option>
+                  <option value="sedentary">Sedentary (0–1 days/week)</option>
+                  <option value="light">Light (2–3 days/week)</option>
+                  <option value="moderate">Moderate (4–5 days/week)</option>
+                  <option value="active">Active (7 days/week)</option>
                 </select>
               </label>
 
@@ -439,7 +439,7 @@ export function WeightTrackerPanel({
                 </select>
               </label>
 
-              <label className="tracking-field">
+              <label className="tracking-field weight-sync-checkbox">
                 <input
                   type="checkbox"
                   checked={settingsDraft.sync_weight_to_medical_records}
@@ -448,21 +448,32 @@ export function WeightTrackerPanel({
                       d ? { ...d, sync_weight_to_medical_records: e.target.checked } : d,
                     )
                   }
-                />{' '}
-                Auto-update medical records weight when you log your weight
+                />
+                <span>
+                  Auto-update medical records weight when you log your weight
+                </span>
               </label>
             </div>
 
             <div className="weight-targets">
-              <h5>Calorie targets</h5>
+              <h5 className="weight-targets-heading">Calorie targets</h5>
               {targets && maintenance != null ? (
-                <p className="field-hint">
-                  Maintenance: <strong>{maintenance}</strong> kcal/day · Target ({targets.label}):{' '}
-                  <strong>{targets.targetCalories}</strong> kcal/day
-                </p>
+                <div className="weight-targets-cards" role="group" aria-label="Daily calorie targets">
+                  <div className="weight-target-card">
+                    <span className="weight-target-card-label">Maintenance</span>
+                    <span className="weight-target-card-value">{maintenance}</span>
+                    <span className="weight-target-card-unit">kcal/day</span>
+                  </div>
+                  <div className="weight-target-card weight-target-card--goal">
+                    <span className="weight-target-card-label">Target ({targets.label})</span>
+                    <span className="weight-target-card-value">{targets.targetCalories}</span>
+                    <span className="weight-target-card-unit">kcal/day</span>
+                  </div>
+                </div>
               ) : (
-                <p className="field-hint">
-                  Set DOB in medical records, then enter baseline height + weight to compute targets.
+                <p className="weight-targets-empty">
+                  Set your date of birth in medical records, then enter baseline height and weight
+                  to see your daily calorie targets.
                 </p>
               )}
               <button

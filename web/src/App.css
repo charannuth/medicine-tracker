@@ -4652,6 +4652,137 @@
   flex-shrink: 0;
 }
 
+/* Align weight input row with imperial ft/in inputs (labels sit above height boxes). */
+.body-metrics-row--height-imperial .body-metric-field-inputs--weight {
+  padding-top: calc(0.85rem + 0.35rem);
+}
+
+.body-metric-field-inputs > .tracking-field,
+.body-metric-field-inputs > .medical-records-field {
+  flex-direction: row;
+  align-items: center;
+  gap: 0.4rem;
+  max-width: none;
+}
+
+.body-metric-field-inputs .body-metric-imperial-height .tracking-field,
+.body-metric-field-inputs .body-metric-imperial-height .medical-records-field {
+  flex-direction: column;
+  align-items: stretch;
+}
+
+/* Weight plan panel */
+.weight-plan-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+  max-width: 28rem;
+}
+
+.weight-sync-checkbox {
+  flex-direction: row !important;
+  align-items: flex-start;
+  gap: 0.55rem;
+  max-width: none;
+  cursor: pointer;
+  font-size: 0.9rem;
+  font-weight: 400;
+  line-height: 1.45;
+}
+
+.weight-sync-checkbox input[type='checkbox'] {
+  margin: 0.15rem 0 0;
+  flex-shrink: 0;
+  width: 1rem;
+  height: 1rem;
+  cursor: pointer;
+}
+
+.weight-sync-checkbox span {
+  flex: 1;
+  min-width: 0;
+}
+
+.weight-targets {
+  margin-top: 1.25rem;
+  padding: 1rem 1.1rem;
+  border-radius: var(--radius);
+  border: 1px solid color-mix(in srgb, var(--accent) 35%, var(--border));
+  background: color-mix(in srgb, var(--accent) 8%, var(--surface));
+}
+
+.weight-targets-heading {
+  margin: 0 0 0.75rem;
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.weight-targets-cards {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.75rem;
+}
+
+@media (max-width: 480px) {
+  .weight-targets-cards {
+    grid-template-columns: 1fr;
+  }
+}
+
+.weight-target-card {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  padding: 0.75rem 0.85rem;
+  border-radius: var(--radius-sm);
+  background: var(--bg);
+  border: 1px solid var(--border);
+}
+
+.weight-target-card--goal {
+  border-color: color-mix(in srgb, var(--accent) 45%, var(--border));
+  background: color-mix(in srgb, var(--accent) 12%, var(--bg));
+}
+
+.weight-target-card-label {
+  font-size: 0.78rem;
+  font-weight: 500;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.weight-target-card-value {
+  font-size: 1.65rem;
+  font-weight: 700;
+  line-height: 1.1;
+  color: var(--text);
+  font-variant-numeric: tabular-nums;
+}
+
+.weight-target-card--goal .weight-target-card-value {
+  color: var(--accent);
+}
+
+.weight-target-card-unit {
+  font-size: 0.82rem;
+  color: var(--text-muted);
+}
+
+.weight-targets-empty {
+  margin: 0;
+  font-size: 0.9rem;
+  line-height: 1.45;
+  color: var(--text-muted);
+}
+
+.weight-targets .btn-primary {
+  margin-top: 1rem;
+  width: 100%;
+  max-width: none;
+}
+
 .cycle-period-end-edit {
   margin-top: 0.35rem;
 }

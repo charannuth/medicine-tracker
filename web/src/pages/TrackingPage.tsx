@@ -370,11 +370,6 @@ export function TrackingPage() {
                       {t.label}
                     </option>
                   ))}
-                  {TRACKER_CATALOG.filter((t) => !t.available).map((t) => (
-                    <option key={t.id} value={t.id} disabled>
-                      {t.label} (coming soon)
-                    </option>
-                  ))}
                 </select>
               </label>
               <button

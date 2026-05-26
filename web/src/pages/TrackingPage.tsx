@@ -181,6 +181,7 @@ export function TrackingPage() {
     if (!user || !addTrackerId) return
     const entry = trackerCatalogEntry(addTrackerId as TrackerId)
     if (!entry?.available) return
+    if (enabled.includes(addTrackerId as TrackerId)) return
     setTrackerBusy(true)
     setError(null)
     try {
@@ -215,9 +216,8 @@ export function TrackingPage() {
     }
   }
 
-  const availableToAdd = TRACKER_CATALOG.filter(
-    (t) => t.available && !enabled.includes(t.id),
-  )
+  const enableableTrackers = TRACKER_CATALOG.filter((t) => t.available)
+  const enableableNotEnabled = enableableTrackers.filter((t) => !enabled.includes(t.id))
 
   const profileSummary = physicalProfileSummary(medicalRecord)
 
@@ -358,16 +358,17 @@ export function TrackingPage() {
                 <select
                   value={addTrackerId}
                   onChange={(e) => setAddTrackerId(e.target.value)}
-                  disabled={availableToAdd.length === 0 || trackerBusy}
+                  disabled={enableableTrackers.length === 0 || trackerBusy}
                 >
                   <option value="">
-                    {availableToAdd.length === 0
-                      ? 'All available trackers enabled'
+                    {enableableNotEnabled.length === 0
+                      ? 'All trackers enabled'
                       : 'Choose…'}
                   </option>
-                  {availableToAdd.map((t) => (
+                  {enableableTrackers.map((t) => (
                     <option key={t.id} value={t.id}>
                       {t.label}
+                      {enabled.includes(t.id) ? ' (Currently tracking)' : ''}
                     </option>
                   ))}
                 </select>
@@ -375,7 +376,11 @@ export function TrackingPage() {
               <button
                 type="button"
                 className="btn btn-primary"
-                disabled={!addTrackerId || trackerBusy}
+                disabled={
+                  !addTrackerId ||
+                  trackerBusy ||
+                  enabled.includes(addTrackerId as TrackerId)
+                }
                 onClick={() => void handleAddTracker()}
               >
                 Enable

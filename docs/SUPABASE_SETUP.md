@@ -2,6 +2,8 @@
 
 Follow these steps once to connect the web app to your database and auth.
 
+**App features (web):** [WEB_APP.md](WEB_APP.md) · **Migrations:** [MIGRATIONS.md](MIGRATIONS.md)
+
 ## 1. Create a project
 
 1. Sign in at [supabase.com](https://supabase.com) (free tier is fine).
@@ -16,15 +18,26 @@ Follow these steps once to connect the web app to your database and auth.
 
 This creates `medications` and `dose_logs` tables plus Row Level Security (each user only sees their own rows).
 
-**Already ran an older schema?** Also run these migrations in order:
+**Already ran an older schema?** Run any missing migrations in order. Full list, verification queries, and troubleshooting: **[MIGRATIONS.md](MIGRATIONS.md)**.
 
-1. [`002_dose_per_schedule_time.sql`](../supabase/migrations/002_dose_per_schedule_time.sql) — separate dose per scheduled time  
-2. [`003_split_dose_pills_mg.sql`](../supabase/migrations/003_split_dose_pills_mg.sql) — separate pills and mg fields  
-3. [`004_medication_dates.sql`](../supabase/migrations/004_medication_dates.sql) — start date and optional end date  
-4. [`005_medication_type.sql`](../supabase/migrations/005_medication_type.sql) — medication route and form  
-5. [`006_wellness.sql`](../supabase/migrations/006_wellness.sql) — wellness baseline profile and daily logs  
-6. [`007_avatars_storage.sql`](../supabase/migrations/007_avatars_storage.sql) — profile photo storage bucket  
-7. [`008_medical_records.sql`](../supabase/migrations/008_medical_records.sql) — self-reported allergies, blood type, and conditions
+Quick index:
+
+| Migration | Summary |
+|-----------|---------|
+| `002` | Per–schedule-time dose logs |
+| `003` | `dose_pills` / `dose_mg` |
+| `004` | `start_date` / `end_date` |
+| `005` | Medication route and form |
+| `006` | Wellness profiles and daily logs |
+| `007` | Avatar storage bucket |
+| `008` | Medical records |
+| `009` | Scheduled vs PRN + demographics on records |
+| `010` | Tracking hub and cycle tables |
+| `011`–`013` | PRN flexibility and check-in fields |
+| `014`–`015` | Cycle symptoms, late period, cycle length learning |
+| `016` | Height/weight unit preferences (`metric` / `imperial`) |
+
+Production should have **002 through 016** applied before using Tracking, PRN, or unit preferences.
 
 ### Profile photos (optional)
 
@@ -114,4 +127,7 @@ Open the URL shown (usually `http://localhost:5173`), create an account, and add
 | “relation does not exist” | Run `supabase/schema.sql` again |
 | “Already marked as taken” | Expected — one dose per med per day |
 | RLS errors on insert | Ensure `user_id` matches logged-in user (app does this automatically) |
-| Wellness check-in errors | Run `supabase/migrations/006_wellness.sql` in the SQL Editor |
+| Wellness check-in errors | Run `006_wellness.sql` |
+| Tracking / cycle errors | Run `010`–`015` (see [MIGRATIONS.md](MIGRATIONS.md)) |
+| Unit preference not saving | Run `016_body_metric_units.sql` |
+| PRN / as-needed med errors | Run `009`, `011`–`013` |

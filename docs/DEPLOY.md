@@ -33,9 +33,9 @@ Save. Password reset and sign-in redirects will work in production.
 In Supabase **SQL Editor**, run in order:
 
 1. `supabase/schema.sql` (new projects)
-2. `supabase/migrations/002_dose_per_schedule_time.sql`
-3. `supabase/migrations/003_split_dose_pills_mg.sql`
-4. `supabase/migrations/004_medication_dates.sql`
+2. `supabase/migrations/002` through `016`
+
+See **[MIGRATIONS.md](MIGRATIONS.md)** for the full checklist and SQL to verify your project matches the app.
 
 ## When you come back to develop locally
 
@@ -68,5 +68,7 @@ vercel --prod
 |-------|-----|
 | Blank app / “not configured” | Env vars missing on Vercel; redeploy after adding them |
 | Auth redirect error | Add Vercel URL to Supabase redirect URLs |
-| “column start_date does not exist” | Run migration `004_medication_dates.sql` |
+| “column … does not exist” | Run missing migrations — [MIGRATIONS.md](MIGRATIONS.md) |
+| Tracking or cycle page errors | Migrations `010`–`015` |
+| PRN or `schedule_type` errors | Migrations `009`, `011`–`013` |
 | Free Supabase paused | Open project in dashboard once to wake it |

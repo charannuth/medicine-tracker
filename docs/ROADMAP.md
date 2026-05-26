@@ -1,48 +1,102 @@
 # Roadmap
 
-This document tracks planned phases for Dr. Dose. Priorities may shift as the project evolves.
+Planned work for **Dr. Dose**. Priorities may shift; shipped items are marked for context.
 
-## Phase 0 — Foundation (current)
+**Web app (everything shipped today):** [WEB_APP.md](WEB_APP.md) — full page-by-page guide for users and developers.
 
-- [x] GitHub repository setup (README, license, templates, CI)
-- [x] Web app scaffold (React + Vite)
-- [x] Supabase auth + schema (medications, dose_logs, RLS)
-- [ ] Deploy web app for sister to test via URL
+## Shipped (web v1 — May 2026)
 
-## Phase 1 — Core adherence
+### Platform & auth
 
-- Medication CRUD (name, dosage, frequency, notes)
-- Schedule builder (times per day, days of week)
-- “Mark as taken” for today (idempotent — no double-counting same day)
-- History view (calendar or list)
-- Local push notifications for reminders
+- [x] GitHub repo, CI (lint + build), Vercel deploy (`web/` root)
+- [x] Supabase Auth (email + password, **8-digit email OTP** on sign-up / forgot password)
+- [x] Row Level Security on all user data
+- [x] Migrations **002–016** (see [MIGRATIONS.md](MIGRATIONS.md))
 
-## Phase 2 — Refills & UX
+### Core adherence
 
-- Pill count / days-supply tracking
-- Refill-needed alerts
-- Onboarding flow
-- Settings (notification sound, quiet hours, theme)
-- iOS widget (read-only: next dose / today’s progress)
+- [x] Medication CRUD (pills/mg, schedule times, notes, start/end dates, route/form)
+- [x] **Scheduled** and **as-needed (PRN)** meds with per-day caps and dose check-in
+- [x] Mark taken / undo per dose slot (idempotent unique constraint)
+- [x] Pill inventory + refill banner
+- [x] History (list + calendar), weekly stats, streaks
+- [x] Missed-dose and due-now banners
+- [x] Browser reminders + service worker (while app/tab active — not true background push)
 
-## Phase 3 — Intelligence & vision
+### Safety & records
 
-- AI chat agent (medication Q&A, adherence tips) with clear medical disclaimers
-- Camera scan: label OCR and/or pill identification (third-party APIs TBD)
-- Export / share adherence report (PDF or share sheet)
+- [x] Curated drug interaction check + RxNorm name mapping
+- [x] Medical records (allergies, conditions, blood type, demographics)
+- [x] Medication safety panel on add (side effects, substance notes)
 
-## Phase 4 — Integrations
+### Wellness
 
-- OAuth or partner APIs with major pharmacies (CVS, Walgreens, etc.)
-- EHR / prescription sync where legally and technically feasible
-- Account sync across devices (backend required)
+- [x] Baseline profile + daily logs (sleep, energy, symptoms, etc.)
+- [x] Trends, medication briefings, printable doctor report
+- [x] PRN ↔ wellness trend insights in reports (non-diagnostic)
 
-## Phase 5 — Hardware ecosystem
+### Tracking hub
 
-- Wearable SDK integration for vitals and anomaly alerts
-- Smart bottle / dispenser hardware protocol and cloud bridge
-- Offline-safe dose logging when phone unavailable
+- [x] Enable/disable modules (`user_trackers`)
+- [x] Physical profile (metric/imperial units stored in DB)
+- [x] **Cycle & period** — calendar (1 day–12 months), phases, predictions, day logs, period start/end editing
+- [x] **Medication progress** tracker (from Today adherence)
+- [ ] **HRT & hormones** — catalog entry; doses can sync from Today when enabled; full UI coming later
+- [ ] Weight, vitals, pain, migraine, respiratory, custom — catalog placeholders
+
+### UX
+
+- [x] Onboarding modal, Help & safety, light/dark theme, timezone
+- [x] Profile avatars (Supabase Storage)
+- [x] Responsive / mobile-friendly web layout
 
 ---
 
-**Note:** Features involving prescriptions, PHI, and clinical decisions require compliance review (e.g. HIPAA considerations in the US) before production use. This roadmap is for planning only.
+## Phase A — Before native mobile (recommended next)
+
+Focus: things that are painful to retrofit after iOS/Android.
+
+| Item | Why |
+|------|-----|
+| **Push notifications** (APNs + FCM) | Real reminders when app is closed; web cannot match this on iOS |
+| **Shared TypeScript package** | Extract `lib/` domain logic (dates, cycle, streaks, interactions) for web + mobile |
+| **Offline dose log queue** | Mark taken on poor network; sync when online |
+| **Automated tests** | Timezone, streaks, cycle prediction, dose idempotency |
+| **Docs & schema discipline** | Keep [MIGRATIONS.md](MIGRATIONS.md) updated; avoid breaking API without migration |
+
+## Phase B — Mobile v1 (Expo / React Native or Capacitor)
+
+| Item | Notes |
+|------|--------|
+| Today + mark taken + push | Minimum lovable mobile |
+| Auth (secure token storage, deep links for OTP) | Reuse Supabase |
+| History + streaks | Read-mostly |
+| Tracking / Wellness | Phase 2 screens |
+
+## Phase C — Refills & polish
+
+- [ ] Smarter refill forecasting (days-supply from schedule)
+- [ ] Quiet hours for notifications
+- [ ] iOS widget (read-only: next dose / today progress)
+- [ ] HRT tracker UI + reports
+- [ ] Additional tracking modules (weight, vitals, …)
+
+## Phase D — Intelligence & vision
+
+- [ ] AI medication Q&A (with strict disclaimers)
+- [ ] Label OCR / pill ID (third-party APIs TBD)
+- [ ] Richer export (PDF share sheet)
+
+## Phase E — Integrations & scale
+
+- [ ] Pharmacy / prescription partners (legal + technical review)
+- [ ] Multi-device sync polish (already via Supabase; conflict rules if offline)
+- [ ] HIPAA / compliance review if beyond private family use
+
+## Phase F — Hardware (long-term)
+
+- Wearables, smart dispensers, offline hardware bridge
+
+---
+
+**Compliance note:** Features involving prescriptions, PHI, and clinical decisions need appropriate review (e.g. HIPAA in the US) before broad production use. This roadmap is for planning only.

@@ -9,6 +9,8 @@ A personal web app to manage medications, log daily doses, track adherence strea
 Newest first. Each line is added from the commit subject when you commit (with hooks enabled).
 
 <!-- DEVLOG:START -->
+- **2026-05-25** (`c55d718`) — Document full web app guide, migrations audit, and updated roadmap.
+
 - **2026-05-25** (`c05f28a`) — Fix cycle calendar predictions and lock future-day logging.
 
 - **2026-05-25** (`67cb786`) — Add Today button to cycle day logging strip.
@@ -85,19 +87,50 @@ Dr. Dose aims to be the central hub between patients, pharmacies, and healthcare
 
 ## Current status
 
-**Web v1** — feature-complete for daily personal use. React + Vite frontend, Supabase Auth + PostgreSQL backend.
+**Web v1** — in active use for daily adherence, wellness, safety checks, and optional health tracking (cycle, med progress). React + Vite frontend, Supabase Auth + PostgreSQL backend, deployed on Vercel.
 
 | Target | Status |
 |--------|--------|
-| Web (v1) | **Available** (`web/`) |
-| iOS / Android | Planned |
+| Web (v1) | **Available** (`web/`) — [deploy guide](docs/DEPLOY.md) |
+| Database | Migrations **002–016** — see [docs/MIGRATIONS.md](docs/MIGRATIONS.md) |
+| iOS / Android | Planned (after push + shared logic) |
 | Pharmacy integrations | Long-term |
 
-**Stack:** [React](https://react.dev) · [Vite](https://vite.dev) · [Supabase](https://supabase.com) (Auth + PostgreSQL) · [RxNorm](https://www.nlm.nih.gov/research/umls/rxnorm/index.html) (drug name lookup)
+**Stack:** [React](https://react.dev) · [Vite](https://vite.dev) · [Supabase](https://supabase.com) (Auth + PostgreSQL + Storage) · [RxNorm](https://www.nlm.nih.gov/research/umls/rxnorm/index.html) (drug name lookup)
+
+### Documentation map
+
+| Doc | Audience |
+|-----|----------|
+| **[docs/WEB_APP.md](docs/WEB_APP.md)** | **Complete web app guide** — every page, route, and feature |
+| [docs/MIGRATIONS.md](docs/MIGRATIONS.md) | Database migrations 002–016 + verify SQL |
+| [docs/SUPABASE_SETUP.md](docs/SUPABASE_SETUP.md) | Auth, env vars, first-time setup |
+| [docs/DEPLOY.md](docs/DEPLOY.md) | Vercel deploy |
+| [docs/ROADMAP.md](docs/ROADMAP.md) | Shipped vs planned (**including native mobile**) |
 
 ---
 
-## Features
+## Web app — pages
+
+| Route | Page |
+|-------|------|
+| `/` | Today — doses, PRN, banners, wellness check-in |
+| `/history` | History — calendar + dose list |
+| `/wellness` | Wellness — logs, trends, doctor report |
+| `/tracking` | Tracking — cycle, med progress, physical profile |
+| `/account` | My account — meds list, settings, streak summary |
+| `/streaks` | Streaks — badges and consistency calendar |
+| `/interactions` | Drug safety check |
+| `/medical-records` | Medical records |
+| `/help` | Help & safety |
+
+Full behavior per page: **[docs/WEB_APP.md](docs/WEB_APP.md)**.
+
+---
+
+## Features (summary)
+
+The tables below summarize shipped web functionality. For exhaustive detail (PRN flow, cycle calendar, streak rules, reminders limits, etc.), use the [web app guide](docs/WEB_APP.md).
 
 ### Authentication
 
@@ -119,7 +152,9 @@ The main dashboard for logging doses.
 | **Double-dose prevention** | Database enforces one log per medication + calendar day + schedule time. |
 | **Undo** | Remove today’s log for a specific dose slot; pill count is restored if tracked. |
 | **Daily summary** | “X of Y doses taken” for the current day. |
+| **Scheduled / PRN tabs** | Separate lists; Add medication respects active tab. |
 | **Add / edit / delete** | Full medication form from header “Add medication” or card actions. |
+| **Schedule type switch** | Move med between scheduled and as-needed from Today. |
 | **Streak snippet** | Short line linking current streak status to Account. |
 | **Refill banner** | Warns when any medication has ≤ 7 pills remaining. |
 | **Missed doses banner** | Shows yesterday’s missed slots and today’s past-due slots (by schedule time). |
@@ -133,13 +168,16 @@ The main dashboard for logging doses.
 |---------|-------------|
 | **Name with autocomplete** | Local brand list (~90 names) + live **RxNorm** search; brands prioritized with generic shown underneath. |
 | **Medication type** | Optional route/form (e.g. inhaler, eye drops) for non-pill schedules. |
+| **Scheduled vs as-needed** | **Scheduled** = fixed daily times; **as-needed (PRN)** = log when taken, optional daily max. |
+| **PRN check-in** | Symptoms (med-specific chips), reason, notes, amount (oral 1–10 or custom). |
+| **PRN insights** | Wellness report section correlating PRN use with daily wellness (non-diagnostic). |
 | **Safety panel on add** | Side effects, alcohol/cannabis/tobacco notes, and interaction preview while adding a med. |
 | **Dose amount** | Separate **pills/tablets** and **mg** fields; at least one required. |
 | **Dose times** | One row per daily dose — 12-hour time + AM/PM; add/remove rows; duplicate times are normalized. |
 | **Schedule dates** | **Start date** (required) and optional **end date** for short courses (e.g. antibiotics). |
 | **Notes** | Free text (e.g. “take with food”). |
 | **Pill inventory** | Optional “track pills remaining”; decrements on mark taken, increments on undo. |
-| **All medications page** | Full list including upcoming/ended meds with status badges and date ranges. |
+| **Medications list** | **My account → Medications** — all meds with upcoming/ended status and date ranges. |
 
 ### History
 
@@ -150,15 +188,17 @@ The main dashboard for logging doses.
 | **Weekly summary** | “This week: X of Y doses (Z%)” based on active meds per day. |
 | **Stats** | Total doses logged and days with at least one dose (over the loaded window). |
 
-### Adherence streaks (Account)
+### Adherence streaks (`/streaks` and Account)
 
 | Feature | Description |
 |---------|-------------|
-| **Perfect day** | Every scheduled dose for every **active** medication logged that calendar day. |
+| **Perfect day** | Every scheduled dose for every **active** medication logged that calendar day (PRN excluded). |
 | **Current streak** | Consecutive perfect days; today in progress does not break the streak until the day ends. |
 | **Longest streak** | Best run in the last year of data. |
 | **7-day chart** | Visual bars for the last week. |
-| **Today progress** | “X of Y doses logged” on the streak card. |
+| **Tulip badges** | Milestones on `/streaks` by longest streak. |
+| **Consistency calendar** | Perfect / partial / missed days on History and Streaks. |
+| **Celebration** | Modal on milestone perfect days (Today). |
 
 ### Drug interaction check
 
@@ -170,7 +210,8 @@ Educational tool — **not medical advice**.
 | **RxNorm name mapping** | Brand names (e.g. Lexapro) resolved to generic names via NIH RxNorm. |
 | **Curated database** | 60+ clinically significant pairs (major / moderate / minor) with descriptions and management tips. |
 | **Pair results** | Sorted by severity; shows both display names and mapped generic names. |
-| **“Check another drug”** | Add a hypothetical drug and re-run without saving it. |
+| **“Check another drug”** | Add a hypothetical drug (with autocomplete) and re-run without saving it. |
+| **Allergy cross-check** | Warns when med names overlap your allergy list. |
 | **Today banner** | Surfaces count and top warning when interactions exist. |
 | **Disclaimer** | Clear limits: incomplete database, not a substitute for pharmacist/clinician. |
 
@@ -200,7 +241,28 @@ Track daily experiences to **discuss with your clinician** — not a diagnosis t
 | **7-day history** | Tap any day to view or edit logs. |
 | **Trends** | Bar charts (sleep, energy) + week-over-week comparison text. |
 | **Medication briefings** | Educational side effects and substance notes per active med. |
-| **Doctor report** | Printable summary (baseline, 14 days of logs, briefings) — Save as PDF from print dialog. |
+| **Doctor report** | Printable summary (baseline, 14 days of logs, briefings, PRN insights) — Save as PDF from print dialog. |
+
+### Medical records
+
+| Feature | Description |
+|---------|-------------|
+| **Allergies & conditions** | Tag lists; used for interaction and add-med safety hints. |
+| **Blood type, surgeries, family history** | Optional self-reported fields. |
+| **Demographics** | DOB, gender, height, weight — metric stored (cm/kg); **metric or US/imperial** input preference saved to your account. |
+
+### Tracking (`/tracking`)
+
+Optional modules; enable only what you need.
+
+| Feature | Description |
+|---------|-------------|
+| **Physical profile** | Same demographics as medical records; editable on Tracking. |
+| **Unified calendar** | Shared calendar with ranges (1 day → 12 months) and per-tracker “Show” dropdown. |
+| **Cycle & period** | Period start/end (editable dates), phases, multi-month **predicted** periods (striped), day logs (flow, pre/during/post symptoms, intercourse, notes), late-period adjustment, variable cycle length learning, day strip + **Today** button, fix-mistake tools. |
+| **Future days** | Calendar preview only — logging unlocks on that calendar day. |
+| **Medication progress** | Adherence view from Today data. |
+| **Coming soon** | HRT (partial sync from Today), weight, vitals, pain, migraine, respiratory, custom. |
 
 ### Onboarding & help
 
@@ -213,9 +275,16 @@ Track daily experiences to **discuss with your clinician** — not a diagnosis t
 
 | Feature | Description |
 |---------|-------------|
-| **Profile menu** | Avatar dropdown: Today, History, Wellness, My account, All medications, Drug safety check, Help, Sign out. |
-| **Responsive layout** | Centered column, mobile-friendly cards and forms. |
+| **Profile menu** | Avatar dropdown: Today, History, Wellness, **Tracking**, My account, Drug safety check, Medical records, Help, Sign out. |
+| **Sticky header** | Nav stays visible while scrolling. |
+| **Responsive layout** | Centered column, mobile-friendly cards and forms (web browser; not a native app). |
 | **Account page styling** | Purple gradient theme on streak and settings cards (distinct from teal “Today” accents). |
+
+---
+
+## Native mobile & long-term (planned)
+
+The **web app is complete for browser use**; native iOS/Android is not released yet. Planned work (push when app is closed, offline dose queue, shared logic with web, widgets, more trackers) is in **[docs/ROADMAP.md](docs/ROADMAP.md)**. Web reminders require the tab to stay open or recently active — see [WEB_APP.md → Reminders](docs/WEB_APP.md#my-account-account).
 
 ---
 
@@ -226,8 +295,12 @@ Track daily experiences to **discuss with your clinician** — not a diagnosis t
 | Column | Description |
 |--------|-------------|
 | `name` | Medication name |
-| `dose_pills`, `dose_mg` | Text dose labels (at least one required) |
+| `dose_pills`, `dose_mg` | Text dose labels (scheduled meds need at least one; PRN may use daily cap instead) |
+| `schedule_type` | `scheduled` or `as_needed` |
 | `schedule_times` | Array of 24h times, e.g. `["08:00","20:00"]` |
+| `max_doses_per_day`, `prn_amount_hints`, `prn_symptom_hints` | PRN limits and UI presets |
+| `medication_route`, `medication_form` | Route/form for safety copy and PRN defaults |
+| `tracking_sync` | e.g. `hrt` to mirror doses into Tracking |
 | `notes` | Optional |
 | `pills_remaining` | Optional integer |
 | `start_date`, `end_date` | Schedule window (`end_date` optional) |
@@ -241,23 +314,39 @@ Track daily experiences to **discuss with your clinician** — not a diagnosis t
 | `taken_on` | Calendar date (user timezone) |
 | `schedule_time` | Which daily slot was logged |
 | `taken_at` | Timestamp |
+| `logged_amount` | What was taken (especially PRN) |
+| `prn_symptoms`, `prn_reason`, `prn_notes` | PRN check-in context |
 
 **Unique constraint:** `(medication_id, taken_on, schedule_time)` — prevents duplicate logs for the same slot.
 
 ### `wellness_profiles` / `wellness_logs`
 
-Per-user baseline (sleep habits, substance use, symptom focus) and one **daily log per calendar day** (sleep, energy, appetite, exercise, symptoms, notes). See migration `006_wellness.sql`.
+Per-user baseline (sleep habits, substance use, symptom focus) and one **daily log per calendar day** (sleep, energy, appetite, exercise, symptoms, notes). Migration `006_wellness.sql`.
+
+### `medical_records`
+
+One row per user: allergies, conditions, blood type, notes, demographics, `height_unit` / `weight_unit` preferences. Migrations `008`, `009`, `016`.
+
+### Tracking tables
+
+| Table | Purpose |
+|-------|---------|
+| `user_trackers` | Enabled module IDs per user |
+| `cycle_settings`, `cycle_periods`, `cycle_day_logs` | Cycle tracking |
+| `tracker_dose_events` | Dose logs mirrored into trackers (e.g. HRT) |
+
+Migration `010_tracking.sql` (+ `014`, `015` for cycle enhancements).
 
 ### Migrations (run in order)
 
-1. `supabase/schema.sql` — initial schema (or baseline for new projects)
-2. `supabase/migrations/002_dose_per_schedule_time.sql` — per–dose-time logs
-3. `supabase/migrations/003_split_dose_pills_mg.sql` — `dose_pills` / `dose_mg` (replaces `dosage`)
-4. `supabase/migrations/004_medication_dates.sql` — `start_date` / `end_date`
-5. `supabase/migrations/005_medication_type.sql` — route/form fields
-6. `supabase/migrations/006_wellness.sql` — wellness profile + daily logs
+Full checklist, verification SQL, and troubleshooting: **[docs/MIGRATIONS.md](docs/MIGRATIONS.md)**.
 
-See [docs/SUPABASE_SETUP.md](docs/SUPABASE_SETUP.md) for project setup.
+Summary:
+
+1. `supabase/schema.sql` — bootstrap `medications` + `dose_logs`
+2. `supabase/migrations/002` … `016` — wellness, avatars, medical records, PRN, tracking, cycle, unit prefs
+
+See [docs/SUPABASE_SETUP.md](docs/SUPABASE_SETUP.md) for Auth and API keys.
 
 ---
 
@@ -267,16 +356,16 @@ See [docs/SUPABASE_SETUP.md](docs/SUPABASE_SETUP.md) for project setup.
 dr.dose/
 ├── web/                          # React + Vite app
 │   ├── src/
-│   │   ├── pages/                # Today, History, Wellness, Account, Medications, Interactions, Help
-│   │   ├── components/           # UI (forms, cards, banners, streak, auth, wellness)
-│   │   ├── lib/                  # medications, streaks, wellness, interactions, notifications
+│   │   ├── pages/                # Today, History, Wellness, Tracking, Account, Interactions, Medical records, Help
+│   │   ├── components/           # UI (forms, cards, tracking, PRN, auth, wellness)
+│   │   ├── lib/                  # medications, streaks, wellness, tracking/, interactions, notifications
 │   │   └── data/                 # drug-interactions.json, drug-safety.json, brand-medications.json
 │   ├── public/sw.js              # Service worker for more reliable browser notifications
 │   └── .env                      # Supabase keys (not committed)
 ├── supabase/
 │   ├── schema.sql
 │   └── migrations/
-├── docs/                         # SUPABASE_SETUP, ROADMAP
+├── docs/                         # WEB_APP, MIGRATIONS, SUPABASE_SETUP, DEPLOY, ROADMAP
 ├── vercel.json                   # Deploy root = web/
 └── .github/workflows/ci.yml      # Lint + build on push
 ```
@@ -293,7 +382,7 @@ dr.dose/
 ### Setup
 
 1. **Database & auth** — [docs/SUPABASE_SETUP.md](docs/SUPABASE_SETUP.md)
-2. **Run migrations** — SQL Editor, migrations `002` → `006` if not using a fresh `schema.sql` only (see above)
+2. **Run migrations** — SQL Editor: `schema.sql` then `002` → `016` ([MIGRATIONS.md](docs/MIGRATIONS.md))
 3. **Environment:**
 
 ```bash
@@ -351,9 +440,9 @@ npm run preview
 
 ## Roadmap
 
-Planned next steps: UI polish, notifications when the app is closed (mobile), native apps via Capacitor, larger interaction database, pharmacy integrations. See [docs/ROADMAP.md](docs/ROADMAP.md).
+Shipped features and planned phases (mobile push, shared logic, HRT/weight trackers, integrations): **[docs/ROADMAP.md](docs/ROADMAP.md)**.
 
-**Live demo:** Deploy to Vercel with env vars from Supabase; add production URL to Supabase Auth redirect allowlist.
+**Live demo:** Deploy to Vercel with env vars from Supabase; add production URL to Supabase Auth redirect allowlist ([DEPLOY.md](docs/DEPLOY.md)).
 
 ---
 

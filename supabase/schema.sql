@@ -1,5 +1,8 @@
 -- Run this in the Supabase SQL Editor (Dashboard → SQL → New query).
 -- Creates tables and Row Level Security so each user only sees their own data.
+--
+-- Bootstrap only (medications + dose_logs). Then run migrations 002–016 in order.
+-- See docs/MIGRATIONS.md for the full checklist and verification queries.
 
 -- Medications
 create table if not exists public.medications (

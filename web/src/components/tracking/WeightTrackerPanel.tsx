@@ -102,6 +102,8 @@ export function WeightTrackerPanel({
     log_frequency_days: number
     sync_weight_to_medical_records: boolean
   } | null>(null)
+  const [weightPlanExpanded, setWeightPlanExpanded] = useState(true)
+  const [weightPlanSaved, setWeightPlanSaved] = useState(false)
 
   const monthBounds = useMemo(() => {
     const d = new Date(`${selectedDate}T12:00:00`)
@@ -252,6 +254,8 @@ export function WeightTrackerPanel({
         sync_weight_to_medical_records: settingsDraft.sync_weight_to_medical_records,
       })
       setSettings(s)
+      setWeightPlanSaved(true)
+      setWeightPlanExpanded(false)
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Could not save weight plan')
     } finally {
@@ -354,125 +358,135 @@ export function WeightTrackerPanel({
       ) : (
         <>
           <section className="weight-plan-section">
-            <h4>Weight plan</h4>
-            <div className="weight-plan-grid">
-              <HeightWeightFields
-                height_cm={settingsDraft.baseline_height_cm}
-                weight_kg={settingsDraft.baseline_weight_kg}
-                height_unit={heightUnit}
-                weight_unit={weightUnit}
-                onHeightChange={(height_cm) =>
-                  setSettingsDraft((d) => (d ? { ...d, baseline_height_cm: height_cm } : d))
-                }
-                onWeightChange={(weight_kg) =>
-                  setSettingsDraft((d) => (d ? { ...d, baseline_weight_kg: weight_kg } : d))
-                }
-                onHeightUnitChange={(unit) => {
-                  setHeightUnit(unit)
-                  void updateBodyMetricUnits(user.id, { height_unit: unit }).then((saved) => {
-                    setMedicalRecord(saved)
-                  })
-                }}
-                onWeightUnitChange={(unit) => {
-                  setWeightUnit(unit)
-                  void updateBodyMetricUnits(user.id, { weight_unit: unit }).then((saved) => {
-                    setMedicalRecord(saved)
-                  })
-                }}
-                fieldClassName="tracking-field"
-                rowClassName="tracking-stats-row"
-              />
-
-              <label className="tracking-field">
-                Goal
-                <select
-                  value={settingsDraft.goal_direction}
-                  onChange={(e) =>
-                    setSettingsDraft((d) =>
-                      d ? { ...d, goal_direction: e.target.value as WeightGoalDirection } : d,
-                    )
-                  }
+            <div className="weight-plan-header">
+              <h4>Weight plan</h4>
+              {!weightPlanExpanded && (
+                <button
+                  type="button"
+                  className="btn btn-ghost btn-sm"
+                  onClick={() => setWeightPlanExpanded(true)}
                 >
-                  <option value="lose">Lose weight</option>
-                  <option value="gain">Gain weight</option>
-                </select>
-              </label>
-
-              <label className="tracking-field">
-                Pace
-                <select
-                  value={settingsDraft.goal_rate}
-                  onChange={(e) =>
-                    setSettingsDraft((d) =>
-                      d ? { ...d, goal_rate: e.target.value as WeightGoalRate } : d,
-                    )
-                  }
-                >
-                  <option value="mild">
-                    Mild (&le; 0.5 lb/week)
-                  </option>
-                  <option value="regular">
-                    Regular (&le; 1 lb/week)
-                  </option>
-                  <option value="extreme">
-                    Extreme (&le; 2 lb/week)
-                  </option>
-                </select>
-              </label>
-
-              <label className="tracking-field">
-                Activity level
-                <select
-                  value={settingsDraft.activity_level}
-                  onChange={(e) =>
-                    setSettingsDraft((d) =>
-                      d
-                        ? {
-                            ...d,
-                            activity_level: e.target.value as WeightActivityLevel,
-                          }
-                        : d,
-                    )
-                  }
-                >
-                  <option value="sedentary">Sedentary (0–1 days/week)</option>
-                  <option value="light">Light (2–3 days/week)</option>
-                  <option value="moderate">Moderate (4–5 days/week)</option>
-                  <option value="active">Active (7 days/week)</option>
-                </select>
-              </label>
-
-              <label className="tracking-field">
-                Weight log frequency
-                <select
-                  value={settingsDraft.log_frequency_days}
-                  onChange={(e) =>
-                    setSettingsDraft((d) =>
-                      d ? { ...d, log_frequency_days: Number(e.target.value) } : d,
-                    )
-                  }
-                >
-                  <option value={1}>Every day</option>
-                  <option value={3}>Every 3 days</option>
-                  <option value={7}>Every 7 days</option>
-                </select>
-              </label>
-
-              <label className="tracking-field weight-sync-checkbox">
-                <input
-                  type="checkbox"
-                  checked={settingsDraft.sync_weight_to_medical_records}
-                  onChange={(e) =>
-                    setSettingsDraft((d) =>
-                      d ? { ...d, sync_weight_to_medical_records: e.target.checked } : d,
-                    )
-                  }
-                />
-                <span>
-                  Auto-update medical records weight when you log your weight
-                </span>
-              </label>
+                  Edit weight plan
+                </button>
+              )}
             </div>
+
+            {weightPlanExpanded ? (
+              <div className="weight-plan-grid">
+                <HeightWeightFields
+                  height_cm={settingsDraft.baseline_height_cm}
+                  weight_kg={settingsDraft.baseline_weight_kg}
+                  height_unit={heightUnit}
+                  weight_unit={weightUnit}
+                  onHeightChange={(height_cm) =>
+                    setSettingsDraft((d) => (d ? { ...d, baseline_height_cm: height_cm } : d))
+                  }
+                  onWeightChange={(weight_kg) =>
+                    setSettingsDraft((d) => (d ? { ...d, baseline_weight_kg: weight_kg } : d))
+                  }
+                  onHeightUnitChange={(unit) => {
+                    setHeightUnit(unit)
+                    void updateBodyMetricUnits(user.id, { height_unit: unit }).then((saved) => {
+                      setMedicalRecord(saved)
+                    })
+                  }}
+                  onWeightUnitChange={(unit) => {
+                    setWeightUnit(unit)
+                    void updateBodyMetricUnits(user.id, { weight_unit: unit }).then((saved) => {
+                      setMedicalRecord(saved)
+                    })
+                  }}
+                  fieldClassName="tracking-field"
+                  rowClassName="tracking-stats-row"
+                />
+
+                <label className="tracking-field">
+                  Goal
+                  <select
+                    value={settingsDraft.goal_direction}
+                    onChange={(e) =>
+                      setSettingsDraft((d) =>
+                        d ? { ...d, goal_direction: e.target.value as WeightGoalDirection } : d,
+                      )
+                    }
+                  >
+                    <option value="lose">Lose weight</option>
+                    <option value="gain">Gain weight</option>
+                  </select>
+                </label>
+
+                <label className="tracking-field">
+                  Pace
+                  <select
+                    value={settingsDraft.goal_rate}
+                    onChange={(e) =>
+                      setSettingsDraft((d) =>
+                        d ? { ...d, goal_rate: e.target.value as WeightGoalRate } : d,
+                      )
+                    }
+                  >
+                    <option value="mild">Mild (&le; 0.5 lb/week)</option>
+                    <option value="regular">Regular (&le; 1 lb/week)</option>
+                    <option value="extreme">Extreme (&le; 2 lb/week)</option>
+                  </select>
+                </label>
+
+                <label className="tracking-field">
+                  Activity level
+                  <select
+                    value={settingsDraft.activity_level}
+                    onChange={(e) =>
+                      setSettingsDraft((d) =>
+                        d
+                          ? {
+                              ...d,
+                              activity_level: e.target.value as WeightActivityLevel,
+                            }
+                          : d,
+                      )
+                    }
+                  >
+                    <option value="sedentary">Sedentary (0–1 days/week)</option>
+                    <option value="light">Light (2–3 days/week)</option>
+                    <option value="moderate">Moderate (4–5 days/week)</option>
+                    <option value="active">Active (7 days/week)</option>
+                  </select>
+                </label>
+
+                <label className="tracking-field">
+                  Weight log frequency
+                  <select
+                    value={settingsDraft.log_frequency_days}
+                    onChange={(e) =>
+                      setSettingsDraft((d) =>
+                        d ? { ...d, log_frequency_days: Number(e.target.value) } : d,
+                      )
+                    }
+                  >
+                    <option value={1}>Every day</option>
+                    <option value={3}>Every 3 days</option>
+                    <option value={7}>Every 7 days</option>
+                  </select>
+                </label>
+
+                <label className="tracking-field weight-sync-checkbox">
+                  <input
+                    type="checkbox"
+                    checked={settingsDraft.sync_weight_to_medical_records}
+                    onChange={(e) =>
+                      setSettingsDraft((d) =>
+                        d ? { ...d, sync_weight_to_medical_records: e.target.checked } : d,
+                      )
+                    }
+                  />
+                  <span>Auto-update medical records weight when you log your weight</span>
+                </label>
+              </div>
+            ) : weightPlanSaved ? (
+              <p className="field-hint" role="status">
+                Weight plan saved.
+              </p>
+            ) : null}
 
             <div className="weight-targets">
               <h5 className="weight-targets-heading">Calorie targets</h5>
@@ -495,14 +509,34 @@ export function WeightTrackerPanel({
                   to see your daily calorie targets.
                 </p>
               )}
-              <button
-                type="button"
-                className="btn btn-primary"
-                disabled={busy}
-                onClick={() => void saveSettings()}
-              >
-                {busy ? 'Saving…' : 'Save weight plan'}
-              </button>
+              <div className="weight-targets-actions">
+                {!weightPlanSaved ? (
+                  <button
+                    type="button"
+                    className="btn btn-primary"
+                    disabled={busy}
+                    onClick={() => void saveSettings()}
+                  >
+                    {busy ? 'Saving…' : 'Save weight plan'}
+                  </button>
+                ) : (
+                  <>
+                    <span className="weight-plan-saved-pill" role="status">
+                      Saved
+                    </span>
+                    <button
+                      type="button"
+                      className="btn btn-ghost"
+                      onClick={() => {
+                        setWeightPlanExpanded(true)
+                        setWeightPlanSaved(false)
+                      }}
+                    >
+                      Edit weight plan
+                    </button>
+                  </>
+                )}
+              </div>
             </div>
           </section>
 

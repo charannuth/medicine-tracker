@@ -4705,6 +4705,19 @@
   max-width: 28rem;
 }
 
+.weight-plan-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin-bottom: 0.75rem;
+  max-width: 28rem;
+}
+
+.weight-plan-header h4 {
+  margin: 0;
+}
+
 .weight-sync-checkbox {
   flex-direction: row !important;
   align-items: flex-start;
@@ -4807,6 +4820,33 @@
   margin-top: 1rem;
   width: 100%;
   max-width: none;
+}
+
+.weight-targets-actions {
+  margin-top: 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.weight-targets-actions .btn-primary {
+  margin-top: 0;
+  flex: 1 1 12rem;
+}
+
+.weight-plan-saved-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.35rem 0.6rem;
+  border-radius: 999px;
+  background: color-mix(in srgb, #22c55e 18%, var(--surface));
+  border: 1px solid color-mix(in srgb, #22c55e 35%, var(--border));
+  color: color-mix(in srgb, #16a34a 80%, var(--text));
+  font-size: 0.85rem;
+  font-weight: 600;
 }
 
 .weight-day-log-saved {

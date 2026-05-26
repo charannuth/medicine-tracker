@@ -77,11 +77,32 @@ export function HistoryPage() {
         </p>
       </header>
 
-      {!loading && !error && weekly && weekly.expected > 0 && (
-        <div className="weekly-summary">
-          <strong>This week:</strong> {weekly.taken} of {weekly.expected} doses (
-          {weekly.percent}%)
-        </div>
+      {!loading && !error && weekly && (
+        (weekly.scheduledExpected > 0 || weekly.prnTaken > 0) && (
+          <div className="weekly-summary">
+            <p className="weekly-summary-title">This week</p>
+            <div className="weekly-summary-rows">
+              {weekly.scheduledExpected > 0 && (
+                <p>
+                  <strong>Daily schedule:</strong>{' '}
+                  {weekly.scheduledTaken} of {weekly.scheduledExpected} doses (
+                  {weekly.scheduledPercent}%)
+                </p>
+              )}
+              {weekly.prnTaken > 0 && (
+                <p>
+                  <strong>As needed:</strong>{' '}
+                  {weekly.prnTaken}
+                  {weekly.prnCap > 0 ? (
+                    <> of {weekly.prnCap} max doses</>
+                  ) : (
+                    <> dose{weekly.prnTaken === 1 ? '' : 's'} logged</>
+                  )}
+                </p>
+              )}
+            </div>
+          </div>
+        )
       )}
 
       {showCalendar && (

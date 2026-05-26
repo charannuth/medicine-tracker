@@ -9,6 +9,8 @@ A personal web app to manage medications, log daily doses, track adherence strea
 Newest first. Each line is added from the commit subject when you commit (with hooks enabled).
 
 <!-- DEVLOG:START -->
+- **2026-05-26** (`a7dcf06`) — Celebrate 7-day streaks with dual tulips and in-scene butterfly animation.
+
 - **2026-05-26** (`04ed47b`) — Fix tracker tab/calendar source sync.
 
 - **2026-05-26** (`8bd01e2`) — Show saved profile summary with Edit button.

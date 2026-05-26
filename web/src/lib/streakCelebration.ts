@@ -1,5 +1,8 @@
 import { todayLocalDate } from './dates'
 
+/** Full-screen bloom + butterfly celebration when this streak day is reached. */
+export const STREAK_CELEBRATION_MILESTONE_DAYS = 7
+
 function celebrationKey(userId: string, date: string): string {
   return `mt-streak-celebrated:${userId}:${date}`
 }

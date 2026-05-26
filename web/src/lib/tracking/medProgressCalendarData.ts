@@ -99,6 +99,7 @@ export async function loadMedProgressCalendarData(
   const cells = new Map<string, TrackingCalendarCell>()
   for (const date of datesInRange(start, end)) {
     const logsForDay = logsByDate.get(date) ?? []
+    const isFuture = date > today
     const { expected, taken } = countScheduledDosesTakenOnDate(
       medications,
       logsForDay,
@@ -107,15 +108,16 @@ export async function loadMedProgressCalendarData(
     const s = statusForDay(medications, logsForDay, date, today)
 
     const classNames: string[] = []
-    if (date > today) classNames.push('is-future')
+    if (isFuture) classNames.push('is-future')
     if (s === 'perfect') classNames.push('med-perfect')
     if (s === 'partial') classNames.push('med-partial')
-    if (s === 'missed') classNames.push('med-missed')
+    // Future days without logs shouldn't read as "missed".
+    if (s === 'missed' && !isFuture) classNames.push('med-missed')
 
     const markers: TrackingCalendarCell['markers'] = []
     if (s === 'perfect') markers.push('dot')
     if (s === 'partial') markers.push('dot')
-    if (s === 'missed') markers.push('heart')
+    if (s === 'missed' && !isFuture) markers.push('heart')
 
     const events: TrackingCalendarCell['events'] = []
     if (s === 'perfect') {
@@ -124,6 +126,9 @@ export async function loadMedProgressCalendarData(
       const label =
         expected > 0 ? `${taken}/${expected} doses` : 'Some doses taken'
       events.push({ id: 'partial', label, tone: 'med-partial' })
+    } else if (s === 'missed' && isFuture) {
+      // Expected doses exist, but the day hasn't arrived yet.
+      events.push({ id: 'future-empty', label: 'No doses logged yet', tone: 'med-partial' })
     } else if (s === 'missed') {
       events.push({ id: 'missed', label: 'Missed doses', tone: 'med-missed' })
     }

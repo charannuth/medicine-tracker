@@ -91,8 +91,9 @@ input[type='tel'],
 input[type='url'],
 select,
 textarea {
-  border-color: color-mix(in srgb, var(--border) 85%, var(--text-muted));
-  box-shadow: 0 0 0 1px color-mix(in srgb, var(--border) 65%, transparent);
+  /* Keep a clear "ready to type" highlight even before focus. */
+  border-color: color-mix(in srgb, var(--accent) 55%, var(--border));
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent) 35%, transparent);
 }
 
 input[type='text']:focus,
@@ -104,9 +105,11 @@ input[type='tel']:focus,
 input[type='url']:focus,
 select:focus,
 textarea:focus {
-  outline: 2px solid color-mix(in srgb, var(--accent) 85%, transparent);
-  outline-offset: 2px;
-  border-color: color-mix(in srgb, var(--accent) 55%, var(--border));
+  outline: none;
+  border-color: color-mix(in srgb, var(--accent) 70%, var(--border));
+  box-shadow:
+    0 0 0 2px color-mix(in srgb, var(--accent) 35%, transparent),
+    0 0 0 4px color-mix(in srgb, var(--accent) 35%, transparent);
 }
 
 input[type='text']:focus-visible,
@@ -118,8 +121,7 @@ input[type='tel']:focus-visible,
 input[type='url']:focus-visible,
 select:focus-visible,
 textarea:focus-visible {
-  outline: 2px solid var(--accent);
-  outline-offset: 2px;
+  outline: none;
 }
 
 /* Dr. Dose wordmark — maroon fade with slow shine sweep */

@@ -26,7 +26,7 @@ function logsToSet(logs: DoseLog[]): Set<string> {
   return new Set(logs.map((l) => `${l.medication_id}|${l.schedule_time}`))
 }
 
-function findMissedForDate(
+export function findMissedForDate(
   medications: Medication[],
   logs: DoseLog[],
   date: string,

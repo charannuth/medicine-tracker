@@ -9,6 +9,8 @@ A personal web app to manage medications, log daily doses, track adherence strea
 Newest first. Each line is added from the commit subject when you commit (with hooks enabled).
 
 <!-- DEVLOG:START -->
+- **2026-05-26** (`009b8b5`) — Show missed doses on the med progress calendar.
+
 - **2026-05-26** (`10dd8e1`) — Adjust med calendar labels for future dates.
 
 - **2026-05-26** (`f42baa3`) — Add birds-eye tracking calendar with detailed day breakdowns.

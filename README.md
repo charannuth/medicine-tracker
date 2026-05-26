@@ -9,6 +9,8 @@ A personal web app to manage medications, log daily doses, track adherence strea
 Newest first. Each line is added from the commit subject when you commit (with hooks enabled).
 
 <!-- DEVLOG:START -->
+- **2026-05-26** (`3c4fd87`) — Add weight and HRT tracking calendars
+
 - **2026-05-25** (`c55d718`) — Document full web app guide, migrations audit, and updated roadmap.
 
 - **2026-05-25** (`c05f28a`) — Fix cycle calendar predictions and lock future-day logging.

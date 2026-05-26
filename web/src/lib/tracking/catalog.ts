@@ -27,8 +27,9 @@ export const TRACKER_CATALOG: TrackerCatalogEntry[] = [
   {
     id: 'hrt',
     label: 'HRT & hormones',
-    description: 'Doses logged on Today sync here automatically',
-    available: false,
+    description:
+      'HRT dose history + daily journaling for bodily changes, mood changes, and transition notes',
+    available: true,
   },
   {
     id: 'med_progress',
@@ -45,8 +46,9 @@ export const TRACKER_CATALOG: TrackerCatalogEntry[] = [
   {
     id: 'weight',
     label: 'Weight over time',
-    description: 'Weight trends alongside your profile',
-    available: false,
+    description:
+      'Track weight and calorie targets using a baseline + goal (maintenance, mild/regular/extreme loss or gain)',
+    available: true,
   },
   {
     id: 'pain',

@@ -11,13 +11,13 @@ export type CalendarSourceMeta = {
 
 const CALENDAR_SUPPORT: Partial<Record<TrackerId, CalendarSupport>> = {
   cycle: 'full',
-  weight: 'planned',
+  weight: 'full',
   vitals: 'planned',
   pain: 'planned',
   migraine: 'planned',
   respiratory: 'planned',
   med_progress: 'planned',
-  hrt: 'none',
+  hrt: 'full',
   custom: 'planned',
 }
 

@@ -5,6 +5,7 @@ import { PhysicalProfileForm } from '../components/PhysicalProfileForm'
 import { CycleTrackerPanel } from '../components/tracking/CycleTrackerPanel'
 import { HrtTrackerPanel } from '../components/tracking/HrtTrackerPanel'
 import { MedProgressPanel } from '../components/tracking/MedProgressPanel'
+import { WeightTrackerPanel } from '../components/tracking/WeightTrackerPanel'
 import { TrackingCalendar } from '../components/tracking/TrackingCalendar'
 import {
   calendarSourceOptions,
@@ -101,6 +102,14 @@ export function TrackingPage() {
       setCalendarSource(activeTracker)
     }
   }, [activeTracker])
+
+  // If the user picks a different tracker from the calendar "Show" dropdown,
+  // align the module panel below to match that selection.
+  useEffect(() => {
+    if (!calendarSource) return
+    if (!enabled.includes(calendarSource)) return
+    setActiveTracker((prev) => (prev === calendarSource ? prev : calendarSource))
+  }, [calendarSource, enabled])
 
   const calendarOptions = calendarSourceOptions(enabled)
   const showCalendar = calendarOptions.length > 0
@@ -222,7 +231,21 @@ export function TrackingPage() {
           />
         )
       case 'hrt':
-        return <HrtTrackerPanel />
+        return (
+          <HrtTrackerPanel
+            selectedDate={selectedDate}
+            onSelectDate={handleSelectDate}
+            onDataMutated={bumpCalendarRefresh}
+          />
+        )
+      case 'weight':
+        return (
+          <WeightTrackerPanel
+            selectedDate={selectedDate}
+            onSelectDate={handleSelectDate}
+            onDataMutated={bumpCalendarRefresh}
+          />
+        )
       case 'med_progress':
         return <MedProgressPanel />
       default:

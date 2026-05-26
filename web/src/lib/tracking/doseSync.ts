@@ -79,3 +79,27 @@ export async function fetchTrackerDoseEvents(
   if (error) throw error
   return (data ?? []) as TrackerDoseEvent[]
 }
+
+export async function fetchTrackerDoseEventsInRange(
+  userId: string,
+  trackerId: string,
+  start: string,
+  end: string,
+  limit = 500,
+): Promise<TrackerDoseEvent[]> {
+  if (!supabase) return []
+
+  const { data, error } = await supabase
+    .from('tracker_dose_events')
+    .select('*')
+    .eq('user_id', userId)
+    .eq('tracker_id', trackerId)
+    .gte('taken_on', start)
+    .lte('taken_on', end)
+    .order('taken_on', { ascending: true })
+    .order('schedule_time', { ascending: true })
+    .limit(limit)
+
+  if (error) throw error
+  return (data ?? []) as TrackerDoseEvent[]
+}

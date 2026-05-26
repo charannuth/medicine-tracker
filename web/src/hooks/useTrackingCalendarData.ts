@@ -3,6 +3,8 @@ import type { CalendarViewRange } from '../lib/tracking/calendarRange'
 import { getCalendarWindow } from '../lib/tracking/calendarRange'
 import { calendarSupportFor } from '../lib/tracking/calendarSources'
 import { loadCycleCalendarData } from '../lib/tracking/cycleCalendarData'
+import { loadWeightCalendarData } from '../lib/tracking/weightCalendarData'
+import { loadHrtCalendarData } from '../lib/tracking/hrtCalendarData'
 import type { TrackingCalendarData } from '../lib/tracking/calendarTypes'
 import type { TrackerId } from '../lib/tracking/catalog'
 
@@ -51,6 +53,12 @@ export function useTrackingCalendarData(
       if (source === 'cycle') {
         const cycleData = await loadCycleCalendarData(userId, window.start, window.end)
         setData(cycleData)
+      } else if (source === 'weight') {
+        const weightData = await loadWeightCalendarData(userId, window.start, window.end)
+        setData(weightData)
+      } else if (source === 'hrt') {
+        const hrtData = await loadHrtCalendarData(userId, window.start, window.end)
+        setData(hrtData)
       } else {
         setData(EMPTY)
       }

@@ -5246,6 +5246,47 @@
   box-shadow: inset 0 0 0 2px color-mix(in srgb, #e11d48 50%, transparent);
 }
 
+/* Weight tiles: indicate whether weight + meals/workout were logged. */
+.cycle-calendar-day.weight-logged {
+  background: color-mix(in srgb, #22c55e 22%, var(--surface));
+  box-shadow: inset 0 0 0 2px color-mix(in srgb, #22c55e 55%, transparent);
+}
+
+.cycle-calendar-day.weight-meals:not(.weight-logged) {
+  background: color-mix(in srgb, #16a34a 14%, var(--surface));
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, #22c55e 35%, transparent);
+}
+
+.cycle-calendar-day.weight-workout:not(.weight-logged) {
+  border-color: color-mix(in srgb, #ec4899 55%, transparent);
+}
+
+.cycle-calendar-day.weight-off-schedule:not(.selected) {
+  opacity: 0.55;
+}
+
+/* HRT tiles: journaling days show a distinct tint. */
+.cycle-calendar-day.hrt-logged {
+  background: color-mix(in srgb, #a855f7 22%, var(--surface));
+  box-shadow: inset 0 0 0 2px color-mix(in srgb, #d946ef 55%, transparent);
+}
+
+/* Legend swatches for weight/htr */
+.cycle-legend-swatch.weight-logged {
+  background: color-mix(in srgb, #22c55e 55%, var(--surface));
+  border-color: color-mix(in srgb, #22c55e 65%, var(--border));
+}
+
+.cycle-legend-swatch.weight-meals {
+  background: color-mix(in srgb, #16a34a 40%, var(--surface));
+  border-color: color-mix(in srgb, #22c55e 45%, var(--border));
+}
+
+.cycle-legend-swatch.hrt-logged {
+  background: color-mix(in srgb, #a855f7 50%, var(--surface));
+  border-color: color-mix(in srgb, #d946ef 60%, var(--border));
+}
+
 .cycle-calendar-day.is-future:not(.selected) {
   opacity: 0.5;
 }

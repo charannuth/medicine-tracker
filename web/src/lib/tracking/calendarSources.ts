@@ -16,7 +16,7 @@ const CALENDAR_SUPPORT: Partial<Record<TrackerId, CalendarSupport>> = {
   pain: 'planned',
   migraine: 'planned',
   respiratory: 'planned',
-  med_progress: 'planned',
+  med_progress: 'full',
   hrt: 'full',
   custom: 'planned',
 }

@@ -4,6 +4,11 @@ import { MedicalRecordsForm } from '../components/MedicalRecordsForm'
 import { useAuth } from '../hooks/useAuth'
 import type { BodyMetricUnit } from '../lib/bodyMetrics'
 import {
+  formatHeightForUnit,
+  formatWeightForUnit,
+  normalizeBodyMetricUnit,
+} from '../lib/bodyMetrics'
+import {
   emptyMedicalRecordInput,
   fetchMedicalRecord,
   isMedicalRecordFilled,
@@ -20,6 +25,7 @@ export function MedicalRecordsPage() {
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [message, setMessage] = useState<string | null>(null)
+  const [expanded, setExpanded] = useState(false)
 
   useEffect(() => {
     if (!user) return
@@ -28,7 +34,10 @@ export function MedicalRecordsPage() {
 
     fetchMedicalRecord(user.id)
       .then((record) => {
-        if (active) setDraft(recordToInput(record))
+        if (!active) return
+        const next = recordToInput(record)
+        setDraft(next)
+        setExpanded(!isMedicalRecordFilled(next))
       })
       .catch((err: unknown) => {
         if (active) {
@@ -74,12 +83,23 @@ export function MedicalRecordsPage() {
     try {
       await upsertMedicalRecord(user.id, draft)
       setMessage('Medical record saved.')
+      setExpanded(false)
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Could not save medical record')
     } finally {
       setBusy(false)
     }
   }
+
+  const filled = isMedicalRecordFilled(draft)
+  const heightSummary = formatHeightForUnit(
+    draft.height_cm ? Number(draft.height_cm) : null,
+    normalizeBodyMetricUnit(draft.height_unit),
+  )
+  const weightSummary = formatWeightForUnit(
+    draft.weight_kg ? Number(draft.weight_kg) : null,
+    normalizeBodyMetricUnit(draft.weight_unit),
+  )
 
   return (
     <main className="page medical-records-page">
@@ -97,21 +117,90 @@ export function MedicalRecordsPage() {
         <p className="loading">Loading medical record…</p>
       ) : (
         <>
-          {!isMedicalRecordFilled(draft) && (
+          {!filled && (
             <p className="field-hint medical-records-empty-hint">
               Add your allergies so we can flag possible matches when you add medications
               on <Link to="/">Today</Link> or run a{' '}
               <Link to="/interactions">drug safety check</Link>.
             </p>
           )}
-          <MedicalRecordsForm
-            value={draft}
-            onChange={setDraft}
-            onHeightUnitChange={(unit) => void handleHeightUnitChange(unit)}
-            onWeightUnitChange={(unit) => void handleWeightUnitChange(unit)}
-            onSubmit={() => void handleSave()}
-            busy={busy}
-          />
+
+          <section className="medical-records-saved">
+            <div className="medical-records-saved-header">
+              <h3>Medical record</h3>
+              {!expanded && (
+                <button
+                  type="button"
+                  className="btn btn-ghost btn-sm"
+                  onClick={() => setExpanded(true)}
+                >
+                  Edit
+                </button>
+              )}
+            </div>
+
+            {!expanded && filled ? (
+              <div className="medical-records-saved-body" role="status">
+                <div className="medical-records-saved-summary">
+                  {draft.date_of_birth ? <span>DOB: <strong>{draft.date_of_birth}</strong></span> : null}
+                  {draft.gender ? <span>Gender: <strong>{draft.gender}</strong></span> : null}
+                  {heightSummary ? <span>Height: <strong>{heightSummary}</strong></span> : null}
+                  {weightSummary ? <span>Weight: <strong>{weightSummary}</strong></span> : null}
+                  {draft.blood_type ? <span>Blood type: <strong>{draft.blood_type}</strong></span> : null}
+                </div>
+
+                {draft.known_allergies.length > 0 && (
+                  <div className="medical-records-saved-row">
+                    <span className="medical-records-saved-label">Allergies</span>
+                    <span className="medical-records-saved-value">{draft.known_allergies.join(', ')}</span>
+                  </div>
+                )}
+                {draft.known_conditions.length > 0 && (
+                  <div className="medical-records-saved-row">
+                    <span className="medical-records-saved-label">Conditions</span>
+                    <span className="medical-records-saved-value">{draft.known_conditions.join(', ')}</span>
+                  </div>
+                )}
+                {draft.past_surgeries.trim() && (
+                  <div className="medical-records-saved-row">
+                    <span className="medical-records-saved-label">Surgeries/hospitalizations</span>
+                    <span className="medical-records-saved-value">{draft.past_surgeries}</span>
+                  </div>
+                )}
+                {draft.family_history.trim() && (
+                  <div className="medical-records-saved-row">
+                    <span className="medical-records-saved-label">Family history</span>
+                    <span className="medical-records-saved-value">{draft.family_history}</span>
+                  </div>
+                )}
+                {draft.emergency_notes.trim() && (
+                  <div className="medical-records-saved-row">
+                    <span className="medical-records-saved-label">Emergency notes</span>
+                    <span className="medical-records-saved-value">{draft.emergency_notes}</span>
+                  </div>
+                )}
+                {draft.other_notes.trim() && (
+                  <div className="medical-records-saved-row">
+                    <span className="medical-records-saved-label">Other notes</span>
+                    <span className="medical-records-saved-value">{draft.other_notes}</span>
+                  </div>
+                )}
+
+                <p className="field-hint">
+                  Everything is saved to your account. Click <strong>Edit</strong> to update anything later.
+                </p>
+              </div>
+            ) : (
+              <MedicalRecordsForm
+                value={draft}
+                onChange={setDraft}
+                onHeightUnitChange={(unit) => void handleHeightUnitChange(unit)}
+                onWeightUnitChange={(unit) => void handleWeightUnitChange(unit)}
+                onSubmit={() => void handleSave()}
+                busy={busy}
+              />
+            )}
+          </section>
         </>
       )}
     </main>

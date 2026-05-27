@@ -37,13 +37,13 @@ function makeCelebrationStyles(colors: ColorPalette) {
       alignItems: 'center' as const,
       borderWidth: 2,
       borderColor: colors.partialBorder,
-      overflow: 'hidden' as const,
     },
     illustration: {
       marginBottom: spacing.md,
       alignItems: 'center' as const,
       justifyContent: 'center' as const,
-      minHeight: 180,
+      minHeight: 190,
+      width: '100%' as const,
     },
     title: {
       fontSize: 22,
@@ -79,7 +79,6 @@ export function StreakCelebration({ streakDays, onDismiss }: Props) {
   const dual = streakDays >= STREAK_CELEBRATION_MILESTONE_DAYS;
   const opacity = useRef(new Animated.Value(0)).current;
   const scale = useRef(new Animated.Value(0.88)).current;
-  const sceneOpacity = useRef(new Animated.Value(0)).current;
   const styles = useThemedStyles(makeCelebrationStyles);
 
   useEffect(() => {
@@ -95,14 +94,8 @@ export function StreakCelebration({ streakDays, onDismiss }: Props) {
         tension: 80,
         useNativeDriver: true,
       }),
-      Animated.timing(sceneOpacity, {
-        toValue: 1,
-        duration: 900,
-        delay: 200,
-        useNativeDriver: true,
-      }),
     ]).start();
-  }, [opacity, scale, sceneOpacity]);
+  }, [opacity, scale]);
 
   const label = `Streak × ${STREAK_CELEBRATION_MILESTONE_DAYS} — week in bloom!`;
 
@@ -119,9 +112,9 @@ export function StreakCelebration({ streakDays, onDismiss }: Props) {
             end={{ x: 1, y: 1 }}
             style={styles.card}
           >
-            <Animated.View style={[styles.illustration, { opacity: sceneOpacity }]}>
+            <View style={styles.illustration}>
               <StreakCelebrationScene dual={dual} />
-            </Animated.View>
+            </View>
             <Text style={styles.title}>{label}</Text>
             <Text style={styles.body}>
               {dual

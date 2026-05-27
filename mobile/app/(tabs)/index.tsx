@@ -187,7 +187,7 @@ export default function TodayScreen() {
   const [streakStats, setStreakStats] = useState<StreakStats | null>(null);
   const [missedDoses, setMissedDoses] = useState<MissedDoseItem[]>([]);
   const [missedBannerDismissed, setMissedBannerDismissed] = useState(false);
-  const { celebrationStreak, dismissCelebration } = useStreakCelebration(
+  const { celebrationStreak, dismissCelebration, previewCelebration } = useStreakCelebration(
     user?.id,
     streakStats,
   );
@@ -411,7 +411,9 @@ export default function TodayScreen() {
         <View style={styles.summary}>
           <Text style={styles.summaryTitle}>Today</Text>
           <Text style={styles.summaryText}>{summaryText}</Text>
-          {todayTab === 'scheduled' ? <StreakSnippet stats={streakStats} /> : null}
+          {todayTab === 'scheduled' ? (
+            <StreakSnippet stats={streakStats} onPreviewCelebration={previewCelebration} />
+          ) : null}
         </View>
 
         <RefillBanner

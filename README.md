@@ -9,6 +9,8 @@ A personal web app to manage medications, log daily doses, track adherence strea
 Newest first. Each line is added from the commit subject when you commit (with hooks enabled).
 
 <!-- DEVLOG:START -->
+- **2026-05-27** (`166f195`) — Fix mobile 7-day streak tulip celebration animation
+
 - **2026-05-27** (`2d65efb`) — Bring mobile app to full web parity with themed UI.
 
 - **2026-05-27** (`1754395`) — Add Expo mobile app with web feature parity.

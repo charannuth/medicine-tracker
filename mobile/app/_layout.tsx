@@ -1,3 +1,4 @@
+import 'react-native-reanimated';
 import { useEffect } from 'react';
 import { Stack, useRouter, useSegments } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';

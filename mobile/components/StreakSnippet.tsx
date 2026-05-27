@@ -28,14 +28,25 @@ function makeStyles(colors: ColorPalette) {
   };
 }
 
-export function StreakSnippet({ stats }: { stats: StreakStats | null }) {
+export function StreakSnippet({
+  stats,
+  onPreviewCelebration,
+}: {
+  stats: StreakStats | null;
+  onPreviewCelebration?: () => void;
+}) {
   const router = useRouter();
   const styles = useThemedStyles(makeStyles);
 
   if (!stats?.hasMedications) return null;
 
   return (
-    <View style={styles.row}>
+    <Pressable
+      onLongPress={__DEV__ ? onPreviewCelebration : undefined}
+      delayLongPress={600}
+      accessibilityHint={__DEV__ ? 'Long press to preview 7-day celebration' : undefined}
+    >
+      <View style={styles.row}>
       <Text style={styles.text}>
         {stats.currentStreak > 0 ? (
           <>
@@ -56,6 +67,7 @@ export function StreakSnippet({ stats }: { stats: StreakStats | null }) {
       >
         <Text style={styles.link}>Details</Text>
       </Pressable>
-    </View>
+      </View>
+    </Pressable>
   );
 }

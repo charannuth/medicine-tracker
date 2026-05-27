@@ -1,0 +1,689 @@
+{
+  "aliases": {
+    "lexapro": "escitalopram",
+    "celexa": "citalopram",
+    "zoloft": "sertraline",
+    "prozac": "fluoxetine",
+    "paxil": "paroxetine",
+    "cymbalta": "duloxetine",
+    "wellbutrin": "bupropion",
+    "tylenol": "acetaminophen",
+    "advil": "ibuprofen",
+    "motrin": "ibuprofen",
+    "aleve": "naproxen",
+    "benadryl": "diphenhydramine",
+    "xanax": "alprazolam",
+    "ativan": "lorazepam",
+    "klonopin": "clonazepam",
+    "valium": "diazepam",
+    "lipitor": "atorvastatin",
+    "zocor": "simvastatin",
+    "crestor": "rosuvastatin",
+    "prinivil": "lisinopril",
+    "zestril": "lisinopril",
+    "cozaar": "losartan",
+    "diovan": "valsartan",
+    "norvasc": "amlodipine",
+    "lopressor": "metoprolol",
+    "toprol": "metoprolol",
+    "inderal": "propranolol",
+    "glucophage": "metformin",
+    "synthroid": "levothyroxine",
+    "warfarin": "warfarin",
+    "coumadin": "warfarin",
+    "eliquis": "apixaban",
+    "xarelto": "rivaroxaban",
+    "plavix": "clopidogrel",
+    "singulair": "montelukast",
+    "ventolin": "albuterol",
+    "proair": "albuterol",
+    "theo-24": "theophylline",
+    "theophylline": "theophylline",
+    "lanoxin": "digoxin",
+    "digoxin": "digoxin",
+    "phenobarbital": "phenobarbital",
+    "prilosec": "omeprazole",
+    "nexium": "esomeprazole",
+    "zantac": "ranitidine",
+    "flexeril": "cyclobenzaprine",
+    "tramadol": "tramadol",
+    "ultram": "tramadol",
+    "percocet": "oxycodone",
+    "vicodin": "hydrocodone",
+    "ambien": "zolpidem",
+    "lunesta": "eszopiclone",
+    "melatonin": "melatonin",
+    "alcohol": "alcohol",
+    "ethanol": "alcohol",
+    "cannabis": "cannabis",
+    "marijuana": "cannabis",
+    "weed": "cannabis",
+    "tobacco": "tobacco",
+    "nicotine": "tobacco",
+    "cigarettes": "tobacco"
+  },
+  "drugClasses": {
+    "ssri": [
+      "escitalopram",
+      "sertraline",
+      "fluoxetine",
+      "citalopram",
+      "paroxetine",
+      "duloxetine",
+      "venlafaxine",
+      "desvenlafaxine"
+    ],
+    "snri": ["venlafaxine", "desvenlafaxine", "duloxetine"],
+    "maoi": ["phenelzine", "linezolid"],
+    "nsaid": [
+      "ibuprofen",
+      "naproxen",
+      "aspirin",
+      "ketorolac",
+      "diclofenac",
+      "meloxicam",
+      "celecoxib"
+    ],
+    "opioid": [
+      "tramadol",
+      "oxycodone",
+      "hydrocodone",
+      "morphine",
+      "codeine",
+      "fentanyl"
+    ],
+    "benzodiazepine": ["alprazolam", "lorazepam", "clonazepam", "diazepam"],
+    "anticoagulant": ["warfarin", "apixaban", "rivaroxaban"],
+    "antiplatelet": ["aspirin", "clopidogrel"],
+    "ace_inhibitor": ["lisinopril", "enalapril", "ramipril", "benazepril", "captopril"],
+    "arb": ["losartan", "valsartan"],
+    "beta_blocker": ["metoprolol", "propranolol", "carvedilol"],
+    "statin": ["simvastatin", "atorvastatin", "rosuvastatin"],
+    "ppi": ["omeprazole", "esomeprazole", "pantoprazole", "ranitidine"]
+  },
+  "classRules": [
+    {
+      "a": { "class": "ssri" },
+      "b": { "drug": "tramadol" },
+      "severity": "major",
+      "description": "Combined use increases the risk of serotonin syndrome.",
+      "management": "Avoid combination when possible. Seek urgent care if agitation, fever, or muscle rigidity occur."
+    },
+    {
+      "a": { "class": "ssri" },
+      "b": { "class": "maoi" },
+      "severity": "major",
+      "description": "SSRIs with MAOIs risk fatal serotonin syndrome.",
+      "management": "Contraindicated. Requires long washout between classes."
+    },
+    {
+      "a": { "class": "ssri" },
+      "b": { "class": "nsaid" },
+      "severity": "moderate",
+      "description": "SSRIs with NSAIDs increase bleeding risk.",
+      "management": "Use lowest NSAID dose for shortest time; watch for bruising or GI bleeding."
+    },
+    {
+      "a": { "class": "ssri" },
+      "b": { "drug": "sumatriptan" },
+      "severity": "moderate",
+      "description": "Triptans with SSRIs may increase serotonin syndrome risk.",
+      "management": "Use only under medical guidance; know serotonin syndrome symptoms."
+    },
+    {
+      "a": { "class": "ssri" },
+      "b": { "class": "beta_blocker" },
+      "severity": "moderate",
+      "description": "SSRIs with beta blockers may affect heart rate and blood pressure in some patients.",
+      "management": "Monitor blood pressure and heart rate when starting or changing doses."
+    },
+    {
+      "a": { "class": "anticoagulant" },
+      "b": { "class": "nsaid" },
+      "severity": "major",
+      "description": "Anticoagulants with NSAIDs increase serious bleeding risk.",
+      "management": "Avoid NSAIDs unless specifically approved; use acetaminophen when appropriate."
+    },
+    {
+      "a": { "class": "anticoagulant" },
+      "b": { "class": "antiplatelet" },
+      "severity": "major",
+      "description": "Anticoagulant plus antiplatelet therapy increases bleeding risk.",
+      "management": "Only combine when prescribed together; report any bleeding promptly."
+    },
+    {
+      "a": { "class": "ace_inhibitor" },
+      "b": { "class": "nsaid" },
+      "severity": "moderate",
+      "description": "NSAIDs may reduce blood pressure control and harm kidneys with ACE inhibitors.",
+      "management": "Limit NSAID use; stay hydrated; monitor blood pressure."
+    },
+    {
+      "a": { "class": "arb" },
+      "b": { "class": "nsaid" },
+      "severity": "moderate",
+      "description": "NSAIDs may reduce ARB efficacy and worsen kidney function.",
+      "management": "Limit NSAID use; monitor blood pressure and kidney labs."
+    },
+    {
+      "a": { "class": "opioid" },
+      "b": { "class": "benzodiazepine" },
+      "severity": "major",
+      "description": "Opioids with benzodiazepines increase sedation, respiratory depression, and overdose risk.",
+      "management": "Avoid combining unless specifically prescribed with close monitoring."
+    },
+    {
+      "a": { "class": "statin" },
+      "b": { "drug": "clarithromycin" },
+      "severity": "major",
+      "description": "Macrolides raise statin levels, increasing myopathy and rhabdomyolysis risk.",
+      "management": "Often requires holding or changing statin during antibiotic course."
+    },
+    {
+      "a": { "class": "statin" },
+      "b": { "drug": "fluconazole" },
+      "severity": "major",
+      "description": "Fluconazole greatly increases statin exposure and muscle toxicity risk.",
+      "management": "Avoid combination or use lowest statin dose with monitoring."
+    },
+    {
+      "a": { "class": "statin" },
+      "b": { "drug": "gemfibrozil" },
+      "severity": "major",
+      "description": "Statin with fibrate significantly increases severe muscle injury risk.",
+      "management": "Generally avoided; alternative lipid therapy may be needed."
+    },
+    {
+      "a": { "class": "beta_blocker" },
+      "b": { "drug": "verapamil" },
+      "severity": "major",
+      "description": "Beta blockers with verapamil risk dangerous bradycardia and hypotension.",
+      "management": "Avoid routine combination unless cardiology supervises."
+    },
+    {
+      "a": { "class": "beta_blocker" },
+      "b": { "drug": "diltiazem" },
+      "severity": "major",
+      "description": "Beta blockers with diltiazem can cause excessive heart rate slowing.",
+      "management": "Use only with close cardiac monitoring."
+    },
+    {
+      "a": { "drug": "albuterol" },
+      "b": { "class": "beta_blocker" },
+      "severity": "major",
+      "description": "Beta blockers can reduce bronchodilator effect and worsen asthma control, especially non-selective agents.",
+      "management": "Discuss with your pulmonologist before combining rescue inhalers with any beta blocker; cardioselective options may be used cautiously when prescribed."
+    },
+    {
+      "a": { "drug": "lithium" },
+      "b": { "class": "nsaid" },
+      "severity": "major",
+      "description": "NSAIDs reduce lithium clearance and can cause toxicity.",
+      "management": "Avoid NSAIDs when possible; check lithium levels if unavoidable."
+    },
+    {
+      "a": { "drug": "lithium" },
+      "b": { "class": "ace_inhibitor" },
+      "severity": "moderate",
+      "description": "ACE inhibitors can raise lithium levels.",
+      "management": "Monitor lithium levels when starting or changing ACE inhibitors."
+    },
+    {
+      "a": { "drug": "clopidogrel" },
+      "b": { "class": "ppi" },
+      "severity": "moderate",
+      "description": "Some PPIs may reduce activation of clopidogrel in certain patients.",
+      "management": "Discuss alternative PPI (e.g. pantoprazole) with your prescriber."
+    }
+  ],
+  "pairs": [
+    {
+      "a": "escitalopram",
+      "b": "tramadol",
+      "severity": "major",
+      "description": "Combined use increases the risk of serotonin syndrome.",
+      "management": "Avoid combination when possible. Seek urgent care if agitation, fever, or muscle rigidity occur."
+    },
+    {
+      "a": "sertraline",
+      "b": "tramadol",
+      "severity": "major",
+      "description": "Combined use increases the risk of serotonin syndrome.",
+      "management": "Avoid combination when possible unless closely supervised."
+    },
+    {
+      "a": "fluoxetine",
+      "b": "tramadol",
+      "severity": "major",
+      "description": "Combined use increases the risk of serotonin syndrome.",
+      "management": "Avoid combination when possible unless closely supervised."
+    },
+    {
+      "a": "escitalopram",
+      "b": "linezolid",
+      "severity": "major",
+      "description": "Linezolid has MAOI activity and can cause serotonin syndrome with SSRIs.",
+      "management": "Do not combine. Allow appropriate washout periods between drugs."
+    },
+    {
+      "a": "sertraline",
+      "b": "linezolid",
+      "severity": "major",
+      "description": "Linezolid has MAOI activity and can cause serotonin syndrome with SSRIs.",
+      "management": "Do not combine. Allow appropriate washout periods between drugs."
+    },
+    {
+      "a": "escitalopram",
+      "b": "phenelzine",
+      "severity": "major",
+      "description": "SSRI with MAOI risks fatal serotonin syndrome.",
+      "management": "Contraindicated. Requires long washout between classes."
+    },
+    {
+      "a": "fluoxetine",
+      "b": "phenelzine",
+      "severity": "major",
+      "description": "SSRI with MAOI risks fatal serotonin syndrome.",
+      "management": "Contraindicated. Requires long washout between classes."
+    },
+    {
+      "a": "escitalopram",
+      "b": "ibuprofen",
+      "severity": "moderate",
+      "description": "SSRIs with NSAIDs increase bleeding risk.",
+      "management": "Use lowest NSAID dose for shortest time; watch for bruising or GI bleeding."
+    },
+    {
+      "a": "escitalopram",
+      "b": "naproxen",
+      "severity": "moderate",
+      "description": "SSRIs with NSAIDs increase bleeding risk.",
+      "management": "Use lowest NSAID dose for shortest time; watch for bruising or GI bleeding."
+    },
+    {
+      "a": "sertraline",
+      "b": "aspirin",
+      "severity": "moderate",
+      "description": "SSRIs with antiplatelet agents increase bleeding risk.",
+      "management": "Monitor for unusual bleeding; discuss GI protection with your clinician."
+    },
+    {
+      "a": "escitalopram",
+      "b": "sumatriptan",
+      "severity": "moderate",
+      "description": "Triptans with SSRIs may increase serotonin syndrome risk.",
+      "management": "Use only under medical guidance; know serotonin syndrome symptoms."
+    },
+    {
+      "a": "escitalopram",
+      "b": "propranolol",
+      "severity": "moderate",
+      "description": "SSRIs with beta blockers may increase effects on heart rate and blood pressure in some patients.",
+      "management": "Monitor blood pressure and heart rate, especially when starting or changing doses."
+    },
+    {
+      "a": "fluoxetine",
+      "b": "propranolol",
+      "severity": "moderate",
+      "description": "Fluoxetine can raise propranolol levels, increasing bradycardia and hypotension risk.",
+      "management": "May need propranolol dose adjustment; monitor vitals."
+    },
+    {
+      "a": "warfarin",
+      "b": "aspirin",
+      "severity": "major",
+      "description": "Combination greatly increases bleeding risk.",
+      "management": "Only combine when prescribed together; report any bleeding promptly."
+    },
+    {
+      "a": "warfarin",
+      "b": "ibuprofen",
+      "severity": "major",
+      "description": "NSAIDs with warfarin increase serious bleeding risk.",
+      "management": "Avoid NSAIDs unless specifically approved; use acetaminophen when appropriate."
+    },
+    {
+      "a": "warfarin",
+      "b": "naproxen",
+      "severity": "major",
+      "description": "NSAIDs with warfarin increase serious bleeding risk.",
+      "management": "Avoid NSAIDs unless specifically approved."
+    },
+    {
+      "a": "warfarin",
+      "b": "fluconazole",
+      "severity": "major",
+      "description": "Fluconazole can markedly increase warfarin effect.",
+      "management": "Frequent INR monitoring and warfarin dose changes often required."
+    },
+    {
+      "a": "warfarin",
+      "b": "amoxicillin",
+      "severity": "moderate",
+      "description": "Some antibiotics alter warfarin metabolism and INR.",
+      "management": "Extra INR monitoring during and after antibiotic course."
+    },
+    {
+      "a": "rivaroxaban",
+      "b": "aspirin",
+      "severity": "major",
+      "description": "Anticoagulant plus antiplatelet therapy increases bleeding risk.",
+      "management": "Only when prescribed dual therapy; report bleeding or dark stools."
+    },
+    {
+      "a": "apixaban",
+      "b": "aspirin",
+      "severity": "major",
+      "description": "Anticoagulant plus antiplatelet therapy increases bleeding risk.",
+      "management": "Only when prescribed dual therapy; report bleeding promptly."
+    },
+    {
+      "a": "clopidogrel",
+      "b": "omeprazole",
+      "severity": "moderate",
+      "description": "Omeprazole may reduce activation of clopidogrel in some patients.",
+      "management": "Discuss alternative PPI (e.g. pantoprazole) with your prescriber."
+    },
+    {
+      "a": "lisinopril",
+      "b": "potassium chloride",
+      "severity": "moderate",
+      "description": "ACE inhibitors with potassium supplements can cause hyperkalemia.",
+      "management": "Monitor potassium levels; avoid unsupervised potassium supplements."
+    },
+    {
+      "a": "lisinopril",
+      "b": "ibuprofen",
+      "severity": "moderate",
+      "description": "NSAIDs may reduce blood pressure control and harm kidneys with ACE inhibitors.",
+      "management": "Limit NSAID use; stay hydrated; monitor blood pressure."
+    },
+    {
+      "a": "losartan",
+      "b": "ibuprofen",
+      "severity": "moderate",
+      "description": "NSAIDs may reduce ARB efficacy and worsen kidney function.",
+      "management": "Limit NSAID use; monitor blood pressure and kidney labs."
+    },
+    {
+      "a": "metoprolol",
+      "b": "verapamil",
+      "severity": "major",
+      "description": "Beta blockers with non-dihydropyridine calcium channel blockers risk severe bradycardia or heart block.",
+      "management": "Avoid routine combination unless cardiology supervises."
+    },
+    {
+      "a": "propranolol",
+      "b": "verapamil",
+      "severity": "major",
+      "description": "Beta blockers with verapamil risk dangerous bradycardia and hypotension.",
+      "management": "Avoid routine combination unless cardiology supervises."
+    },
+    {
+      "a": "metoprolol",
+      "b": "diltiazem",
+      "severity": "major",
+      "description": "Beta blockers with diltiazem can cause excessive heart rate slowing.",
+      "management": "Use only with close cardiac monitoring."
+    },
+    {
+      "a": "propranolol",
+      "b": "insulin glargine",
+      "severity": "moderate",
+      "description": "Beta blockers may mask symptoms of low blood sugar.",
+      "management": "Monitor glucose closely; know non-heart symptoms of hypoglycemia."
+    },
+    {
+      "a": "metoprolol",
+      "b": "metformin",
+      "severity": "minor",
+      "description": "Beta blockers may blunt some signs of hypoglycemia.",
+      "management": "Monitor blood sugar regularly if you have diabetes."
+    },
+    {
+      "a": "simvastatin",
+      "b": "clarithromycin",
+      "severity": "major",
+      "description": "Macrolides raise statin levels, increasing myopathy and rhabdomyolysis risk.",
+      "management": "Often requires holding or changing statin during antibiotic course."
+    },
+    {
+      "a": "atorvastatin",
+      "b": "clarithromycin",
+      "severity": "major",
+      "description": "Clarithromycin increases statin exposure and muscle toxicity risk.",
+      "management": "Discuss temporary statin changes with your prescriber."
+    },
+    {
+      "a": "simvastatin",
+      "b": "fluconazole",
+      "severity": "major",
+      "description": "Fluconazole greatly increases simvastatin levels.",
+      "management": "Avoid combination or use lowest statin dose with monitoring."
+    },
+    {
+      "a": "simvastatin",
+      "b": "gemfibrozil",
+      "severity": "major",
+      "description": "Statin with fibrate significantly increases severe muscle injury risk.",
+      "management": "Generally avoided; alternative lipid therapy may be needed."
+    },
+    {
+      "a": "atorvastatin",
+      "b": "gemfibrozil",
+      "severity": "major",
+      "description": "Statin with fibrate significantly increases muscle toxicity risk.",
+      "management": "Generally avoided unless specialist directs."
+    },
+    {
+      "a": "lithium",
+      "b": "ibuprofen",
+      "severity": "major",
+      "description": "NSAIDs reduce lithium clearance and can cause toxicity.",
+      "management": "Avoid NSAIDs when possible; check lithium levels if unavoidable."
+    },
+    {
+      "a": "lithium",
+      "b": "lisinopril",
+      "severity": "moderate",
+      "description": "ACE inhibitors can raise lithium levels.",
+      "management": "Monitor lithium levels when starting or changing ACE inhibitors."
+    },
+    {
+      "a": "metformin",
+      "b": "alcohol",
+      "severity": "moderate",
+      "description": "Alcohol with metformin increases lactic acidosis risk, especially with heavy use.",
+      "management": "Limit alcohol; avoid binge drinking."
+    },
+    {
+      "a": "metronidazole",
+      "b": "alcohol",
+      "severity": "major",
+      "description": "Disulfiram-like reaction: nausea, vomiting, flushing with alcohol.",
+      "management": "Avoid alcohol during treatment and for 48–72 hours after the last dose."
+    },
+    {
+      "a": "oxycodone",
+      "b": "alprazolam",
+      "severity": "major",
+      "description": "Opioids with benzodiazepines increase sedation, respiratory depression, and overdose risk.",
+      "management": "Avoid combining unless specifically prescribed with close monitoring."
+    },
+    {
+      "a": "hydrocodone",
+      "b": "lorazepam",
+      "severity": "major",
+      "description": "Opioids with benzodiazepines increase sedation and respiratory depression.",
+      "management": "Avoid combining unless specifically prescribed with close monitoring."
+    },
+    {
+      "a": "oxycodone",
+      "b": "diazepam",
+      "severity": "major",
+      "description": "Opioids with benzodiazepines increase overdose risk.",
+      "management": "Avoid combining unless specifically prescribed."
+    },
+    {
+      "a": "tramadol",
+      "b": "alprazolam",
+      "severity": "major",
+      "description": "Tramadol with benzodiazepines increases CNS and respiratory depression.",
+      "management": "Avoid combination when possible."
+    },
+    {
+      "a": "zolpidem",
+      "b": "alprazolam",
+      "severity": "major",
+      "description": "Sedative combinations increase confusion, falls, and respiratory depression.",
+      "management": "Avoid using multiple sedatives together."
+    },
+    {
+      "a": "gabapentin",
+      "b": "oxycodone",
+      "severity": "moderate",
+      "description": "Combined CNS depressants increase sedation and fall risk.",
+      "management": "Use caution; avoid driving until you know the effect."
+    },
+    {
+      "a": "pregabalin",
+      "b": "oxycodone",
+      "severity": "moderate",
+      "description": "Combined CNS depressants increase sedation.",
+      "management": "Start low, go slow; avoid alcohol."
+    },
+    {
+      "a": "levothyroxine",
+      "b": "omeprazole",
+      "severity": "moderate",
+      "description": "PPIs may reduce levothyroxine absorption.",
+      "management": "Separate dosing times; recheck thyroid labs after PPI changes."
+    },
+    {
+      "a": "levothyroxine",
+      "b": "calcium carbonate",
+      "severity": "moderate",
+      "description": "Calcium can bind levothyroxine and lower absorption.",
+      "management": "Take levothyroxine on empty stomach; separate calcium by several hours."
+    },
+    {
+      "a": "levothyroxine",
+      "b": "ferrous sulfate",
+      "severity": "moderate",
+      "description": "Iron reduces levothyroxine absorption.",
+      "management": "Separate doses by at least 4 hours."
+    },
+    {
+      "a": "amlodipine",
+      "b": "simvastatin",
+      "severity": "moderate",
+      "description": "Amlodipine can increase simvastatin levels.",
+      "management": "Simvastatin dose often limited to 20 mg with amlodipine."
+    },
+    {
+      "a": "digoxin",
+      "b": "amiodarone",
+      "severity": "major",
+      "description": "Amiodarone raises digoxin levels and toxicity risk.",
+      "management": "Digoxin dose reduction and level monitoring usually required."
+    },
+    {
+      "a": "digoxin",
+      "b": "verapamil",
+      "severity": "major",
+      "description": "Verapamil increases digoxin concentration.",
+      "management": "Monitor digoxin levels and heart rhythm."
+    },
+    {
+      "a": "albuterol",
+      "b": "theophylline",
+      "severity": "minor",
+      "description": "Both are bronchodilators with overlapping stimulant effects. Together they may increase tremor, palpitations, or nervousness.",
+      "management": "Usually manageable at prescribed doses; report persistent racing heart or shaking to your clinician."
+    },
+    {
+      "a": "albuterol",
+      "b": "digoxin",
+      "severity": "minor",
+      "description": "Beta-agonists like albuterol can lower potassium briefly, which may increase digoxin sensitivity in some patients.",
+      "management": "Stay hydrated; tell your doctor if you notice nausea, vision changes, or irregular heartbeat."
+    },
+    {
+      "a": "montelukast",
+      "b": "phenobarbital",
+      "severity": "minor",
+      "description": "Phenobarbital can speed up montelukast breakdown, which may reduce asthma control in some people.",
+      "management": "Watch for worsening wheezing after starting or stopping phenobarbital; your prescriber may adjust therapy."
+    },
+    {
+      "a": "montelukast",
+      "b": "gemfibrozil",
+      "severity": "minor",
+      "description": "Gemfibrozil may slow montelukast clearance and slightly raise blood levels.",
+      "management": "Report new or worsening mood changes, headache, or sleep problems to your clinician."
+    },
+    {
+      "a": "bupropion",
+      "b": "fluoxetine",
+      "severity": "moderate",
+      "description": "Bupropion with SSRIs increases seizure and serotonin syndrome risk.",
+      "management": "Use only when benefits outweigh risks; monitor closely."
+    },
+    {
+      "a": "bupropion",
+      "b": "tramadol",
+      "severity": "moderate",
+      "description": "Lowers seizure threshold and adds serotonin effect.",
+      "management": "Use caution; report agitation or tremor promptly."
+    },
+    {
+      "a": "methotrexate",
+      "b": "ibuprofen",
+      "severity": "major",
+      "description": "NSAIDs can reduce methotrexate clearance and cause toxicity.",
+      "management": "Often contraindicated; discuss all pain relievers with your prescriber."
+    },
+    {
+      "a": "prednisone",
+      "b": "ibuprofen",
+      "severity": "moderate",
+      "description": "Steroids plus NSAIDs increase GI ulcer and bleeding risk.",
+      "management": "Use GI protection if combination is necessary."
+    },
+    {
+      "a": "spironolactone",
+      "b": "lisinopril",
+      "severity": "moderate",
+      "description": "Combined RAAS agents increase hyperkalemia risk.",
+      "management": "Monitor potassium and kidney function."
+    },
+    {
+      "a": "spironolactone",
+      "b": "potassium chloride",
+      "severity": "major",
+      "description": "Spironolactone with potassium supplements risks dangerous hyperkalemia.",
+      "management": "Avoid routine potassium supplements unless directed and monitored."
+    },
+    {
+      "a": "ciprofloxacin",
+      "b": "calcium carbonate",
+      "severity": "moderate",
+      "description": "Calcium and antacids reduce fluoroquinolone absorption.",
+      "management": "Separate doses by at least 2 hours before or 6 hours after."
+    },
+    {
+      "a": "doxycycline",
+      "b": "calcium carbonate",
+      "severity": "moderate",
+      "description": "Calcium reduces tetracycline absorption.",
+      "management": "Separate doses by several hours."
+    },
+    {
+      "a": "metoprolol",
+      "b": "epinephrine",
+      "severity": "moderate",
+      "description": "Beta blockers can blunt epinephrine response and cause severe hypertension if unopposed alpha stimulation occurs.",
+      "management": "Inform clinicians and dentists that you take a beta blocker."
+    }
+  ]
+}

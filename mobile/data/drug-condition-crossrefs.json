@@ -1,0 +1,44 @@
+{
+  "conditions": {
+    "asthma": {
+      "label": "Asthma",
+      "aliases": ["asthma", "reactive airway", "reactive airways"],
+      "drugCategories": ["aspirin_nsaid"],
+      "severity": "major",
+      "description": "This medication is an NSAID (non-steroidal anti-inflammatory drug), the same broad class as ibuprofen, naproxen (Aleve), and aspirin. In some people with asthma—especially aspirin-exacerbated respiratory disease—NSAIDs can trigger wheezing, nasal symptoms, or an asthma flare.",
+      "management": "Do not switch to another NSAID (including Aleve/naproxen) without your doctor’s guidance—they are not automatically safer. Many clinicians recommend acetaminophen (Tylenol) when NSAIDs should be avoided, but only your physician or pharmacist can choose what is right for you."
+    },
+    "kidney_disease": {
+      "label": "Kidney disease",
+      "aliases": ["kidney disease", "renal disease", "ckd", "chronic kidney"],
+      "drugCategories": ["aspirin_nsaid"],
+      "severity": "moderate",
+      "description": "NSAIDs can reduce kidney blood flow and worsen kidney function, especially with chronic kidney disease.",
+      "management": "Ask your nephrologist or primary care clinician before using ibuprofen, naproxen, or related pain relievers."
+    },
+    "liver_disease": {
+      "label": "Liver disease",
+      "aliases": ["liver disease", "hepatic", "cirrhosis", "liver failure"],
+      "drugCategories": ["aspirin_nsaid"],
+      "severity": "moderate",
+      "description": "NSAIDs and high doses of acetaminophen can stress the liver. Dose limits depend on your liver status.",
+      "management": "Use only medications and doses approved by your clinician."
+    },
+    "heart_disease": {
+      "label": "Heart disease",
+      "aliases": ["heart disease", "coronary", "heart failure", "cardiac"],
+      "drugCategories": ["aspirin_nsaid"],
+      "severity": "moderate",
+      "description": "NSAIDs may increase blood pressure and fluid retention and can raise cardiovascular risk in some patients.",
+      "management": "Discuss all over-the-counter pain relievers with your cardiologist or primary care doctor."
+    },
+    "gerd": {
+      "label": "GERD / stomach ulcers",
+      "aliases": ["gerd", "reflux", "acid reflux", "ulcer", "peptic ulcer", "stomach ulcer"],
+      "drugCategories": ["aspirin_nsaid"],
+      "severity": "moderate",
+      "description": "NSAIDs can irritate the stomach lining and worsen reflux or ulcer disease.",
+      "management": "Ask whether an acid reducer or a different pain reliever is appropriate for you."
+    }
+  }
+}

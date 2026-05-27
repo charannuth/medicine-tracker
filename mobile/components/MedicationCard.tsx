@@ -1,0 +1,417 @@
+import { ActivityIndicator, Pressable, StyleSheet, Text, View } from 'react-native';
+import { formatDoseDisplay } from '../lib/dose';
+import { formatInventoryRemaining } from '../lib/inventory';
+import { formatMedicationType } from '../lib/medicationForms';
+import { formatMedicationDateRange } from '../lib/medicationDates';
+import { isAsNeededMed } from '../lib/medicationSchedule';
+import type { DoseSlotStatus, MedicationWithStatus } from '../lib/types';
+import type { PrnDoseLogPayload } from '../lib/prnCheckIn';
+import { colors, radii, spacing } from '../constants/theme';
+import { PrnDoseLogPanel } from './PrnDoseLogPanel';
+import { useRouter } from 'expo-router';
+
+type MedicationCardProps = {
+  medication: MedicationWithStatus;
+  onMarkTaken: (scheduleTime: string) => void;
+  onLogPrn?: (payload: PrnDoseLogPayload) => void;
+  onUndo: (slot: DoseSlotStatus) => void;
+  onMoveToAsNeeded?: () => void;
+  onMoveToDailySchedule?: () => void;
+  onDelete?: () => void;
+  busySlot: string | null;
+};
+
+function Badge({
+  label,
+  tone,
+}: {
+  label: string;
+  tone: 'success' | 'pending' | 'partial';
+}) {
+  const toneStyle =
+    tone === 'success'
+      ? styles.badgeSuccess
+      : tone === 'partial'
+        ? styles.badgePartial
+        : styles.badgePending;
+
+  return (
+    <View style={[styles.badge, toneStyle]}>
+      <Text style={styles.badgeText}>{label}</Text>
+    </View>
+  );
+}
+
+export function MedicationCard({
+  medication,
+  onMarkTaken,
+  onLogPrn,
+  onUndo,
+  onMoveToAsNeeded,
+  onMoveToDailySchedule,
+  onDelete,
+  busySlot,
+}: MedicationCardProps) {
+  const router = useRouter();
+  const asNeeded = isAsNeededMed(medication);
+  const lowSupply =
+    medication.pills_remaining != null && medication.pills_remaining <= 7;
+  const { dosesTakenToday, dosesTotalToday, allDosesTakenToday } = medication;
+  const typeLabel = formatMedicationType(
+    medication.medication_route,
+    medication.medication_form,
+  );
+  const prnBusy = busySlot === `${medication.id}-prn`;
+  const migrateToPrnBusy = busySlot === `${medication.id}-migrate-prn`;
+  const migrateToDailyBusy = busySlot === `${medication.id}-migrate-daily`;
+  const deleteBusy = busySlot === medication.id;
+
+  let badge: { label: string; tone: 'success' | 'pending' | 'partial' } | null =
+    null;
+
+  if (asNeeded) {
+    badge =
+      dosesTakenToday > 0
+        ? {
+            label:
+              medication.max_doses_per_day != null && medication.max_doses_per_day > 0
+                ? `${dosesTakenToday}/${medication.max_doses_per_day} today`
+                : `${dosesTakenToday} logged today`,
+            tone: 'partial',
+          }
+        : { label: 'As needed', tone: 'pending' };
+  } else if (dosesTotalToday > 0) {
+    badge = allDosesTakenToday
+      ? { label: 'All doses taken', tone: 'success' }
+      : dosesTakenToday > 0
+        ? { label: `${dosesTakenToday}/${dosesTotalToday} doses`, tone: 'partial' }
+        : { label: 'Due today', tone: 'pending' };
+  } else {
+    badge = { label: 'No times set', tone: 'pending' };
+  }
+
+  return (
+    <View
+      style={[
+        styles.card,
+        !asNeeded && allDosesTakenToday && styles.cardTaken,
+        asNeeded && styles.cardPrn,
+      ]}
+    >
+      <View style={styles.header}>
+        <View style={styles.headerText}>
+          <Text style={styles.name}>{medication.name}</Text>
+          {typeLabel ? <Text style={styles.typeLabel}>{typeLabel}</Text> : null}
+          <Text style={styles.dosage}>
+            {formatDoseDisplay(medication)}
+            {asNeeded
+              ? ' · as needed (PRN)'
+              : dosesTotalToday > 1
+                ? ` · ${dosesTotalToday} doses per day`
+                : dosesTotalToday === 1
+                  ? ' · once daily'
+                  : ''}
+          </Text>
+        </View>
+        {badge ? <Badge label={badge.label} tone={badge.tone} /> : null}
+      </View>
+
+      {medication.end_date ? (
+        <Text style={styles.dateRange}>{formatMedicationDateRange(medication)}</Text>
+      ) : null}
+
+      {medication.notes ? <Text style={styles.notes}>{medication.notes}</Text> : null}
+
+      {medication.pills_remaining != null ? (
+        <Text style={[styles.pills, lowSupply && styles.pillsLow]}>
+          {formatInventoryRemaining(medication.pills_remaining, medication)}
+          {lowSupply ? ' — refill soon' : ''}
+        </Text>
+      ) : null}
+
+      {asNeeded ? (
+        <>
+          <PrnDoseLogPanel
+            medication={medication}
+            disabled={prnBusy}
+            onLog={(payload) => onLogPrn?.(payload)}
+          />
+          {medication.slots.length > 0 ? (
+            <View style={styles.slots}>
+              {medication.slots.map((slot, index) => {
+                const slotKey = `${medication.id}-${slot.time}`;
+                const busy = busySlot === slotKey;
+                return (
+                  <View key={`${slot.time}-${index}`} style={styles.slotTaken}>
+                    <Text style={styles.slotTime}>Taken {slot.label}</Text>
+                    <Pressable
+                      style={styles.secondaryButton}
+                      disabled={busy}
+                      onPress={() => onUndo(slot)}
+                    >
+                      <Text style={styles.secondaryButtonText}>
+                        {busy ? '…' : 'Undo'}
+                      </Text>
+                    </Pressable>
+                  </View>
+                );
+              })}
+            </View>
+          ) : (
+            <Text style={styles.emptySlots}>No doses logged today yet.</Text>
+          )}
+        </>
+      ) : medication.slots.length > 0 ? (
+        <View style={styles.slots}>
+          {medication.slots.map((slot, index) => {
+            const slotKey = `${medication.id}-${slot.time}`;
+            const busy = busySlot === slotKey;
+            return (
+              <View
+                key={`${slot.time}-${index}`}
+                style={[styles.slot, slot.taken && styles.slotTakenRow]}
+              >
+                <Text style={styles.slotTime}>{slot.label}</Text>
+                {slot.taken ? (
+                  <Pressable
+                    style={styles.secondaryButton}
+                    disabled={busy}
+                    onPress={() => onUndo(slot)}
+                  >
+                    <Text style={styles.secondaryButtonText}>
+                      {busy ? '…' : 'Undo'}
+                    </Text>
+                  </Pressable>
+                ) : (
+                  <Pressable
+                    style={styles.primaryButtonSmall}
+                    disabled={busy}
+                    onPress={() => onMarkTaken(slot.time)}
+                  >
+                    {busy ? (
+                      <ActivityIndicator color="#fff" size="small" />
+                    ) : (
+                      <Text style={styles.primaryButtonTextSmall}>Mark taken</Text>
+                    )}
+                  </Pressable>
+                )}
+              </View>
+            );
+          })}
+        </View>
+      ) : (
+        <Text style={styles.emptySlots}>
+          No dose times yet. Tap Edit below to add reminder times.
+        </Text>
+      )}
+
+      <View style={styles.actions}>
+        {!asNeeded && onMoveToAsNeeded ? (
+          <Pressable
+            onPress={onMoveToAsNeeded}
+            disabled={migrateToPrnBusy}
+            style={styles.ghostBtn}
+          >
+            <Text style={[styles.ghostText, migrateToPrnBusy && styles.buttonDisabledText]}>
+              {migrateToPrnBusy ? '…' : 'Move to as needed'}
+            </Text>
+          </Pressable>
+        ) : null}
+        {asNeeded && onMoveToDailySchedule ? (
+          <Pressable
+            onPress={onMoveToDailySchedule}
+            disabled={migrateToDailyBusy}
+            style={styles.ghostBtn}
+          >
+            <Text style={[styles.ghostText, migrateToDailyBusy && styles.buttonDisabledText]}>
+              {migrateToDailyBusy ? '…' : 'Move to daily schedule'}
+            </Text>
+          </Pressable>
+        ) : null}
+        <Pressable
+          onPress={() => router.push(`/medications/${medication.id}`)}
+          style={styles.ghostBtn}
+        >
+          <Text style={styles.ghostText}>Edit</Text>
+        </Pressable>
+        {onDelete ? (
+          <Pressable onPress={onDelete} disabled={deleteBusy} style={styles.ghostBtn}>
+            <Text style={[styles.ghostText, styles.dangerText]}>
+              {deleteBusy ? '…' : 'Delete'}
+            </Text>
+          </Pressable>
+        ) : null}
+      </View>
+    </View>
+  );
+}
+
+const styles = StyleSheet.create({
+  card: {
+    backgroundColor: colors.surface,
+    borderRadius: radii.lg,
+    borderWidth: 1,
+    borderColor: colors.border,
+    padding: spacing.md,
+    gap: spacing.sm,
+  },
+  cardTaken: {
+    borderColor: '#a7f3d0',
+    backgroundColor: '#f0fdf4',
+  },
+  cardPrn: {
+    borderStyle: 'dashed',
+  },
+  header: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    gap: spacing.sm,
+  },
+  headerText: {
+    flex: 1,
+    gap: 2,
+  },
+  name: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: colors.text,
+  },
+  typeLabel: {
+    fontSize: 13,
+    color: colors.textMuted,
+  },
+  dosage: {
+    fontSize: 14,
+    color: colors.textMuted,
+    marginTop: 2,
+  },
+  dateRange: {
+    fontSize: 13,
+    color: colors.textMuted,
+  },
+  notes: {
+    fontSize: 14,
+    color: colors.text,
+  },
+  pills: {
+    fontSize: 13,
+    color: colors.textMuted,
+  },
+  pillsLow: {
+    color: colors.partial,
+    fontWeight: '600',
+  },
+  badge: {
+    alignSelf: 'flex-start',
+    borderRadius: radii.sm,
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+  },
+  badgeSuccess: {
+    backgroundColor: colors.successBg,
+  },
+  badgePartial: {
+    backgroundColor: colors.partialBg,
+  },
+  badgePending: {
+    backgroundColor: colors.pendingBg,
+  },
+  badgeText: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: colors.text,
+  },
+  slots: {
+    gap: spacing.sm,
+    marginTop: spacing.xs,
+  },
+  slot: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: spacing.sm,
+    paddingVertical: 4,
+  },
+  slotTakenRow: {
+    opacity: 0.9,
+  },
+  slotTaken: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: spacing.sm,
+    paddingVertical: 4,
+  },
+  slotTime: {
+    flex: 1,
+    fontSize: 15,
+    fontWeight: '600',
+    color: colors.text,
+  },
+  emptySlots: {
+    fontSize: 14,
+    color: colors.textMuted,
+    fontStyle: 'italic',
+  },
+  primaryButton: {
+    backgroundColor: colors.accent,
+    borderRadius: radii.md,
+    paddingVertical: 12,
+    alignItems: 'center',
+    marginTop: spacing.xs,
+  },
+  primaryButtonSmall: {
+    backgroundColor: colors.accent,
+    borderRadius: radii.sm,
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+    minWidth: 110,
+    alignItems: 'center',
+  },
+  primaryButtonText: {
+    color: '#fff',
+    fontSize: 15,
+    fontWeight: '700',
+  },
+  primaryButtonTextSmall: {
+    color: '#fff',
+    fontSize: 14,
+    fontWeight: '700',
+  },
+  secondaryButton: {
+    borderWidth: 1,
+    borderColor: colors.border,
+    borderRadius: radii.sm,
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+    backgroundColor: colors.surface,
+  },
+  secondaryButtonText: {
+    color: colors.text,
+    fontSize: 14,
+    fontWeight: '600',
+  },
+  actions: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 10,
+    marginTop: spacing.sm,
+  },
+  ghostBtn: {
+    paddingVertical: 6,
+    paddingHorizontal: 2,
+  },
+  ghostText: {
+    color: colors.textMuted,
+    fontWeight: '800',
+  },
+  dangerText: {
+    color: colors.error,
+  },
+  buttonDisabled: {
+    opacity: 0.6,
+  },
+  buttonDisabledText: {
+    opacity: 0.6,
+  },
+});

@@ -1,0 +1,148 @@
+{
+  "categories": {
+    "penicillin": {
+      "label": "Penicillin / beta-lactam antibiotics",
+      "description": "This medication is in the penicillin or related beta-lactam antibiotic class.",
+      "management": "People with penicillin allergy may react to this drug. Confirm with your physician or allergist before taking."
+    },
+    "cephalosporin": {
+      "label": "Cephalosporin antibiotics",
+      "description": "This medication is a cephalosporin antibiotic. Cross-reactivity with penicillin allergy is possible in some people.",
+      "management": "Discuss your allergy history with your prescriber or pharmacist before use."
+    },
+    "sulfa": {
+      "label": "Sulfonamide (sulfa) drugs",
+      "description": "This medication may contain a sulfonamide component.",
+      "management": "Sulfa allergy reactions vary. Do not start without guidance from a clinician who knows your history."
+    },
+    "aspirin_nsaid": {
+      "label": "Aspirin / NSAID class",
+      "description": "This medication is an NSAID or salicylate related to aspirin.",
+      "management": "NSAID or aspirin sensitivity can cause rash, asthma, or stomach bleeding. Ask before use."
+    },
+    "codeine_opioid": {
+      "label": "Codeine / opioid-related",
+      "description": "This medication is an opioid or codeine-related product.",
+      "management": "Codeine or opioid intolerance can cause nausea, rash, or breathing issues. Use only with medical supervision."
+    },
+    "fluoroquinolone": {
+      "label": "Fluoroquinolone antibiotics",
+      "description": "This medication is in the fluoroquinolone antibiotic class.",
+      "management": "Report prior fluoroquinolone reactions to your prescriber before starting."
+    },
+    "macrolide": {
+      "label": "Macrolide antibiotics",
+      "description": "This medication is a macrolide antibiotic (e.g. azithromycin, erythromycin).",
+      "management": "Discuss prior macrolide reactions with your clinician."
+    },
+    "ace_inhibitor": {
+      "label": "ACE inhibitor",
+      "description": "This medication is an ACE inhibitor used for blood pressure or heart failure.",
+      "management": "ACE inhibitors can cause cough or swelling. Prior reactions should be reviewed with your doctor."
+    },
+    "iodine_contrast": {
+      "label": "Iodine-containing medication",
+      "description": "Some forms of this drug or related products contain iodine.",
+      "management": "Tell radiology and prescribing clinicians about iodine or contrast allergies."
+    },
+    "insulin": {
+      "label": "Insulin products",
+      "description": "This medication is an insulin product.",
+      "management": "Insulin allergies are uncommon but serious. Only use under medical direction."
+    }
+  },
+  "userAllergyAliases": {
+    "penicillin": [
+      "penicillin",
+      "pcn",
+      "beta-lactam",
+      "beta lactam",
+      "amoxicillin allergy",
+      "augmentin allergy"
+    ],
+    "cephalosporin": ["cephalosporin", "cefalexin", "cefazolin", "keflex"],
+    "sulfa": ["sulfa", "sulfonamide", "sulfonamides", "bactrim", "septra", "sulfamethoxazole"],
+    "aspirin_nsaid": [
+      "aspirin",
+      "nsaid",
+      "nsaids",
+      "ibuprofen allergy",
+      "naproxen allergy",
+      "salicylate"
+    ],
+    "codeine_opioid": ["codeine", "opioid", "opioids", "morphine allergy", "hydrocodone allergy"],
+    "fluoroquinolone": ["fluoroquinolone", "cipro", "ciprofloxacin", "levofloxacin", "moxifloxacin"],
+    "macrolide": ["macrolide", "azithromycin allergy", "erythromycin allergy", "z-pack"],
+    "ace_inhibitor": ["ace inhibitor", "acei", "lisinopril allergy", "enalapril"],
+    "iodine_contrast": ["iodine", "contrast dye", "contrast allergy", "iv contrast"],
+    "insulin": ["insulin allergy", "insulin"]
+  },
+  "drugs": {
+    "amoxicillin": ["penicillin"],
+    "ampicillin": ["penicillin"],
+    "penicillin": ["penicillin"],
+    "augmentin": ["penicillin"],
+    "amoxicillin-clavulanate": ["penicillin"],
+    "cephalexin": ["cephalosporin"],
+    "cefazolin": ["cephalosporin"],
+    "cefuroxime": ["cephalosporin"],
+    "sulfamethoxazole": ["sulfa"],
+    "trimethoprim-sulfamethoxazole": ["sulfa"],
+    "bactrim": ["sulfa"],
+    "aspirin": ["aspirin_nsaid"],
+    "ibuprofen": ["aspirin_nsaid"],
+    "naproxen": ["aspirin_nsaid"],
+    "acetaminophen": [],
+    "ketorolac": ["aspirin_nsaid"],
+    "diclofenac": ["aspirin_nsaid"],
+    "celecoxib": ["aspirin_nsaid"],
+    "codeine": ["codeine_opioid"],
+    "hydrocodone": ["codeine_opioid"],
+    "oxycodone": ["codeine_opioid"],
+    "tramadol": ["codeine_opioid"],
+    "morphine": ["codeine_opioid"],
+    "fentanyl": ["codeine_opioid"],
+    "ciprofloxacin": ["fluoroquinolone"],
+    "levofloxacin": ["fluoroquinolone"],
+    "moxifloxacin": ["fluoroquinolone"],
+    "azithromycin": ["macrolide"],
+    "erythromycin": ["macrolide"],
+    "clarithromycin": ["macrolide"],
+    "lisinopril": ["ace_inhibitor"],
+    "enalapril": ["ace_inhibitor"],
+    "ramipril": ["ace_inhibitor"],
+    "benazepril": ["ace_inhibitor"],
+    "captopril": ["ace_inhibitor"],
+    "amiodarone": ["iodine_contrast"],
+    "insulin": ["insulin"],
+    "metformin": [],
+    "warfarin": [],
+    "escitalopram": [],
+    "sertraline": [],
+    "fluoxetine": [],
+    "atorvastatin": [],
+    "metoprolol": [],
+    "amlodipine": [],
+    "losartan": [],
+    "levothyroxine": [],
+    "omeprazole": [],
+    "albuterol": [],
+    "montelukast": [],
+    "theophylline": [],
+    "digoxin": [],
+    "phenobarbital": [],
+    "gemfibrozil": [],
+    "prednisone": [],
+    "gabapentin": [],
+    "duloxetine": [],
+    "bupropion": [],
+    "alprazolam": [],
+    "lorazepam": [],
+    "clonazepam": [],
+    "zolpidem": [],
+    "diphenhydramine": [],
+    "hydrochlorothiazide": ["sulfa"],
+    "furosemide": ["sulfa"],
+    "spironolactone": []
+  }
+}

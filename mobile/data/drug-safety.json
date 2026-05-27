@@ -1,0 +1,102 @@
+{
+  "substanceLabels": {
+    "alcohol": "Alcohol",
+    "cannabis": "Cannabis (marijuana)",
+    "tobacco": "Tobacco / nicotine"
+  },
+  "defaultPregnancy": "Pregnancy and breastfeeding effects vary by medication. Talk with your obstetrician or primary care clinician before starting or continuing any prescription or OTC drug.",
+  "defaultSideEffects": "All medications can cause side effects. Read your pharmacy label and call your clinician if you notice anything unusual.",
+  "defaultSubstance": "This substance may change how your body handles many medications. Use caution and ask a pharmacist or doctor before combining.",
+  "drugs": {
+    "metformin": {
+      "sideEffects": ["Nausea", "diarrhea", "stomach upset", "rare lactic acidosis"],
+      "pregnancy": "Often used in pregnancy when clinically indicated, but insulin is preferred in some cases. Your clinician should guide dosing.",
+      "substances": {
+        "alcohol": "Heavy alcohol use with metformin raises the risk of lactic acidosis.",
+        "cannabis": "Limited formal data; monitor blood sugar if you use cannabis regularly.",
+        "tobacco": "Smoking can worsen diabetes control; not a direct interaction but affects overall risk."
+      }
+    },
+    "lisinopril": {
+      "sideEffects": ["Dry cough", "dizziness", "high potassium", "low blood pressure"],
+      "pregnancy": "ACE inhibitors can harm a developing baby. Do not use during pregnancy unless a specialist directs otherwise.",
+      "substances": {
+        "alcohol": "Alcohol can intensify blood-pressure lowering and dizziness.",
+        "cannabis": "May add to dizziness or lightheadedness when standing.",
+        "tobacco": "Smoking worsens cardiovascular risk; quit support is recommended."
+      }
+    },
+    "warfarin": {
+      "sideEffects": ["Bleeding", "bruising", "nausea"],
+      "pregnancy": "Generally avoided in pregnancy because of fetal bleeding risk. Requires specialist management if absolutely needed.",
+      "substances": {
+        "alcohol": "Alcohol destabilizes INR and increases bleeding risk.",
+        "cannabis": "May affect bleeding risk; inform your anticoagulation clinic.",
+        "tobacco": "Smoking changes warfarin metabolism; dose adjustments may be needed when quitting or starting."
+      }
+    },
+    "escitalopram": {
+      "sideEffects": ["Nausea", "sleep changes", "sexual side effects", "restlessness when starting"],
+      "pregnancy": "Discuss risks and benefits with your psychiatrist or OB; some SSRIs are used in pregnancy with monitoring.",
+      "substances": {
+        "alcohol": "Alcohol worsens sedation and mood instability.",
+        "cannabis": "Combined CNS effects; may worsen anxiety or sedation in some people.",
+        "tobacco": "Smoking can lower escitalopram levels slightly; tell your prescriber if you quit."
+      }
+    },
+    "ibuprofen": {
+      "sideEffects": ["Stomach irritation", "kidney effects with long-term use", "blood pressure effects"],
+      "pregnancy": "Avoid in the third trimester and use the lowest effective dose earlier in pregnancy only if your clinician approves.",
+      "substances": {
+        "alcohol": "Increases stomach bleeding and ulcer risk when combined.",
+        "cannabis": "Both can cause dizziness; use caution with driving.",
+        "tobacco": "Smoking adds to stomach and cardiovascular risk when using NSAIDs regularly."
+      }
+    },
+    "levothyroxine": {
+      "sideEffects": ["Palpitations if over-replaced", "hair changes when dose is adjusting", "insomnia if dose is high"],
+      "pregnancy": "Thyroid hormone needs often increase in pregnancy; requires lab monitoring and dose adjustment.",
+      "substances": {
+        "alcohol": "No major direct interaction; take levothyroxine on an empty stomach as directed.",
+        "cannabis": "No well-established interaction; maintain consistent thyroid lab follow-up.",
+        "tobacco": "Smoking can affect thyroid hormone levels; inform your endocrinologist."
+      }
+    },
+    "montelukast": {
+      "sideEffects": ["Headache", "mood or sleep changes (uncommon)", "abdominal pain"],
+      "pregnancy": "Sometimes used for asthma in pregnancy when benefits outweigh risks; confirm with your clinician.",
+      "substances": {
+        "alcohol": "No major direct interaction; avoid alcohol if it triggers asthma.",
+        "cannabis": "Smoked cannabis may worsen respiratory symptoms in asthma.",
+        "tobacco": "Tobacco smoke worsens asthma; quitting improves medication effectiveness."
+      }
+    },
+    "atorvastatin": {
+      "sideEffects": ["Muscle aches", "elevated liver enzymes", "digestive upset"],
+      "pregnancy": "Statins are not recommended during pregnancy or while trying to conceive.",
+      "substances": {
+        "alcohol": "Heavy alcohol use increases liver strain with statins.",
+        "cannabis": "Limited data; report muscle pain to your clinician.",
+        "tobacco": "Smoking adds cardiovascular risk statins are meant to reduce."
+      }
+    },
+    "omeprazole": {
+      "sideEffects": ["Headache", "diarrhea or constipation", "long-term nutrient absorption changes"],
+      "pregnancy": "Often considered when needed in pregnancy; use lowest effective dose and duration.",
+      "substances": {
+        "alcohol": "Alcohol can irritate the stomach; PPIs do not remove alcohol-related ulcer risk.",
+        "cannabis": "May affect stomach emptying in some users; clinical significance is unclear.",
+        "tobacco": "Smoking worsens reflux and ulcer disease."
+      }
+    },
+    "albuterol": {
+      "sideEffects": ["Tremor", "fast heartbeat", "nervousness"],
+      "pregnancy": "Short-acting bronchodilators are commonly used in pregnancy for asthma relief when needed.",
+      "substances": {
+        "alcohol": "Alcohol is not a direct contraindication but can worsen dehydration.",
+        "cannabis": "Smoked cannabis may trigger bronchospasm in sensitive individuals.",
+        "tobacco": "Smoking reduces lung function and makes rescue inhalers less effective over time."
+      }
+    }
+  }
+}

@@ -4,13 +4,15 @@ import {
   Pressable,
   RefreshControl,
   ScrollView,
-  StyleSheet,
   Text,
   View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { colors, radii, spacing } from '../../constants/theme';
+import type { ColorPalette } from '../../constants/theme';
+import { radii, spacing } from '../../constants/theme';
+import { useTheme } from '../../context/ThemeProvider';
+import { useThemedStyles } from '../../hooks/useThemedStyles';
 import { useAuth } from '../../hooks/useAuth';
 import { useDayDetail } from '../../hooks/useDayDetail';
 import { useStreakStats } from '../../hooks/useStreakStats';
@@ -21,7 +23,86 @@ import { fetchWeeklySummary, type WeeklySummary } from '../../lib/weeklySummary'
 import { StreakConsistencyCalendar } from '../../components/streaks/StreakConsistencyCalendar';
 import { DayAdherenceDetail } from '../../components/history/DayAdherenceDetail';
 
+function makeHistoryStyles(colors: ColorPalette) {
+  return {
+    safe: { flex: 1, backgroundColor: colors.bg },
+    scroll: {
+      paddingHorizontal: spacing.sm,
+      paddingTop: spacing.sm,
+      paddingBottom: spacing.xl,
+      gap: spacing.sm,
+    },
+    weeklyCard: {
+      backgroundColor: colors.surface,
+      borderRadius: radii.lg,
+      borderWidth: 1,
+      borderColor: colors.border,
+      paddingVertical: spacing.md,
+      paddingHorizontal: spacing.md,
+      gap: 4,
+    },
+    weeklyTitle: { fontSize: 14, fontWeight: '800' as const, color: colors.text },
+    weeklyBody: { color: colors.textMuted, lineHeight: 22, fontSize: 15 },
+    headerCard: {
+      backgroundColor: colors.surface,
+      borderRadius: radii.lg,
+      borderWidth: 1,
+      borderColor: colors.border,
+      padding: spacing.lg,
+      gap: spacing.sm,
+    },
+    card: {
+      backgroundColor: colors.surface,
+      borderRadius: radii.lg,
+      borderWidth: 1,
+      borderColor: colors.border,
+      padding: spacing.lg,
+      gap: spacing.sm,
+    },
+    h1: { fontSize: 22, fontWeight: '900' as const, color: colors.text },
+    sub: { color: colors.textMuted, lineHeight: 20 },
+    bold: { fontWeight: '800' as const, color: colors.text },
+    statsRow: { flexDirection: 'row' as const, gap: spacing.md },
+    statCard: {
+      flex: 1,
+      backgroundColor: colors.surface,
+      borderRadius: radii.lg,
+      borderWidth: 1,
+      borderColor: colors.border,
+      padding: spacing.md,
+      alignItems: 'center' as const,
+      gap: 4,
+    },
+    statValue: { fontSize: 28, fontWeight: '900' as const, color: colors.accent },
+    statLabel: { fontSize: 12, color: colors.textMuted, textAlign: 'center' as const },
+    errorCard: { backgroundColor: colors.errorBg, borderColor: colors.errorBorder },
+    errorText: { color: colors.error, fontWeight: '800' as const },
+    loadingRow: {
+      flexDirection: 'row' as const,
+      alignItems: 'center' as const,
+      gap: spacing.sm,
+    },
+    primaryBtn: {
+      backgroundColor: colors.accent,
+      borderRadius: radii.md,
+      paddingVertical: 12,
+      alignItems: 'center' as const,
+      marginTop: spacing.sm,
+    },
+    primaryBtnText: { color: colors.onAccent, fontWeight: '900' as const },
+    footer: {
+      color: colors.textMuted,
+      textAlign: 'center' as const,
+      lineHeight: 20,
+      marginTop: spacing.sm,
+    },
+    footerLink: { color: colors.accent, fontWeight: '800' as const },
+  };
+}
+
 export default function HistoryScreen() {
+  const { colors } = useTheme();
+  const styles = useThemedStyles(makeHistoryStyles);
   const { user } = useAuth();
   const router = useRouter();
   const params = useLocalSearchParams<{ historyDate?: string }>();
@@ -215,70 +296,3 @@ export default function HistoryScreen() {
     </SafeAreaView>
   );
 }
-
-const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: colors.bg },
-  scroll: {
-    paddingHorizontal: spacing.sm,
-    paddingTop: spacing.sm,
-    paddingBottom: spacing.xl,
-    gap: spacing.sm,
-  },
-  weeklyCard: {
-    backgroundColor: colors.surface,
-    borderRadius: radii.lg,
-    borderWidth: 1,
-    borderColor: colors.border,
-    paddingVertical: spacing.md,
-    paddingHorizontal: spacing.md,
-    gap: 4,
-  },
-  weeklyTitle: { fontSize: 14, fontWeight: '800', color: colors.text },
-  weeklyBody: { color: colors.textMuted, lineHeight: 22, fontSize: 15 },
-  headerCard: {
-    backgroundColor: colors.surface,
-    borderRadius: radii.lg,
-    borderWidth: 1,
-    borderColor: colors.border,
-    padding: spacing.lg,
-    gap: spacing.sm,
-  },
-  card: {
-    backgroundColor: colors.surface,
-    borderRadius: radii.lg,
-    borderWidth: 1,
-    borderColor: colors.border,
-    padding: spacing.lg,
-    gap: spacing.sm,
-  },
-  h1: { fontSize: 22, fontWeight: '900', color: colors.text },
-  sub: { color: colors.textMuted, lineHeight: 20 },
-  bold: { fontWeight: '800', color: colors.text },
-  sectionTitle: { fontSize: 16, fontWeight: '900', color: colors.text },
-  statsRow: { flexDirection: 'row', gap: spacing.md },
-  statCard: {
-    flex: 1,
-    backgroundColor: colors.surface,
-    borderRadius: radii.lg,
-    borderWidth: 1,
-    borderColor: colors.border,
-    padding: spacing.md,
-    alignItems: 'center',
-    gap: 4,
-  },
-  statValue: { fontSize: 28, fontWeight: '900', color: colors.accent },
-  statLabel: { fontSize: 12, color: colors.textMuted, textAlign: 'center' },
-  errorCard: { backgroundColor: colors.errorBg, borderColor: '#fecaca' },
-  errorText: { color: colors.error, fontWeight: '800' },
-  loadingRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
-  primaryBtn: {
-    backgroundColor: colors.accent,
-    borderRadius: radii.md,
-    paddingVertical: 12,
-    alignItems: 'center',
-    marginTop: spacing.sm,
-  },
-  primaryBtnText: { color: '#fff', fontWeight: '900' },
-  footer: { color: colors.textMuted, textAlign: 'center', lineHeight: 20, marginTop: spacing.sm },
-  footerLink: { color: colors.accent, fontWeight: '800' },
-});

@@ -3,23 +3,84 @@ import {
   Animated,
   Modal,
   Pressable,
-  StyleSheet,
   Text,
   View,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
-import { colors, radii, spacing } from '../constants/theme';
+import type { ColorPalette } from '../constants/theme';
+import { radii, spacing } from '../constants/theme';
+import { useThemedStyles } from '../hooks/useThemedStyles';
 import { STREAK_CELEBRATION_MILESTONE_DAYS } from '../lib/streakCelebration';
+import { StreakCelebrationScene } from './streaks/StreakCelebrationScene';
 
 type Props = {
   streakDays: number;
   onDismiss: () => void;
 };
 
+function makeCelebrationStyles(colors: ColorPalette) {
+  return {
+    backdrop: {
+      flex: 1,
+      backgroundColor: 'rgba(15, 23, 42, 0.75)',
+      justifyContent: 'center' as const,
+      alignItems: 'center' as const,
+      padding: spacing.lg,
+    },
+    cardWrap: {
+      width: '100%' as const,
+      maxWidth: 360,
+    },
+    card: {
+      borderRadius: radii.xl,
+      padding: spacing.lg,
+      alignItems: 'center' as const,
+      borderWidth: 2,
+      borderColor: colors.partialBorder,
+      overflow: 'hidden' as const,
+    },
+    illustration: {
+      marginBottom: spacing.md,
+      alignItems: 'center' as const,
+      justifyContent: 'center' as const,
+      minHeight: 180,
+    },
+    title: {
+      fontSize: 22,
+      fontWeight: '900' as const,
+      color: colors.text,
+      textAlign: 'center' as const,
+      marginBottom: spacing.sm,
+    },
+    body: {
+      fontSize: 15,
+      color: colors.textMuted,
+      textAlign: 'center' as const,
+      lineHeight: 22,
+      marginBottom: spacing.lg,
+    },
+    button: {
+      backgroundColor: colors.accent,
+      borderRadius: radii.md,
+      paddingVertical: 14,
+      paddingHorizontal: spacing.xl,
+      width: '100%' as const,
+    },
+    buttonText: {
+      color: colors.onAccent,
+      fontWeight: '900' as const,
+      fontSize: 16,
+      textAlign: 'center' as const,
+    },
+  };
+}
+
 export function StreakCelebration({ streakDays, onDismiss }: Props) {
   const dual = streakDays >= STREAK_CELEBRATION_MILESTONE_DAYS;
   const opacity = useRef(new Animated.Value(0)).current;
-  const scale = useRef(new Animated.Value(0.85)).current;
+  const scale = useRef(new Animated.Value(0.88)).current;
+  const sceneOpacity = useRef(new Animated.Value(0)).current;
+  const styles = useThemedStyles(makeCelebrationStyles);
 
   useEffect(() => {
     Animated.parallel([
@@ -34,8 +95,16 @@ export function StreakCelebration({ streakDays, onDismiss }: Props) {
         tension: 80,
         useNativeDriver: true,
       }),
+      Animated.timing(sceneOpacity, {
+        toValue: 1,
+        duration: 900,
+        delay: 200,
+        useNativeDriver: true,
+      }),
     ]).start();
-  }, [opacity, scale]);
+  }, [opacity, scale, sceneOpacity]);
+
+  const label = `Streak × ${STREAK_CELEBRATION_MILESTONE_DAYS} — week in bloom!`;
 
   return (
     <Modal visible transparent animationType="fade" onRequestClose={onDismiss}>
@@ -44,82 +113,27 @@ export function StreakCelebration({ streakDays, onDismiss }: Props) {
           style={[styles.cardWrap, { opacity, transform: [{ scale }] }]}
           onStartShouldSetResponder={() => true}
         >
-            <LinearGradient
-              colors={['#fef3c7', '#fde68a', '#fbcfe8', '#f9a8d4']}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 1 }}
-              style={styles.card}
-            >
-              <Text style={styles.emoji}>🦋</Text>
-              <View style={styles.tulips}>
-                <Text style={styles.tulip}>🌷</Text>
-                {dual && <Text style={[styles.tulip, styles.tulipYellow]}>🌷</Text>}
-              </View>
-              <Text style={styles.title}>
-                Streak × {STREAK_CELEBRATION_MILESTONE_DAYS} — week in bloom!
-              </Text>
-              <Text style={styles.body}>
-                You logged every scheduled dose today for {STREAK_CELEBRATION_MILESTONE_DAYS} days in a row.
-                Keep it up tomorrow.
-              </Text>
-              <Pressable style={styles.button} onPress={onDismiss}>
-                <Text style={styles.buttonText}>Continue</Text>
-              </Pressable>
-            </LinearGradient>
+          <LinearGradient
+            colors={['#fef3c7', '#fde68a', '#fbcfe8', '#f9a8d4']}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 1 }}
+            style={styles.card}
+          >
+            <Animated.View style={[styles.illustration, { opacity: sceneOpacity }]}>
+              <StreakCelebrationScene dual={dual} />
+            </Animated.View>
+            <Text style={styles.title}>{label}</Text>
+            <Text style={styles.body}>
+              {dual
+                ? 'A full week in bloom — purple and gold on one stem. Keep it growing tomorrow.'
+                : 'Every scheduled dose logged today. Keep it growing tomorrow.'}
+            </Text>
+            <Pressable style={styles.button} onPress={onDismiss}>
+              <Text style={styles.buttonText}>Continue</Text>
+            </Pressable>
+          </LinearGradient>
         </Animated.View>
       </Pressable>
     </Modal>
   );
 }
-
-const styles = StyleSheet.create({
-  backdrop: {
-    flex: 1,
-    backgroundColor: 'rgba(15, 23, 42, 0.75)',
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: spacing.lg,
-  },
-  cardWrap: {
-    width: '100%',
-    maxWidth: 360,
-  },
-  card: {
-    borderRadius: radii.xl,
-    padding: spacing.lg,
-    alignItems: 'center',
-    borderWidth: 2,
-    borderColor: '#fbbf24',
-    overflow: 'hidden',
-  },
-  emoji: { fontSize: 48, marginBottom: spacing.sm },
-  tulips: { flexDirection: 'row', gap: 16, marginBottom: spacing.md },
-  tulip: { fontSize: 56 },
-  tulipYellow: { marginTop: 8 },
-  title: {
-    fontSize: 22,
-    fontWeight: '900',
-    color: colors.text,
-    textAlign: 'center',
-    marginBottom: spacing.sm,
-  },
-  body: {
-    fontSize: 15,
-    color: colors.textMuted,
-    textAlign: 'center',
-    lineHeight: 22,
-    marginBottom: spacing.lg,
-  },
-  button: {
-    backgroundColor: colors.accent,
-    borderRadius: radii.md,
-    paddingVertical: 14,
-    paddingHorizontal: spacing.xl,
-    width: '100%',
-  },
-  buttonText: {
-    color: '#fff',
-    fontWeight: '900',
-    fontSize: 16,
-  },
-});

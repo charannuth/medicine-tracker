@@ -1,16 +1,49 @@
 import { useEffect, useState } from 'react';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { Pressable, Text, View } from 'react-native';
 import {
   checkMedicationInteractions,
   type InteractionCheckResult,
 } from '../../lib/drugInteractions';
-import { colors, radii, spacing } from '../../constants/theme';
+import type { ColorPalette } from '../../constants/theme';
+import { radii, spacing } from '../../constants/theme';
+import { useThemedStyles } from '../../hooks/useThemedStyles';
 import { useRouter } from 'expo-router';
+
+function makeStyles(colors: ColorPalette) {
+  return {
+    banner: {
+      borderRadius: radii.lg,
+      padding: spacing.md,
+      borderWidth: 1,
+      gap: 6,
+    },
+    warning: {
+      backgroundColor: colors.partialBg,
+      borderColor: colors.partialBorder,
+    },
+    error: {
+      backgroundColor: colors.errorBg,
+      borderColor: colors.errorBorder,
+    },
+    title: {
+      fontWeight: '900' as const,
+      color: colors.text,
+    },
+    body: {
+      color: colors.text,
+    },
+    link: {
+      color: colors.accent,
+      fontWeight: '800' as const,
+    },
+  };
+}
 
 export function InteractionAlert({ medicationNames }: { medicationNames: string[] }) {
   const shouldCheck = medicationNames.length >= 2;
   const [result, setResult] = useState<InteractionCheckResult | null>(null);
   const router = useRouter();
+  const styles = useThemedStyles(makeStyles);
 
   useEffect(() => {
     if (!shouldCheck) return;
@@ -57,32 +90,3 @@ export function InteractionAlert({ medicationNames }: { medicationNames: string[
     </Pressable>
   );
 }
-
-const styles = StyleSheet.create({
-  banner: {
-    borderRadius: radii.lg,
-    padding: spacing.md,
-    borderWidth: 1,
-    gap: 6,
-  },
-  warning: {
-    backgroundColor: '#fffbeb',
-    borderColor: '#fde68a',
-  },
-  error: {
-    backgroundColor: '#fef2f2',
-    borderColor: '#fecaca',
-  },
-  title: {
-    fontWeight: '900',
-    color: colors.text,
-  },
-  body: {
-    color: colors.text,
-  },
-  link: {
-    color: colors.accent,
-    fontWeight: '800',
-  },
-});
-

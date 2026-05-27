@@ -6,7 +6,7 @@ import type { BodyMetricUnit } from '../../lib/bodyMetrics';
 import type { PhysicalProfileInput } from '../../lib/physicalProfile';
 import { HeightWeightFields } from './HeightWeightFields';
 import { SelectField } from './SelectField';
-import { trackingStyles } from './trackingStyles';
+import { useTrackingStyles } from './trackingStyles';
 
 type Props = {
   value: PhysicalProfileInput;
@@ -26,6 +26,7 @@ export function PhysicalProfileForm({
   busy = false,
 }: Props) {
   const router = useRouter();
+  const trackingStyles = useTrackingStyles();
 
   function patch(partial: Partial<PhysicalProfileInput>) {
     onChange({ ...value, ...partial });

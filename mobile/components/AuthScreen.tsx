@@ -5,7 +5,6 @@ import {
   Platform,
   Pressable,
   ScrollView,
-  StyleSheet,
   Text,
   TextInput,
   View,
@@ -15,7 +14,118 @@ import { BrandLogo } from './BrandLogo';
 import { EmailOtpVerification } from './EmailOtpVerification';
 import { useAuth } from '../hooks/useAuth';
 import { authErrorMessage } from '../lib/authErrors';
-import { colors, radii, spacing } from '../constants/theme';
+import type { ColorPalette } from '../constants/theme';
+import { radii, spacing } from '../constants/theme';
+import { useTheme } from '../context/ThemeProvider';
+import { useThemedStyles } from '../hooks/useThemedStyles';
+
+function makeAuthStyles(colors: ColorPalette) {
+  return {
+    safe: {
+      flex: 1,
+      backgroundColor: colors.bg,
+    },
+    flex: {
+      flex: 1,
+    },
+    scroll: {
+      flexGrow: 1,
+      justifyContent: 'center' as const,
+      padding: spacing.lg,
+    },
+    card: {
+      backgroundColor: colors.surface,
+      borderRadius: radii.xl,
+      padding: spacing.lg,
+      shadowColor: colors.text,
+      shadowOpacity: 0.08,
+      shadowRadius: 16,
+      shadowOffset: { width: 0, height: 8 },
+      elevation: 4,
+      gap: spacing.sm,
+    },
+    title: {
+      fontSize: 28,
+      fontWeight: '800' as const,
+      color: colors.text,
+      textAlign: 'center' as const,
+      marginBottom: spacing.sm,
+    },
+    subtitle: {
+      fontSize: 15,
+      color: colors.textMuted,
+      lineHeight: 22,
+      marginBottom: spacing.sm,
+    },
+    label: {
+      fontSize: 14,
+      fontWeight: '600' as const,
+      color: colors.text,
+      marginTop: spacing.sm,
+      marginBottom: spacing.sm,
+    },
+    input: {
+      borderWidth: 1,
+      borderColor: colors.border,
+      borderRadius: radii.md,
+      paddingHorizontal: spacing.md,
+      paddingVertical: 12,
+      fontSize: 16,
+      backgroundColor: colors.surface,
+      color: colors.text,
+    },
+    error: {
+      color: colors.error,
+      marginTop: spacing.sm,
+    },
+    success: {
+      color: colors.success,
+      marginTop: spacing.sm,
+    },
+    primaryButton: {
+      backgroundColor: colors.accent,
+      borderRadius: radii.md,
+      paddingVertical: 14,
+      alignItems: 'center' as const,
+      marginTop: spacing.md,
+    },
+    primaryButtonText: {
+      color: colors.onAccent,
+      fontSize: 16,
+      fontWeight: '700' as const,
+    },
+    buttonDisabled: {
+      opacity: 0.6,
+    },
+    toggleRow: {
+      flexDirection: 'row' as const,
+      flexWrap: 'wrap' as const,
+      justifyContent: 'center' as const,
+      alignItems: 'center' as const,
+      marginTop: spacing.md,
+    },
+    toggleText: {
+      textAlign: 'center' as const,
+      color: colors.textMuted,
+      fontSize: 14,
+    },
+    toggleDivider: {
+      color: colors.textMuted,
+    },
+    linkText: {
+      color: colors.accent,
+      fontSize: 14,
+      fontWeight: '600' as const,
+    },
+    disclaimer: {
+      marginTop: spacing.lg,
+      fontSize: 12,
+      lineHeight: 18,
+      color: colors.textMuted,
+      textAlign: 'center' as const,
+    },
+  };
+}
 
 type AuthMode =
   | 'signin'
@@ -26,6 +136,8 @@ type AuthMode =
   | 'forgot-reset';
 
 export function AuthScreen() {
+  const { colors } = useTheme();
+  const styles = useThemedStyles(makeAuthStyles);
   const {
     signIn,
     signUp,
@@ -263,7 +375,7 @@ export function AuthScreen() {
                   onPress={handleSubmit}
                 >
                   {busy ? (
-                    <ActivityIndicator color="#fff" />
+                    <ActivityIndicator color={colors.onAccent} />
                   ) : (
                     <Text style={styles.primaryButtonText}>
                       {mode === 'forgot'
@@ -318,109 +430,3 @@ export function AuthScreen() {
     </SafeAreaView>
   );
 }
-
-const styles = StyleSheet.create({
-  safe: {
-    flex: 1,
-    backgroundColor: colors.bg,
-  },
-  flex: {
-    flex: 1,
-  },
-  scroll: {
-    flexGrow: 1,
-    justifyContent: 'center',
-    padding: spacing.lg,
-  },
-  card: {
-    backgroundColor: colors.surface,
-    borderRadius: radii.xl,
-    padding: spacing.lg,
-    shadowColor: '#0f172a',
-    shadowOpacity: 0.08,
-    shadowRadius: 16,
-    shadowOffset: { width: 0, height: 8 },
-    elevation: 4,
-    gap: spacing.sm,
-  },
-  title: {
-    fontSize: 28,
-    fontWeight: '800',
-    color: colors.text,
-    textAlign: 'center',
-    marginBottom: spacing.sm,
-  },
-  subtitle: {
-    fontSize: 15,
-    color: colors.textMuted,
-    lineHeight: 22,
-    marginBottom: spacing.sm,
-  },
-  label: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: colors.text,
-    marginTop: spacing.sm,
-    marginBottom: spacing.sm,
-  },
-  input: {
-    borderWidth: 1,
-    borderColor: colors.border,
-    borderRadius: radii.md,
-    paddingHorizontal: spacing.md,
-    paddingVertical: 12,
-    fontSize: 16,
-    backgroundColor: colors.surface,
-    color: colors.text,
-  },
-  error: {
-    color: colors.error,
-    marginTop: spacing.sm,
-  },
-  success: {
-    color: colors.success,
-    marginTop: spacing.sm,
-  },
-  primaryButton: {
-    backgroundColor: colors.accent,
-    borderRadius: radii.md,
-    paddingVertical: 14,
-    alignItems: 'center',
-    marginTop: spacing.md,
-  },
-  primaryButtonText: {
-    color: '#fff',
-    fontSize: 16,
-    fontWeight: '700',
-  },
-  buttonDisabled: {
-    opacity: 0.6,
-  },
-  toggleRow: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginTop: spacing.md,
-  },
-  toggleText: {
-    textAlign: 'center',
-    color: colors.textMuted,
-    fontSize: 14,
-  },
-  toggleDivider: {
-    color: colors.textMuted,
-  },
-  linkText: {
-    color: colors.accent,
-    fontSize: 14,
-    fontWeight: '600',
-  },
-  disclaimer: {
-    marginTop: spacing.lg,
-    fontSize: 12,
-    lineHeight: 18,
-    color: colors.textMuted,
-    textAlign: 'center',
-  },
-});

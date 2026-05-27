@@ -2,7 +2,6 @@ import { useState } from 'react';
 import {
   ActivityIndicator,
   Pressable,
-  StyleSheet,
   Text,
   View,
 } from 'react-native';
@@ -17,9 +16,92 @@ import {
 import { todayLocalDate } from '../lib/dates';
 import { WellnessDisclaimer } from './WellnessDisclaimer';
 import { WellnessDailyForm } from './WellnessDailyForm';
-import { colors, radii, spacing } from '../constants/theme';
+import type { ColorPalette } from '../constants/theme';
+import { radii, spacing } from '../constants/theme';
+import { useTheme } from '../context/ThemeProvider';
+import { useThemedStyles } from '../hooks/useThemedStyles';
+
+function makeTodayWellnessStyles(colors: ColorPalette) {
+  return {
+    card: {
+      backgroundColor: colors.surface,
+      borderRadius: radii.lg,
+      borderWidth: 1,
+      borderColor: colors.border,
+      padding: spacing.lg,
+      gap: spacing.sm,
+    },
+    header: {
+      flexDirection: 'row' as const,
+      alignItems: 'flex-start' as const,
+      justifyContent: 'space-between' as const,
+      gap: spacing.sm,
+    },
+    h3: {
+      fontSize: 18,
+      fontWeight: '900' as const,
+      color: colors.text,
+      marginBottom: 2,
+    },
+    muted: {
+      color: colors.textMuted,
+      lineHeight: 18,
+    },
+    linkBtn: {
+      paddingVertical: 6,
+      paddingHorizontal: 6,
+    },
+    linkText: {
+      color: colors.accent,
+      fontWeight: '900' as const,
+    },
+    loadingRow: {
+      flexDirection: 'row' as const,
+      alignItems: 'center' as const,
+      gap: 10,
+    },
+    banner: {
+      borderRadius: radii.md,
+      padding: spacing.md,
+      borderWidth: 1,
+    },
+    bannerError: {
+      backgroundColor: colors.errorBg,
+      borderColor: colors.errorBorder,
+    },
+    bannerErrorText: { color: colors.error, fontWeight: '700' as const },
+    bannerSuccess: {
+      backgroundColor: colors.successBg,
+      borderColor: colors.successBorder,
+    },
+    bannerSuccessText: { color: colors.text, fontWeight: '700' as const },
+    primaryBtn: {
+      marginTop: spacing.sm,
+      backgroundColor: colors.accent,
+      borderRadius: radii.md,
+      paddingVertical: 14,
+      alignItems: 'center' as const,
+    },
+    primaryText: { color: colors.onAccent, fontWeight: '900' as const, fontSize: 16 },
+    secondaryBtn: {
+      borderWidth: 1,
+      borderColor: colors.border,
+      borderRadius: radii.md,
+      paddingVertical: 10,
+      paddingHorizontal: spacing.md,
+      alignItems: 'center' as const,
+    },
+    secondaryText: { color: colors.text, fontWeight: '800' as const },
+    doneRow: {
+      gap: spacing.sm,
+    },
+    summary: { color: colors.text, fontWeight: '700' as const },
+  };
+}
 
 export function TodayWellnessCheckIn() {
+  const { colors } = useTheme();
+  const styles = useThemedStyles(makeTodayWellnessStyles);
   const { user } = useAuth();
   const router = useRouter();
   const today = todayLocalDate();
@@ -137,80 +219,3 @@ export function TodayWellnessCheckIn() {
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  card: {
-    backgroundColor: colors.surface,
-    borderRadius: radii.lg,
-    borderWidth: 1,
-    borderColor: colors.border,
-    padding: spacing.lg,
-    gap: spacing.sm,
-  },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-    justifyContent: 'space-between',
-    gap: spacing.sm,
-  },
-  h3: {
-    fontSize: 18,
-    fontWeight: '900',
-    color: colors.text,
-    marginBottom: 2,
-  },
-  muted: {
-    color: colors.textMuted,
-    lineHeight: 18,
-  },
-  linkBtn: {
-    paddingVertical: 6,
-    paddingHorizontal: 6,
-  },
-  linkText: {
-    color: colors.accent,
-    fontWeight: '900',
-  },
-  loadingRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 10,
-  },
-  banner: {
-    borderRadius: radii.md,
-    padding: spacing.md,
-    borderWidth: 1,
-  },
-  bannerError: {
-    backgroundColor: colors.errorBg,
-    borderColor: '#fecaca',
-  },
-  bannerErrorText: { color: colors.error, fontWeight: '700' },
-  bannerSuccess: {
-    backgroundColor: colors.successBg,
-    borderColor: '#bbf7d0',
-  },
-  bannerSuccessText: { color: colors.text, fontWeight: '700' },
-  primaryBtn: {
-    marginTop: spacing.sm,
-    backgroundColor: colors.accent,
-    borderRadius: radii.md,
-    paddingVertical: 14,
-    alignItems: 'center',
-  },
-  primaryText: { color: '#fff', fontWeight: '900', fontSize: 16 },
-  secondaryBtn: {
-    borderWidth: 1,
-    borderColor: colors.border,
-    borderRadius: radii.md,
-    paddingVertical: 10,
-    paddingHorizontal: spacing.md,
-    alignItems: 'center',
-  },
-  secondaryText: { color: colors.text, fontWeight: '800' },
-  doneRow: {
-    gap: spacing.sm,
-  },
-  summary: { color: colors.text, fontWeight: '700' },
-});
-

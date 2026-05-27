@@ -1,11 +1,12 @@
 import 'react-native-gesture-handler';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Drawer } from 'expo-router/drawer';
 import { useRouter } from 'expo-router';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { colors, spacing } from '../../constants/theme';
+import type { ColorPalette } from '../../constants/theme';
+import { radii, spacing } from '../../constants/theme';
 import { DrDoseWordmark } from '../../components/DrDoseWordmark';
 import { DrawerContentScrollView, DrawerItemList } from 'expo-router/build/react-navigation/drawer';
 import { useAuth } from '../../hooks/useAuth';
@@ -14,8 +15,15 @@ import { OnboardingModal } from '../../components/OnboardingModal';
 import { isOnboardingDone } from '../../lib/settings';
 import { fetchMedicationsWithStatus } from '../../lib/medications';
 import { useReminderBootstrap } from '../../hooks/useReminderBootstrap';
+import { useTheme } from '../../context/ThemeProvider';
 
-function Hamburger({ onPress }: { onPress: () => void }) {
+function Hamburger({
+  onPress,
+  styles,
+}: {
+  onPress: () => void;
+  styles: ReturnType<typeof makeStyles>;
+}) {
   return (
     <Pressable
       onPress={onPress}
@@ -28,7 +36,13 @@ function Hamburger({ onPress }: { onPress: () => void }) {
   );
 }
 
-function Plus({ onPress }: { onPress: () => void }) {
+function Plus({
+  onPress,
+  styles,
+}: {
+  onPress: () => void;
+  styles: ReturnType<typeof makeStyles>;
+}) {
   return (
     <Pressable
       onPress={onPress}
@@ -41,7 +55,13 @@ function Plus({ onPress }: { onPress: () => void }) {
   );
 }
 
-function HeaderTitle({ pageTitle }: { pageTitle: string }) {
+function HeaderTitle({
+  pageTitle,
+  styles,
+}: {
+  pageTitle: string;
+  styles: ReturnType<typeof makeStyles>;
+}) {
   return (
     <View style={styles.titleWrap}>
       <DrDoseWordmark />
@@ -50,18 +70,22 @@ function HeaderTitle({ pageTitle }: { pageTitle: string }) {
   );
 }
 
-function DrawerContent(props: Parameters<typeof DrawerItemList>[0]) {
+function DrawerContent(
+  props: Parameters<typeof DrawerItemList>[0] & { styles: ReturnType<typeof makeStyles> },
+) {
   const router = useRouter();
   const { user, signOut } = useAuth();
   const insets = useSafeAreaInsets();
+  const { styles, ...drawerProps } = props;
 
   return (
     <DrawerContentScrollView
-      {...props}
+      {...drawerProps}
       contentContainerStyle={[
         styles.drawerScroll,
         { paddingTop: Math.max(insets.top, spacing.md), paddingBottom: insets.bottom + spacing.md },
       ]}
+      style={{ backgroundColor: styles.drawerBg.backgroundColor }}
     >
       <View style={styles.drawerHeader}>
         <ProfileAvatar user={user} size="lg" />
@@ -73,12 +97,12 @@ function DrawerContent(props: Parameters<typeof DrawerItemList>[0]) {
         </View>
       </View>
 
-      <DrawerItemList {...props} />
+      <DrawerItemList {...drawerProps} />
 
       <Pressable
         onPress={async () => {
           await signOut();
-          props.navigation.closeDrawer();
+          drawerProps.navigation.closeDrawer();
           router.replace('/login');
         }}
         style={styles.signOutRow}
@@ -94,6 +118,8 @@ function DrawerContent(props: Parameters<typeof DrawerItemList>[0]) {
 export default function DrawerLayout() {
   const router = useRouter();
   const { user } = useAuth();
+  const { colors } = useTheme();
+  const styles = useMemo(() => makeStyles(colors), [colors]);
   const [showOnboarding, setShowOnboarding] = useState(false);
 
   useReminderBootstrap(user?.id);
@@ -141,103 +167,112 @@ export default function DrawerLayout() {
         />
       ) : null}
       <Drawer
-      drawerContent={(props) => <DrawerContent {...props} />}
-      screenOptions={({ navigation, route }) => ({
-        headerStyle: styles.header as any,
-        headerShadowVisible: true,
-        headerTitleAlign: 'center',
-        headerLeft: () => <Hamburger onPress={() => navigation.toggleDrawer()} />,
-        headerRight: () =>
-          route.name === 'index' ? (
-            <Plus onPress={() => router.push('/medications/new')} />
-          ) : null,
-        headerTitle: () => (
-          <HeaderTitle pageTitle={titleByRoute[String(route.name)] ?? String(route.name)} />
-        ),
-        drawerActiveTintColor: colors.accent,
-        drawerInactiveTintColor: colors.textMuted,
-      })}
-    >
-      <Drawer.Screen name="index" options={{ title: 'Today' }} />
-      <Drawer.Screen name="history" options={{ title: 'History' }} />
-      <Drawer.Screen name="wellness" options={{ title: 'Wellness' }} />
-      <Drawer.Screen name="streaks" options={{ title: 'Streaks' }} />
-      <Drawer.Screen name="tracking" options={{ title: 'Tracking' }} />
-      <Drawer.Screen name="medical-records" options={{ title: 'Medical records' }} />
-      <Drawer.Screen
-        name="interactions"
-        options={{
-          title: 'Interactions',
-          // show it in the drawer as “Drug safety check”
-          drawerLabel: 'Drug safety check',
-        }}
-      />
-      <Drawer.Screen name="help" options={{ title: 'Help & safety' }} />
-      <Drawer.Screen name="account" options={{ title: 'My account' }} />
-    </Drawer>
+        drawerContent={(props) => <DrawerContent {...props} styles={styles} />}
+        screenOptions={({ navigation, route }) => ({
+          headerStyle: { backgroundColor: colors.surface },
+          headerTintColor: colors.text,
+          headerShadowVisible: true,
+          headerTitleAlign: 'center',
+          drawerStyle: { backgroundColor: colors.bg },
+          drawerActiveTintColor: colors.accent,
+          drawerInactiveTintColor: colors.textMuted,
+          drawerActiveBackgroundColor: colors.pendingBg,
+          headerLeft: () => (
+            <Hamburger onPress={() => navigation.toggleDrawer()} styles={styles} />
+          ),
+          headerRight: () =>
+            route.name === 'index' ? (
+              <Plus onPress={() => router.push('/medications/new')} styles={styles} />
+            ) : null,
+          headerTitle: () => (
+            <HeaderTitle
+              pageTitle={titleByRoute[String(route.name)] ?? String(route.name)}
+              styles={styles}
+            />
+          ),
+        })}
+      >
+        <Drawer.Screen name="index" options={{ title: 'Today' }} />
+        <Drawer.Screen name="history" options={{ title: 'History' }} />
+        <Drawer.Screen name="wellness" options={{ title: 'Wellness' }} />
+        <Drawer.Screen name="streaks" options={{ title: 'Streaks' }} />
+        <Drawer.Screen name="tracking" options={{ title: 'Tracking' }} />
+        <Drawer.Screen name="medical-records" options={{ title: 'Medical records' }} />
+        <Drawer.Screen
+          name="interactions"
+          options={{
+            title: 'Interactions',
+            drawerLabel: 'Drug safety check',
+          }}
+        />
+        <Drawer.Screen name="help" options={{ title: 'Help & safety' }} />
+        <Drawer.Screen name="account" options={{ title: 'My account' }} />
+      </Drawer>
     </>
   );
 }
 
-const styles = StyleSheet.create({
-  header: {
-    backgroundColor: colors.surface,
-  },
-  drawerScroll: {},
-  drawerHeader: {
-    paddingHorizontal: spacing.lg,
-    paddingBottom: spacing.md,
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.md,
-  },
-  drawerUser: {
-    flex: 1,
-    gap: 2,
-  },
-  drawerSignedIn: {
-    color: colors.textMuted,
-    fontWeight: '700',
-    fontSize: 13,
-  },
-  drawerEmail: {
-    color: colors.text,
-    fontWeight: '800',
-  },
-  titleWrap: {
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  pageTitle: {
-    marginTop: 2,
-    fontSize: 14,
-    fontWeight: '700',
-    color: colors.textMuted,
-    letterSpacing: 0.2,
-  },
-  iconButton: {
-    paddingHorizontal: spacing.md,
-    paddingVertical: 10,
-  },
-  iconText: {
-    fontSize: 22,
-    fontWeight: '800',
-    color: colors.text,
-  },
-  plusButton: {
-    paddingRight: spacing.lg,
-  },
-  plusText: {
-    color: colors.accent,
-  },
-  signOutRow: {
-    marginTop: spacing.lg,
-    paddingHorizontal: spacing.lg,
-    paddingVertical: spacing.md,
-  },
-  signOutText: {
-    color: colors.error,
-    fontWeight: '900',
-  },
-});
-
+function makeStyles(colors: ColorPalette) {
+  return StyleSheet.create({
+    drawerBg: { backgroundColor: colors.bg },
+    header: {
+      backgroundColor: colors.surface,
+    },
+    drawerScroll: {},
+    drawerHeader: {
+      paddingHorizontal: spacing.lg,
+      paddingBottom: spacing.md,
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: spacing.md,
+    },
+    drawerUser: {
+      flex: 1,
+      gap: 2,
+    },
+    drawerSignedIn: {
+      color: colors.textMuted,
+      fontWeight: '700',
+      fontSize: 13,
+    },
+    drawerEmail: {
+      color: colors.text,
+      fontWeight: '800',
+    },
+    titleWrap: {
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    pageTitle: {
+      marginTop: 2,
+      fontSize: 14,
+      fontWeight: '700',
+      color: colors.textMuted,
+      letterSpacing: 0.2,
+    },
+    iconButton: {
+      paddingHorizontal: spacing.md,
+      paddingVertical: 10,
+    },
+    iconText: {
+      fontSize: 22,
+      fontWeight: '800',
+      color: colors.text,
+    },
+    plusButton: {
+      paddingRight: spacing.lg,
+    },
+    plusText: {
+      color: colors.accent,
+    },
+    signOutRow: {
+      marginTop: spacing.lg,
+      paddingHorizontal: spacing.lg,
+      paddingVertical: spacing.md,
+    },
+    signOutText: {
+      color: colors.error,
+      fontWeight: '900',
+    },
+  });
+}

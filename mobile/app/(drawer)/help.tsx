@@ -144,7 +144,7 @@ function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
     },
     warningCard: {
       backgroundColor: colors.partialBg,
-      borderColor: '#fde68a',
+      borderColor: colors.partialBorder,
     },
     sectionTitle: { fontSize: 17, fontWeight: '900', color: colors.text, marginBottom: spacing.xs },
     body: { color: colors.text, lineHeight: 22, fontSize: 15 },

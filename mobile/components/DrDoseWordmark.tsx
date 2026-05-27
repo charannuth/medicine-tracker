@@ -2,13 +2,13 @@ import { useEffect, useMemo, useRef } from 'react';
 import { Animated, Easing, StyleSheet, Text, View } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import MaskedView from '@react-native-masked-view/masked-view';
-import { colors } from '../constants/theme';
+import { useTheme } from '../context/ThemeProvider';
 
 /**
  * Simple “red lava” wordmark animation: a moving gradient clipped to the text width.
- * (Not a perfect clone of the web shine yet, but gets the vibe and is performant.)
  */
 export function DrDoseWordmark() {
+  const { colors } = useTheme();
   const shimmer = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
@@ -49,7 +49,7 @@ export function DrDoseWordmark() {
         <View style={styles.wordmark}>
           <Animated.View style={[styles.gradientOverlay, { transform: [{ translateX }] }]}>
             <LinearGradient
-              colors={[colors.brandDeep, colors.brandCrimson, '#fb7185', colors.brandMaroon]}
+              colors={[colors.brandDeep, colors.brandCrimson, colors.brandMaroon, colors.brandCrimson]}
               start={{ x: 0, y: 0 }}
               end={{ x: 1, y: 0 }}
               style={styles.gradient}
@@ -88,4 +88,3 @@ const styles = StyleSheet.create({
     color: '#000',
   },
 });
-

@@ -1,6 +1,6 @@
 # Mobile app (Expo)
 
-The app lives in `mobile/`. It uses **Expo SDK 56** and **Expo Router** (file-based routes under `mobile/app/`).
+The app lives in `mobile/`. It uses **Expo SDK 56** and **Expo Router** (file-based routes under `mobile/app/`). It shares the same Supabase project as the web app (`web/`).
 
 ## Run on iOS Simulator (recommended)
 
@@ -9,10 +9,16 @@ Expo Go on a physical device must match the SDK; if your Expo Go is outdated, us
 ```bash
 cd mobile
 npm install
+npx expo start
+```
+
+In another terminal (or press `i` in the Expo CLI), open the simulator:
+
+```bash
 npx expo run:ios
 ```
 
-This opens the iOS Simulator with a native dev client. Use `npx expo start` in another terminal if you want Metro with dev menu options.
+`expo run:ios` builds a native dev client when `ios/` is missing or out of date. For **JavaScript-only** changes (screens, theme, Supabase logic), Metro reload is enough — no rebuild required.
 
 ## Run on a physical iPhone
 
@@ -39,35 +45,64 @@ Copy `mobile/.env.example` to `mobile/.env` and use the same project URL and ano
 
 Restart Metro with `npx expo start --clear` after changing env vars.
 
-After adding or changing **native** packages (e.g. `@react-native-async-storage/async-storage`), rebuild the dev client — Metro alone is not enough:
+## When you need a native rebuild
 
-```bash
-cd mobile
-npx expo run:ios
-```
+Rebuild (`npx expo run:ios`) only after:
 
-If you see `AsyncStorageError: Native module is null`, run the command above (not Expo Go on an outdated client).
+- Adding or changing **native** packages (e.g. `expo-image-picker`, `expo-notifications`)
+- Changing `app.json` plugins, bundle ID, or permissions
+- First-time `ios/` generation
 
-## Screens (parity with web)
+You do **not** need a rebuild for UI/theme work, new screens, or Supabase-only features.
 
-| Screen | Route | Notes |
-|--------|-------|--------|
-| Login | `/(auth)/login` | Sign in, sign up + email OTP, forgot password |
-| Today | `/(tabs)/` | Daily / as-needed tabs, mark taken, undo, PRN log, streak snippet |
-| Account | `/(tabs)/account` | Sign out |
+If you see `AsyncStorageError: Native module is null` or `Cannot find native module 'ExponentImagePicker'`, run `npx expo run:ios` (not an outdated Expo Go build).
 
-Medication add/edit is still on the web app for now; mobile reads the same Supabase data.
+## Theme (light / dark / system)
 
-## Deep linking
+**Account → Appearance** offers **Light**, **Dark**, and **System** (follows the device). The choice is stored in AsyncStorage and applied app-wide via `ThemeProvider` (`context/ThemeProvider.tsx`).
 
-`app.json` sets `scheme` to `medicine-tracker` for `medicine-tracker://` URLs (used by Expo Router and OAuth redirects).
+- Palette tokens live in `constants/theme.ts` (`lightColors` / `darkColors`).
+- Screens and components should use `useTheme().colors` or `useThemedStyles(makeStyles)` — not the deprecated static `colors` export.
+- Tracking panels share `useTrackingStyles()` from `components/tracking/trackingStyles.ts`.
+
+Status bar style tracks the resolved theme (light content on dark backgrounds).
+
+## Navigation
+
+| Area | Route group | Notes |
+|------|-------------|--------|
+| Auth | `/(auth)/login` | Email/password, sign-up OTP, forgot password |
+| Main shell | `/(drawer)/` | Hamburger menu: Today, History, Wellness, Streaks, Tracking, Medical records, Drug safety, Help, Account |
+| Tabs (legacy) | `/(tabs)/` | Today, History, Tracking, Account — same features; drawer is the primary shell |
+| Modals | `/(modals)/medications/` | Add / edit medication wizard |
+
+Deep linking: `app.json` sets `scheme` to `medicine-tracker` (`medicine-tracker://`).
+
+## Feature parity (vs web)
+
+| Feature | Mobile |
+|---------|--------|
+| Today — mark doses, PRN log, banners | Yes |
+| History — calendar, day detail, wellness | Yes |
+| Tracking — cycle, HRT, weight, med progress, physical profile | Yes |
+| Wellness — check-in, trends, baseline, briefings, export | Yes |
+| Streaks — calendar, tulip badges, 7-day SVG celebration | Yes |
+| Medical records | Yes |
+| Drug safety / interactions | Yes |
+| Account — profile, medications, timezone, **theme**, local dose reminders | Yes |
+| Medication wizard — RxNorm name search + local brands | Yes |
+| Help & safety | Yes |
 
 ## Project layout
 
 | Path | Role |
 |------|------|
-| `app/_layout.tsx` | Root stack |
-| `app/(tabs)/` | Main tab navigator (Today, History, Tracking, Account) |
+| `app/_layout.tsx` | Root stack, `ThemeProvider`, auth gate |
+| `app/(drawer)/` | Drawer navigator (main app) |
+| `app/(modals)/` | Medication add/edit modals |
+| `context/ThemeProvider.tsx` | Light/dark/system theme |
+| `hooks/useThemedStyles.ts` | Theme-aware StyleSheet helper |
+| `lib/` | Supabase, doses, streaks, tracking, RxNorm, etc. |
 | `babel.config.js` | `expo-router/babel` plugin (required) |
 | `package.json` `main` | `expo-router/entry` |
 

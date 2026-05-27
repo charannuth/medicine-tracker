@@ -1,5 +1,5 @@
 import { useMemo } from 'react';
-import { ActivityIndicator, Pressable, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, Pressable, Text, View } from 'react-native';
 import {
   CALENDAR_SOURCE_ALL,
   calendarSourceOptions,
@@ -18,14 +18,19 @@ import type {
   TrackingCalendarEvent,
 } from '../../lib/tracking/calendarTypes';
 import type { TrackerId } from '../../lib/tracking/catalog';
-import { colors, radii, spacing } from '../../constants/theme';
+import type { ColorPalette } from '../../constants/theme';
+import { radii, spacing } from '../../constants/theme';
+import { useTheme } from '../../context/ThemeProvider';
+import { useThemedStyles } from '../../hooks/useThemedStyles';
 import { SelectField } from './SelectField';
 import { cellStylesFromClassNames, eventToneStyle } from './calendarCellStyles';
 import { TrackingCalendarLegend } from './TrackingCalendarLegend';
-import { trackingStyles } from './trackingStyles';
+import { useTrackingStyles } from './trackingStyles';
 
 const MAX_VISIBLE_EVENTS = 3;
 const WEEKDAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+
+type CalendarUiStyles = ReturnType<typeof makeTrackingCalendarStyles>;
 
 type Props = {
   today: string;
@@ -42,7 +47,15 @@ type Props = {
   onSelectDate: (date: string) => void;
 };
 
-function DayMarkers({ cell, detailed }: { cell?: TrackingCalendarCell; detailed: boolean }) {
+function DayMarkers({
+  cell,
+  detailed,
+  styles,
+}: {
+  cell?: TrackingCalendarCell;
+  detailed: boolean;
+  styles: CalendarUiStyles;
+}) {
   const events = cell?.events ?? [];
   const markers = cell?.markers ?? [];
   if (!detailed) {
@@ -62,7 +75,7 @@ function DayMarkers({ cell, detailed }: { cell?: TrackingCalendarCell; detailed:
   return (
     <View style={styles.eventList}>
       {visible.map((event) => (
-        <EventPill key={event.id} event={event} />
+        <EventPill key={event.id} event={event} pillBase={styles.eventPill} />
       ))}
       {overflow > 0 ? (
         <Text style={styles.eventMore}>+{overflow} more</Text>
@@ -71,10 +84,17 @@ function DayMarkers({ cell, detailed }: { cell?: TrackingCalendarCell; detailed:
   );
 }
 
-function EventPill({ event }: { event: TrackingCalendarEvent }) {
-  const tone = eventToneStyle(event.tone);
+function EventPill({
+  event,
+  pillBase,
+}: {
+  event: TrackingCalendarEvent;
+  pillBase: CalendarUiStyles['eventPill'];
+}) {
+  const { colors, isDark } = useTheme();
+  const tone = eventToneStyle(event.tone, colors, isDark);
   return (
-    <Text style={[styles.eventPill, { backgroundColor: tone.bg, color: tone.text }]} numberOfLines={1}>
+    <Text style={[pillBase, { backgroundColor: tone.bg, color: tone.text }]} numberOfLines={1}>
       {event.label}
     </Text>
   );
@@ -89,6 +109,9 @@ function MonthGrid({
   today,
   detailed,
   onSelectDate,
+  styles,
+  colors,
+  isDark,
 }: {
   year: number;
   month: number;
@@ -98,6 +121,9 @@ function MonthGrid({
   today: string;
   detailed: boolean;
   onSelectDate: (date: string) => void;
+  styles: CalendarUiStyles;
+  colors: ColorPalette;
+  isDark: boolean;
 }) {
   const firstDow = new Date(year, month - 1, 1).getDay();
   const gridCells: ({ date: string; label: string } | null)[] = [];
@@ -127,6 +153,9 @@ function MonthGrid({
               isToday={cell.date === today}
               detailed={detailed}
               onPress={() => onSelectDate(cell.date)}
+              styles={styles}
+              colors={colors}
+              isDark={isDark}
             />
           ) : (
             <View key={`pad-${i}`} style={styles.dayEmpty} />
@@ -145,6 +174,9 @@ function DayButton({
   isToday,
   detailed,
   onPress,
+  styles,
+  colors,
+  isDark,
 }: {
   date: string;
   label: string;
@@ -153,8 +185,11 @@ function DayButton({
   isToday: boolean;
   detailed: boolean;
   onPress: () => void;
+  styles: CalendarUiStyles;
+  colors: ColorPalette;
+  isDark: boolean;
 }) {
-  const extra = cell ? cellStylesFromClassNames(cell.classNames) : [];
+  const extra = cell ? cellStylesFromClassNames(cell.classNames, colors, isDark) : [];
   return (
     <Pressable
       onPress={onPress}
@@ -167,7 +202,7 @@ function DayButton({
       ]}
     >
       <Text style={[styles.dayNum, selected && styles.dayNumSelected]}>{label}</Text>
-      <DayMarkers cell={cell} detailed={detailed} />
+      <DayMarkers cell={cell} detailed={detailed} styles={styles} />
     </Pressable>
   );
 }
@@ -186,6 +221,9 @@ export function TrackingCalendar({
   onSourceChange,
   onSelectDate,
 }: Props) {
+  const { colors, isDark } = useTheme();
+  const track = useTrackingStyles();
+  const styles = useThemedStyles(makeTrackingCalendarStyles);
   const window = useMemo(() => getCalendarWindow(anchor, range), [anchor, range]);
   const sourceOptions = useMemo(
     () => calendarSourceOptions(enabledTrackers),
@@ -238,7 +276,7 @@ export function TrackingCalendar({
       </View>
 
       {isOverview && !loading ? (
-        <Text style={trackingStyles.hint}>
+        <Text style={track.hint}>
           Birds-eye view — every enabled tracker on one calendar. Tap a day for details below.
         </Text>
       ) : null}
@@ -252,7 +290,7 @@ export function TrackingCalendar({
       ) : null}
 
       {showPlannedHint && data.emptyMessage ? (
-        <Text style={trackingStyles.hint}>{data.emptyMessage}</Text>
+        <Text style={track.hint}>{data.emptyMessage}</Text>
       ) : null}
 
       {showGrid ? (
@@ -271,6 +309,9 @@ export function TrackingCalendar({
                   isToday={date === today}
                   detailed={false}
                   onPress={() => onSelectDate(date)}
+                  styles={styles}
+                  colors={colors}
+                  isDark={isDark}
                 />
               );
             })}
@@ -285,6 +326,9 @@ export function TrackingCalendar({
             today={today}
             detailed={detailedMonth}
             onSelectDate={onSelectDate}
+            styles={styles}
+            colors={colors}
+            isDark={isDark}
           />
         ) : (
           <View>
@@ -299,6 +343,9 @@ export function TrackingCalendar({
                 today={today}
                 detailed={false}
                 onSelectDate={onSelectDate}
+                styles={styles}
+                colors={colors}
+                isDark={isDark}
               />
             ))}
           </View>
@@ -310,63 +357,65 @@ export function TrackingCalendar({
   );
 }
 
-const styles = StyleSheet.create({
-  hub: {
-    marginVertical: spacing.md,
-    padding: spacing.md,
-    borderWidth: 1,
-    borderColor: colors.border,
-    borderRadius: radii.md,
-    backgroundColor: colors.surface,
-  },
-  toolbar: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-    gap: spacing.sm,
-  },
-  toolbarCenter: { flex: 1 },
-  navArrow: { fontSize: 22, padding: 8, color: colors.text },
-  windowTitle: {
-    fontSize: 16,
-    fontWeight: '700',
-    color: colors.text,
-    textAlign: 'center',
-    marginVertical: spacing.sm,
-  },
-  strip: { flexDirection: 'row', flexWrap: 'wrap', gap: 6 },
-  month: { marginBottom: spacing.md },
-  weekdayRow: { flexDirection: 'row', marginBottom: 4 },
-  weekday: {
-    flex: 1,
-    textAlign: 'center',
-    fontSize: 11,
-    fontWeight: '600',
-    color: colors.textMuted,
-  },
-  grid: { flexDirection: 'row', flexWrap: 'wrap' },
-  day: {
-    width: '14.285%',
-    aspectRatio: 1,
-    borderWidth: 1,
-    borderColor: colors.border,
-    padding: 2,
-    alignItems: 'center',
-    justifyContent: 'flex-start',
-    backgroundColor: colors.bg,
-  },
-  dayDetailed: { minHeight: 72 },
-  dayEmpty: {
-    width: '14.285%',
-    aspectRatio: 1,
-  },
-  daySelected: { borderColor: colors.accent, borderWidth: 2 },
-  dayToday: {},
-  dayNum: { fontSize: 12, fontWeight: '700', color: colors.text },
-  dayNumSelected: { color: colors.accent },
-  markers: { flexDirection: 'row', gap: 2, marginTop: 2 },
-  heart: { fontSize: 10, color: colors.brandCrimson },
-  symptomDot: { width: 4, height: 4, borderRadius: 2, backgroundColor: colors.partial },
-  eventList: { width: '100%', marginTop: 2 },
-  eventPill: { fontSize: 8, paddingHorizontal: 2, borderRadius: 3, marginBottom: 1 },
-  eventMore: { fontSize: 8, color: colors.textMuted },
-});
+function makeTrackingCalendarStyles(colors: ColorPalette) {
+  return {
+    hub: {
+      marginVertical: spacing.md,
+      padding: spacing.md,
+      borderWidth: 1,
+      borderColor: colors.border,
+      borderRadius: radii.md,
+      backgroundColor: colors.surface,
+    },
+    toolbar: {
+      flexDirection: 'row' as const,
+      alignItems: 'flex-start' as const,
+      gap: spacing.sm,
+    },
+    toolbarCenter: { flex: 1 },
+    navArrow: { fontSize: 22, padding: 8, color: colors.text },
+    windowTitle: {
+      fontSize: 16,
+      fontWeight: '700' as const,
+      color: colors.text,
+      textAlign: 'center' as const,
+      marginVertical: spacing.sm,
+    },
+    strip: { flexDirection: 'row' as const, flexWrap: 'wrap' as const, gap: 6 },
+    month: { marginBottom: spacing.md },
+    weekdayRow: { flexDirection: 'row' as const, marginBottom: 4 },
+    weekday: {
+      flex: 1,
+      textAlign: 'center' as const,
+      fontSize: 11,
+      fontWeight: '600' as const,
+      color: colors.textMuted,
+    },
+    grid: { flexDirection: 'row' as const, flexWrap: 'wrap' as const },
+    day: {
+      width: '14.285%' as const,
+      aspectRatio: 1,
+      borderWidth: 1,
+      borderColor: colors.border,
+      padding: 2,
+      alignItems: 'center' as const,
+      justifyContent: 'flex-start' as const,
+      backgroundColor: colors.bg,
+    },
+    dayDetailed: { minHeight: 72 },
+    dayEmpty: {
+      width: '14.285%' as const,
+      aspectRatio: 1,
+    },
+    daySelected: { borderColor: colors.accent, borderWidth: 2 },
+    dayToday: {},
+    dayNum: { fontSize: 12, fontWeight: '700' as const, color: colors.text },
+    dayNumSelected: { color: colors.accent },
+    markers: { flexDirection: 'row' as const, gap: 2, marginTop: 2 },
+    heart: { fontSize: 10, color: colors.brandCrimson },
+    symptomDot: { width: 4, height: 4, borderRadius: 2, backgroundColor: colors.partial },
+    eventList: { width: '100%' as const, marginTop: 2 },
+    eventPill: { fontSize: 8, paddingHorizontal: 2, borderRadius: 3, marginBottom: 1 },
+    eventMore: { fontSize: 8, color: colors.textMuted },
+  };
+}

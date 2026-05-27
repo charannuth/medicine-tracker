@@ -43,12 +43,12 @@ function RootNavigator() {
 
 export default function RootLayout() {
   return (
-    <ConfigGuard>
-      <ThemeProvider>
+    <ThemeProvider>
+      <ConfigGuard>
         <AuthProvider>
           <RootNavigator />
         </AuthProvider>
-      </ThemeProvider>
-    </ConfigGuard>
+      </ConfigGuard>
+    </ThemeProvider>
   );
 }

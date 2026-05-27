@@ -1,14 +1,20 @@
 import { useEffect, useState } from 'react';
-import { StyleSheet } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import type { MedicationScheduleType } from '../../../lib/medicationSchedule';
-import { colors } from '../../../constants/theme';
+import type { ColorPalette } from '../../../constants/theme';
 import { useAuth } from '../../../hooks/useAuth';
 import { createMedication, fetchMedicationsWithStatus } from '../../../lib/medications';
 import { rescheduleDoseReminders } from '../../../lib/reminderScheduler';
 import { MedicationFormWizard } from '../../../components/medication/MedicationFormWizard';
 import type { MedicationInput } from '../../../lib/types';
+import { useThemedStyles } from '../../../hooks/useThemedStyles';
+
+function makeSafeStyles(colors: ColorPalette) {
+  return {
+    safe: { flex: 1, backgroundColor: colors.bg },
+  };
+}
 
 export default function AddMedicationScreen() {
   const router = useRouter();
@@ -17,6 +23,7 @@ export default function AddMedicationScreen() {
     params.scheduleType === 'as_needed' ? 'as_needed' : 'scheduled';
   const { user } = useAuth();
   const [existingNames, setExistingNames] = useState<string[]>([]);
+  const styles = useThemedStyles(makeSafeStyles);
 
   useEffect(() => {
     if (!user) return;
@@ -50,7 +57,3 @@ export default function AddMedicationScreen() {
     </SafeAreaView>
   );
 }
-
-const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: colors.bg },
-});

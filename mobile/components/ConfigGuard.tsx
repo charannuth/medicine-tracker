@@ -1,9 +1,15 @@
+import { useMemo } from 'react';
 import { Platform, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import type { ColorPalette } from '../constants/theme';
+import { radii, spacing } from '../constants/theme';
+import { useTheme } from '../context/ThemeProvider';
 import { isSupabaseConfigured } from '../lib/supabase';
-import { colors, radii, spacing } from '../constants/theme';
 
 export function ConfigGuard({ children }: { children: React.ReactNode }) {
+  const { colors } = useTheme();
+  const styles = useMemo(() => makeStyles(colors), [colors]);
+
   if (isSupabaseConfigured) {
     return children;
   }
@@ -25,37 +31,41 @@ export function ConfigGuard({ children }: { children: React.ReactNode }) {
   );
 }
 
-const styles = StyleSheet.create({
-  safe: {
-    flex: 1,
-    backgroundColor: colors.bg,
-    padding: spacing.lg,
-    justifyContent: 'center',
-  },
-  card: {
-    backgroundColor: colors.surface,
-    borderRadius: radii.lg,
-    padding: spacing.lg,
-    borderWidth: 1,
-    borderColor: colors.border,
-    gap: spacing.sm,
-  },
-  title: {
-    fontSize: 24,
-    fontWeight: '800',
-    color: colors.text,
-  },
-  body: {
-    fontSize: 15,
-    color: colors.textMuted,
-    lineHeight: 22,
-  },
-  code: {
-    fontFamily: Platform.select({ ios: 'Menlo', android: 'monospace', default: 'monospace' }),
-    fontSize: 13,
-    color: colors.text,
-    backgroundColor: colors.bg,
-    padding: spacing.sm,
-    borderRadius: radii.sm,
-  },
-});
+function makeStyles(colors: ColorPalette) {
+  return StyleSheet.create({
+    safe: {
+      flex: 1,
+      backgroundColor: colors.bg,
+      padding: spacing.lg,
+      justifyContent: 'center',
+    },
+    card: {
+      backgroundColor: colors.surface,
+      borderRadius: radii.lg,
+      padding: spacing.lg,
+      borderWidth: 1,
+      borderColor: colors.border,
+      gap: spacing.sm,
+    },
+    title: {
+      fontSize: 24,
+      fontWeight: '800',
+      color: colors.text,
+    },
+    body: {
+      fontSize: 15,
+      color: colors.textMuted,
+      lineHeight: 22,
+    },
+    code: {
+      fontFamily: Platform.select({ ios: 'Menlo', android: 'monospace', default: 'monospace' }),
+      fontSize: 13,
+      color: colors.text,
+      backgroundColor: colors.pendingBg,
+      padding: spacing.sm,
+      borderRadius: radii.sm,
+      borderWidth: 1,
+      borderColor: colors.border,
+    },
+  });
+}

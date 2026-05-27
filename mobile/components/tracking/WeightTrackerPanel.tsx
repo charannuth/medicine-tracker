@@ -7,6 +7,7 @@ import {
   TextInput,
   View,
 } from 'react-native';
+import { useTheme } from '../../context/ThemeProvider';
 import { useAuth } from '../../hooks/useAuth';
 import { todayLocalDate } from '../../lib/dates';
 import type { BodyMetricUnit } from '../../lib/bodyMetrics';
@@ -31,7 +32,7 @@ import {
   updateWeightSettings,
 } from '../../lib/tracking/weight';
 import { kgToLbString, lbStringToKg, parsePositiveNumber } from '../../lib/bodyMetrics';
-import { trackingStyles } from './trackingStyles';
+import { useTrackingStyles } from './trackingStyles';
 
 type Props = {
   selectedDate: string;
@@ -67,6 +68,8 @@ function daysBetweenAnchor(anchor: string, date: string): number {
 }
 
 export function WeightTrackerPanel({ selectedDate, onSelectDate, onDataMutated }: Props) {
+  const trackingStyles = useTrackingStyles();
+  const { colors } = useTheme();
   const { user } = useAuth();
   const today = todayLocalDate();
 
@@ -317,7 +320,7 @@ export function WeightTrackerPanel({ selectedDate, onSelectDate, onDataMutated }
         : `${kgToLbString(weightKgDraft)} lb`;
 
   if (loading || !settings || !settingsDraft) {
-    return <ActivityIndicator color="#0891b2" style={{ marginVertical: 16 }} />;
+    return <ActivityIndicator color={colors.accent} style={{ marginVertical: 16 }} />;
   }
 
   return (

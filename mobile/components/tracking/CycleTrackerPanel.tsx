@@ -8,6 +8,7 @@ import {
   TextInput,
   View,
 } from 'react-native';
+import { useTheme } from '../../context/ThemeProvider';
 import { useAuth } from '../../hooks/useAuth';
 import { todayLocalDate } from '../../lib/dates';
 import {
@@ -46,7 +47,7 @@ import {
 } from '../../lib/tracking/cycle';
 import { CycleDayStrip } from './CycleDayStrip';
 import { ChipMultiSelect } from './ChipMultiSelect';
-import { trackingStyles } from './trackingStyles';
+import { useTrackingStyles } from './trackingStyles';
 
 const FLOW_OPTIONS: { value: FlowLevel; label: string }[] = [
   { value: 'spotting', label: 'Spotting' },
@@ -71,6 +72,8 @@ type Props = {
 };
 
 export function CycleTrackerPanel({ selectedDate, onSelectDate, onDataMutated }: Props) {
+  const trackingStyles = useTrackingStyles();
+  const { colors } = useTheme();
   const { user } = useAuth();
   const today = todayLocalDate();
   const [settings, setSettings] = useState<CycleSettings | null>(null);
@@ -204,7 +207,7 @@ export function CycleTrackerPanel({ selectedDate, onSelectDate, onDataMutated }:
     (prediction!.isLate || today >= prediction!.nextStart!);
 
   if (loading && !settings) {
-    return <ActivityIndicator color="#0891b2" style={{ marginVertical: 16 }} />;
+    return <ActivityIndicator color={colors.accent} style={{ marginVertical: 16 }} />;
   }
 
   return (
@@ -217,7 +220,7 @@ export function CycleTrackerPanel({ selectedDate, onSelectDate, onDataMutated }:
 
       {prediction?.currentPhase ? (
         <View style={trackingStyles.card}>
-          <Text style={{ fontWeight: '700', color: '#0f172a' }}>
+          <Text style={[trackingStyles.sectionTitle, { marginBottom: 0 }]}>
             Today: {PHASE_LABELS[prediction.currentPhase]} phase
             {prediction.cycleDay != null ? ` · Day ${prediction.cycleDay}` : ''}
           </Text>

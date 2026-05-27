@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import {
   ActivityIndicator,
   Pressable,
@@ -10,7 +10,9 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
-import { colors, radii, spacing } from '../../constants/theme';
+import type { ColorPalette } from '../../constants/theme';
+import { radii, spacing } from '../../constants/theme';
+import { useTheme } from '../../context/ThemeProvider';
 import { useAuth } from '../../hooks/useAuth';
 import { useStreakStats } from '../../hooks/useStreakStats';
 import type { StreakStats } from '../../lib/streaks';
@@ -31,7 +33,53 @@ function emptyStats(): StreakStats {
   };
 }
 
+function makeStreakScreenStyles(colors: ColorPalette) {
+  return StyleSheet.create({
+    safe: { flex: 1, backgroundColor: colors.bg },
+    scroll: { padding: spacing.md, paddingBottom: spacing.xl, gap: spacing.md },
+    headerCard: {
+      backgroundColor: colors.surface,
+      borderRadius: radii.lg,
+      borderWidth: 1,
+      borderColor: colors.border,
+      padding: spacing.lg,
+      gap: spacing.sm,
+    },
+    card: {
+      backgroundColor: colors.surface,
+      borderRadius: radii.lg,
+      borderWidth: 1,
+      borderColor: colors.border,
+      padding: spacing.lg,
+      gap: spacing.sm,
+    },
+    h1: { fontSize: 22, fontWeight: '900', color: colors.text },
+    sub: { color: colors.textMuted, lineHeight: 20 },
+    sectionTitle: { fontSize: 16, fontWeight: '900', color: colors.text },
+    errorCard: { backgroundColor: colors.errorBg, borderColor: colors.errorBorder },
+    errorText: { color: colors.error, fontWeight: '800' },
+    loadingRow: { alignItems: 'center', padding: spacing.md },
+    primaryBtn: {
+      backgroundColor: colors.accent,
+      borderRadius: radii.md,
+      paddingVertical: 12,
+      alignItems: 'center',
+      marginTop: spacing.sm,
+    },
+    primaryBtnText: { color: colors.onAccent, fontWeight: '900' },
+    footer: {
+      color: colors.textMuted,
+      textAlign: 'center',
+      lineHeight: 20,
+      marginTop: spacing.sm,
+    },
+    footerLink: { color: colors.accent, fontWeight: '800' },
+  });
+}
+
 export default function StreaksScreen() {
+  const { colors } = useTheme();
+  const styles = useMemo(() => makeStreakScreenStyles(colors), [colors]);
   const { user } = useAuth();
   const router = useRouter();
   const { stats, loading, error, reload } = useStreakStats(user?.id);
@@ -51,7 +99,11 @@ export default function StreaksScreen() {
       <ScrollView
         contentContainerStyle={styles.scroll}
         refreshControl={
-          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.accent} />
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+            tintColor={colors.accent}
+          />
         }
       >
         <View style={styles.headerCard}>
@@ -104,40 +156,3 @@ export default function StreaksScreen() {
     </SafeAreaView>
   );
 }
-
-const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: colors.bg },
-  scroll: { padding: spacing.md, paddingBottom: spacing.xl, gap: spacing.md },
-  headerCard: {
-    backgroundColor: colors.surface,
-    borderRadius: radii.lg,
-    borderWidth: 1,
-    borderColor: colors.border,
-    padding: spacing.lg,
-    gap: spacing.sm,
-  },
-  card: {
-    backgroundColor: colors.surface,
-    borderRadius: radii.lg,
-    borderWidth: 1,
-    borderColor: colors.border,
-    padding: spacing.lg,
-    gap: spacing.sm,
-  },
-  h1: { fontSize: 22, fontWeight: '900', color: colors.text },
-  sub: { color: colors.textMuted, lineHeight: 20 },
-  sectionTitle: { fontSize: 16, fontWeight: '900', color: colors.text },
-  errorCard: { backgroundColor: colors.errorBg, borderColor: '#fecaca' },
-  errorText: { color: colors.error, fontWeight: '800' },
-  loadingRow: { alignItems: 'center', padding: spacing.md },
-  primaryBtn: {
-    backgroundColor: colors.accent,
-    borderRadius: radii.md,
-    paddingVertical: 12,
-    alignItems: 'center',
-    marginTop: spacing.sm,
-  },
-  primaryBtnText: { color: '#fff', fontWeight: '900' },
-  footer: { color: colors.textMuted, textAlign: 'center', lineHeight: 20, marginTop: spacing.sm },
-  footerLink: { color: colors.accent, fontWeight: '800' },
-});

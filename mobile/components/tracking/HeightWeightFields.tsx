@@ -7,7 +7,7 @@ import {
   type BodyMetricUnit,
 } from '../../lib/bodyMetrics';
 import { SelectField } from './SelectField';
-import { trackingStyles } from './trackingStyles';
+import { useTrackingStyles } from './trackingStyles';
 
 const UNIT_OPTIONS = [
   { value: 'metric', label: 'Metric' },
@@ -35,6 +35,7 @@ export function HeightWeightFields({
   onHeightUnitChange,
   onWeightUnitChange,
 }: Props) {
+  const trackingStyles = useTrackingStyles();
   const { feet, inches } = heightCmToFeetInchStrings(height_cm);
   const weightLb = kgToLbString(weight_kg);
 

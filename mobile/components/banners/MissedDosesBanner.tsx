@@ -1,6 +1,45 @@
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { Pressable, Text, View } from 'react-native';
 import type { MissedDoseItem } from '../../lib/missedDoses';
-import { colors, radii, spacing } from '../../constants/theme';
+import type { ColorPalette } from '../../constants/theme';
+import { radii, spacing } from '../../constants/theme';
+import { useThemedStyles } from '../../hooks/useThemedStyles';
+
+function makeStyles(colors: ColorPalette) {
+  return {
+    banner: {
+      borderRadius: radii.lg,
+      padding: spacing.md,
+      borderWidth: 1,
+      gap: 6,
+    },
+    missed: {
+      backgroundColor: colors.badgeModerateBg,
+      borderColor: colors.partialBorder,
+    },
+    title: {
+      fontWeight: '800' as const,
+      color: colors.text,
+    },
+    item: {
+      color: colors.text,
+    },
+    dismiss: {
+      position: 'absolute' as const,
+      right: 6,
+      top: 6,
+      width: 32,
+      height: 32,
+      borderRadius: 16,
+      alignItems: 'center' as const,
+      justifyContent: 'center' as const,
+    },
+    dismissText: {
+      fontSize: 20,
+      fontWeight: '800' as const,
+      color: colors.textMuted,
+    },
+  };
+}
 
 export function MissedDosesBanner({
   items,
@@ -9,6 +48,8 @@ export function MissedDosesBanner({
   items: MissedDoseItem[];
   onDismiss: () => void;
 }) {
+  const styles = useThemedStyles(makeStyles);
+
   if (items.length === 0) return null;
 
   return (
@@ -33,39 +74,3 @@ export function MissedDosesBanner({
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  banner: {
-    borderRadius: radii.lg,
-    padding: spacing.md,
-    borderWidth: 1,
-    gap: 6,
-  },
-  missed: {
-    backgroundColor: '#fff7ed',
-    borderColor: '#fed7aa',
-  },
-  title: {
-    fontWeight: '800',
-    color: colors.text,
-  },
-  item: {
-    color: colors.text,
-  },
-  dismiss: {
-    position: 'absolute',
-    right: 6,
-    top: 6,
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  dismissText: {
-    fontSize: 20,
-    fontWeight: '800',
-    color: colors.textMuted,
-  },
-});
-

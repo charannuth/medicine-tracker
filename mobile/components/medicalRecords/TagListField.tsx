@@ -1,6 +1,8 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { Pressable, Text, TextInput, View } from 'react-native';
-import { colors, radii, spacing } from '../../constants/theme';
+import type { ColorPalette } from '../../constants/theme';
+import { radii, spacing } from '../../constants/theme';
+import { useTheme } from '../../context/ThemeProvider';
 
 type Props = {
   label: string;
@@ -11,6 +13,68 @@ type Props = {
   placeholder?: string;
 };
 
+function makeStyles(colors: ColorPalette) {
+  return {
+    wrap: { gap: spacing.sm, marginTop: spacing.md },
+    label: { fontSize: 15, fontWeight: '800' as const, color: colors.text },
+    hint: { fontSize: 13, color: colors.textMuted, lineHeight: 18 },
+    chips: { flexDirection: 'row' as const, flexWrap: 'wrap' as const, gap: spacing.xs },
+    chip: {
+      flexDirection: 'row' as const,
+      alignItems: 'center' as const,
+      gap: 4,
+      backgroundColor: colors.bg,
+      borderWidth: 1,
+      borderColor: colors.border,
+      borderRadius: radii.md,
+      paddingHorizontal: 10,
+      paddingVertical: 6,
+    },
+    chipText: { color: colors.text, fontWeight: '600' as const, fontSize: 14 },
+    chipRemove: {
+      color: colors.textMuted,
+      fontSize: 18,
+      fontWeight: '700' as const,
+      lineHeight: 20,
+    },
+    row: { flexDirection: 'row' as const, gap: spacing.sm, alignItems: 'center' as const },
+    input: {
+      flex: 1,
+      borderWidth: 1,
+      borderColor: colors.border,
+      borderRadius: radii.md,
+      paddingHorizontal: spacing.md,
+      paddingVertical: 10,
+      fontSize: 16,
+      color: colors.text,
+      backgroundColor: colors.surface,
+    },
+    addBtn: {
+      borderWidth: 1,
+      borderColor: colors.border,
+      borderRadius: radii.md,
+      paddingHorizontal: spacing.md,
+      paddingVertical: 10,
+      backgroundColor: colors.surface,
+    },
+    addBtnText: { fontWeight: '700' as const, color: colors.text },
+    suggestions: { gap: spacing.xs },
+    suggestionsLabel: { fontSize: 13, color: colors.textMuted, fontWeight: '600' as const },
+    suggestionChips: { flexDirection: 'row' as const, flexWrap: 'wrap' as const, gap: spacing.xs },
+    suggestionChip: {
+      borderWidth: 1,
+      borderColor: colors.border,
+      borderRadius: 999,
+      paddingHorizontal: 10,
+      paddingVertical: 6,
+      backgroundColor: colors.surface,
+    },
+    suggestionChipDisabled: { opacity: 0.45 },
+    suggestionChipText: { fontSize: 13, color: colors.accent, fontWeight: '600' as const },
+    suggestionChipTextDisabled: { color: colors.textMuted },
+  };
+}
+
 export function TagListField({
   label,
   hint,
@@ -20,6 +84,8 @@ export function TagListField({
   placeholder = 'Type and tap Add',
 }: Props) {
   const [draft, setDraft] = useState('');
+  const { colors } = useTheme();
+  const styles = useMemo(() => makeStyles(colors), [colors]);
 
   function addEntry(entry: string) {
     const trimmed = entry.trim();
@@ -100,58 +166,3 @@ export function TagListField({
     </View>
   );
 }
-
-const styles = {
-  wrap: { gap: spacing.sm, marginTop: spacing.md },
-  label: { fontSize: 15, fontWeight: '800' as const, color: colors.text },
-  hint: { fontSize: 13, color: colors.textMuted, lineHeight: 18 },
-  chips: { flexDirection: 'row' as const, flexWrap: 'wrap' as const, gap: spacing.xs },
-  chip: {
-    flexDirection: 'row' as const,
-    alignItems: 'center' as const,
-    gap: 4,
-    backgroundColor: colors.bg,
-    borderWidth: 1,
-    borderColor: colors.border,
-    borderRadius: radii.md,
-    paddingHorizontal: 10,
-    paddingVertical: 6,
-  },
-  chipText: { color: colors.text, fontWeight: '600' as const, fontSize: 14 },
-  chipRemove: { color: colors.textMuted, fontSize: 18, fontWeight: '700' as const, lineHeight: 20 },
-  row: { flexDirection: 'row' as const, gap: spacing.sm, alignItems: 'center' as const },
-  input: {
-    flex: 1,
-    borderWidth: 1,
-    borderColor: colors.border,
-    borderRadius: radii.md,
-    paddingHorizontal: spacing.md,
-    paddingVertical: 10,
-    fontSize: 16,
-    color: colors.text,
-    backgroundColor: colors.surface,
-  },
-  addBtn: {
-    borderWidth: 1,
-    borderColor: colors.border,
-    borderRadius: radii.md,
-    paddingHorizontal: spacing.md,
-    paddingVertical: 10,
-    backgroundColor: colors.surface,
-  },
-  addBtnText: { fontWeight: '700' as const, color: colors.text },
-  suggestions: { gap: spacing.xs },
-  suggestionsLabel: { fontSize: 13, color: colors.textMuted, fontWeight: '600' as const },
-  suggestionChips: { flexDirection: 'row' as const, flexWrap: 'wrap' as const, gap: spacing.xs },
-  suggestionChip: {
-    borderWidth: 1,
-    borderColor: colors.border,
-    borderRadius: 999,
-    paddingHorizontal: 10,
-    paddingVertical: 6,
-    backgroundColor: colors.surface,
-  },
-  suggestionChipDisabled: { opacity: 0.45 },
-  suggestionChipText: { fontSize: 13, color: colors.accent, fontWeight: '600' as const },
-  suggestionChipTextDisabled: { color: colors.textMuted },
-};

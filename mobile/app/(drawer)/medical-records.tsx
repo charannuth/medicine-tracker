@@ -3,14 +3,16 @@ import {
   ActivityIndicator,
   Pressable,
   ScrollView,
-  StyleSheet,
   Text,
   View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { MedicalRecordsForm } from '../../components/medicalRecords/MedicalRecordsForm';
-import { colors, radii, spacing } from '../../constants/theme';
+import type { ColorPalette } from '../../constants/theme';
+import { radii, spacing } from '../../constants/theme';
+import { useTheme } from '../../context/ThemeProvider';
+import { useThemedStyles } from '../../hooks/useThemedStyles';
 import { useAuth } from '../../hooks/useAuth';
 import {
   formatHeightForUnit,
@@ -28,7 +30,55 @@ import {
   type MedicalRecordInput,
 } from '../../lib/medicalRecords';
 
+function makeMedicalRecordsStyles(colors: ColorPalette) {
+  return {
+    safe: { flex: 1, backgroundColor: colors.bg },
+    scroll: { padding: spacing.md, paddingBottom: spacing.xl, gap: spacing.md },
+    header: { gap: spacing.xs },
+    h1: { fontSize: 24, fontWeight: '900' as const, color: colors.text },
+    sub: { color: colors.textMuted, lineHeight: 20 },
+    emptyHint: { color: colors.textMuted, lineHeight: 20 },
+    link: { color: colors.accent, fontWeight: '700' as const },
+    loading: { alignItems: 'center' as const, gap: spacing.sm, padding: spacing.xl },
+    banner: { borderRadius: radii.md, padding: spacing.md, borderWidth: 1 },
+    bannerError: { backgroundColor: colors.errorBg, borderColor: colors.errorBorder },
+    bannerErrorText: { color: colors.error, fontWeight: '700' as const },
+    bannerSuccess: { backgroundColor: colors.successBg, borderColor: colors.successBorder },
+    bannerSuccessText: { color: colors.successText, fontWeight: '700' as const },
+    card: {
+      backgroundColor: colors.surface,
+      borderRadius: radii.lg,
+      borderWidth: 1,
+      borderColor: colors.border,
+      padding: spacing.lg,
+    },
+    cardHeader: {
+      flexDirection: 'row' as const,
+      justifyContent: 'space-between' as const,
+      alignItems: 'center' as const,
+      marginBottom: spacing.sm,
+    },
+    cardTitle: { fontSize: 18, fontWeight: '900' as const, color: colors.text },
+    editLink: { color: colors.accent, fontWeight: '800' as const, fontSize: 15 },
+    summary: { gap: spacing.md },
+    summaryRow: { gap: spacing.xs },
+    summaryItem: { color: colors.text, lineHeight: 22 },
+    strong: { fontWeight: '800' as const },
+    detailRow: { gap: 4 },
+    detailLabel: { fontSize: 13, fontWeight: '800' as const, color: colors.textMuted },
+    detailValue: { color: colors.text, lineHeight: 20 },
+    savedHint: {
+      color: colors.textMuted,
+      fontSize: 13,
+      lineHeight: 18,
+      marginTop: spacing.sm,
+    },
+  };
+}
+
 export default function MedicalRecordsScreen() {
+  const { colors } = useTheme();
+  const styles = useThemedStyles(makeMedicalRecordsStyles);
   const { user } = useAuth();
   const router = useRouter();
   const [draft, setDraft] = useState<MedicalRecordInput>(emptyMedicalRecordInput());
@@ -251,42 +301,3 @@ export default function MedicalRecordsScreen() {
     </SafeAreaView>
   );
 }
-
-const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: colors.bg },
-  scroll: { padding: spacing.md, paddingBottom: spacing.xl, gap: spacing.md },
-  header: { gap: spacing.xs },
-  h1: { fontSize: 24, fontWeight: '900', color: colors.text },
-  sub: { color: colors.textMuted, lineHeight: 20 },
-  emptyHint: { color: colors.textMuted, lineHeight: 20 },
-  link: { color: colors.accent, fontWeight: '700' },
-  loading: { alignItems: 'center', gap: spacing.sm, padding: spacing.xl },
-  banner: { borderRadius: radii.md, padding: spacing.md, borderWidth: 1 },
-  bannerError: { backgroundColor: colors.errorBg, borderColor: '#fecaca' },
-  bannerErrorText: { color: colors.error, fontWeight: '700' },
-  bannerSuccess: { backgroundColor: '#ecfdf5', borderColor: '#a7f3d0' },
-  bannerSuccessText: { color: '#047857', fontWeight: '700' },
-  card: {
-    backgroundColor: colors.surface,
-    borderRadius: radii.lg,
-    borderWidth: 1,
-    borderColor: colors.border,
-    padding: spacing.lg,
-  },
-  cardHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: spacing.sm,
-  },
-  cardTitle: { fontSize: 18, fontWeight: '900', color: colors.text },
-  editLink: { color: colors.accent, fontWeight: '800', fontSize: 15 },
-  summary: { gap: spacing.md },
-  summaryRow: { gap: spacing.xs },
-  summaryItem: { color: colors.text, lineHeight: 22 },
-  strong: { fontWeight: '800' },
-  detailRow: { gap: 4 },
-  detailLabel: { fontSize: 13, fontWeight: '800', color: colors.textMuted },
-  detailValue: { color: colors.text, lineHeight: 20 },
-  savedHint: { color: colors.textMuted, fontSize: 13, lineHeight: 18, marginTop: spacing.sm },
-});

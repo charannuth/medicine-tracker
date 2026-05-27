@@ -1,28 +1,71 @@
 import type { ViewStyle } from 'react-native';
-import { colors } from '../../constants/theme';
+import type { ColorPalette } from '../../constants/theme';
 import type { TrackingCalendarEventTone } from '../../lib/tracking/calendarTypes';
 
-export function cellStylesFromClassNames(classNames: string[]): ViewStyle[] {
+/** Calendar cell tints — kept vivid so phases stay distinguishable on light and dark surfaces. */
+function calendarTints(isDark: boolean) {
+  if (isDark) {
+    return {
+      period: { bg: '#4c0519', border: '#f472b6' },
+      periodPredicted: { bg: '#3b0764', border: '#e879f9' },
+      follicular: '#064e3b',
+      ovulation: '#422006',
+      luteal: '#312e81',
+      weight: '#0c4a6e',
+      weightMeals: '#14532d',
+      weightWorkout: '#431407',
+      hrt: '#581c87',
+      cyclePeriod: { bg: '#4c0519', text: '#fbcfe8' },
+      cyclePhase: { bg: '#312e81', text: '#c4b5fd' },
+      cycleSymptom: { bg: '#431407', text: '#fdba74' },
+      weightEvent: { bg: '#0c4a6e', text: '#7dd3fc' },
+      hrtEvent: { bg: '#581c87', text: '#e9d5ff' },
+    };
+  }
+  return {
+    period: { bg: '#fce7f3', border: '#f9a8d4' },
+    periodPredicted: { bg: '#fdf2f8', border: '#f9a8d4' },
+    follicular: '#ecfdf5',
+    ovulation: '#fef9c3',
+    luteal: '#ede9fe',
+    weight: '#e0f2fe',
+    weightMeals: '#f0fdf4',
+    weightWorkout: '#fff7ed',
+    hrt: '#fae8ff',
+    cyclePeriod: { bg: '#fce7f3', text: '#9d174d' },
+    cyclePhase: { bg: '#ede9fe', text: '#5b21b6' },
+    cycleSymptom: { bg: '#fff7ed', text: '#c2410c' },
+    weightEvent: { bg: '#e0f2fe', text: '#0369a1' },
+    hrtEvent: { bg: '#fae8ff', text: '#86198f' },
+  };
+}
+
+export function cellStylesFromClassNames(
+  classNames: string[],
+  colors: ColorPalette,
+  isDark: boolean,
+): ViewStyle[] {
+  const t = calendarTints(isDark);
   const out: ViewStyle[] = [];
   if (classNames.includes('is-future')) out.push({ opacity: 0.55 });
   if (classNames.includes('logged-period')) {
-    out.push({ backgroundColor: '#fce7f3', borderColor: '#f9a8d4' });
+    out.push({ backgroundColor: t.period.bg, borderColor: t.period.border });
   }
   if (classNames.includes('predicted-period')) {
-    out.push({ backgroundColor: '#fdf2f8', borderStyle: 'dashed' });
+    out.push({ backgroundColor: t.periodPredicted.bg, borderStyle: 'dashed' });
   }
   if (classNames.includes('phase-menstrual')) {
-    out.push({ backgroundColor: 'rgba(253, 164, 175, 0.35)' });
+    out.push({ backgroundColor: isDark ? 'rgba(244, 63, 94, 0.35)' : 'rgba(253, 164, 175, 0.35)' });
   }
-  if (classNames.includes('phase-follicular')) out.push({ backgroundColor: '#ecfdf5' });
-  if (classNames.includes('phase-ovulation')) out.push({ backgroundColor: '#fef9c3' });
-  if (classNames.includes('phase-luteal')) out.push({ backgroundColor: '#ede9fe' });
+  if (classNames.includes('phase-follicular')) out.push({ backgroundColor: t.follicular });
+  if (classNames.includes('phase-ovulation')) out.push({ backgroundColor: t.ovulation });
+  if (classNames.includes('phase-luteal')) out.push({ backgroundColor: t.luteal });
   if (classNames.includes('has-symptoms')) out.push({ borderColor: colors.partial });
-  if (classNames.includes('weight-logged')) out.push({ backgroundColor: '#e0f2fe' });
-  if (classNames.includes('weight-meals')) out.push({ backgroundColor: '#f0fdf4' });
-  if (classNames.includes('weight-workout')) out.push({ backgroundColor: '#fff7ed' });
+  if (classNames.includes('weight-logged')) out.push({ backgroundColor: t.weight });
+  if (classNames.includes('weight-meals')) out.push({ backgroundColor: t.weightMeals });
+  if (classNames.includes('weight-workout')) out.push({ backgroundColor: t.weightWorkout });
   if (classNames.includes('weight-off-schedule')) out.push({ opacity: 0.45 });
-  if (classNames.includes('hrt-logged')) out.push({ backgroundColor: '#fae8ff' });
+  if (classNames.includes('hrt-logged')) out.push({ backgroundColor: t.hrt });
   if (classNames.includes('med-perfect')) {
     out.push({ backgroundColor: colors.streakPerfectBg, borderColor: colors.streakPerfectBorder });
   }
@@ -35,18 +78,23 @@ export function cellStylesFromClassNames(classNames: string[]): ViewStyle[] {
   return out;
 }
 
-export function eventToneStyle(tone: TrackingCalendarEventTone): { bg: string; text: string } {
+export function eventToneStyle(
+  tone: TrackingCalendarEventTone,
+  colors: ColorPalette,
+  isDark: boolean,
+): { bg: string; text: string } {
+  const t = calendarTints(isDark);
   switch (tone) {
     case 'cycle-period':
-      return { bg: '#fce7f3', text: '#9d174d' };
+      return t.cyclePeriod;
     case 'cycle-phase':
-      return { bg: '#ede9fe', text: '#5b21b6' };
+      return t.cyclePhase;
     case 'cycle-symptom':
-      return { bg: '#fff7ed', text: '#c2410c' };
+      return t.cycleSymptom;
     case 'weight':
-      return { bg: '#e0f2fe', text: '#0369a1' };
+      return t.weightEvent;
     case 'hrt':
-      return { bg: '#fae8ff', text: '#86198f' };
+      return t.hrtEvent;
     case 'med-perfect':
       return { bg: colors.streakPerfectBg, text: colors.success };
     case 'med-partial':

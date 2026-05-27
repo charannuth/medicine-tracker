@@ -1,7 +1,6 @@
 import { useMemo, useState } from 'react';
 import {
   Pressable,
-  StyleSheet,
   Text,
   TextInput,
   View,
@@ -9,17 +8,71 @@ import {
 } from 'react-native';
 import type { AppetiteLevel, WellnessLogInput } from '../lib/wellness';
 import { buildSymptomChipOptions } from '../lib/wellness';
-import { colors, radii, spacing } from '../constants/theme';
+import type { ColorPalette } from '../constants/theme';
+import { radii, spacing } from '../constants/theme';
+import { useTheme } from '../context/ThemeProvider';
+import { useThemedStyles } from '../hooks/useThemedStyles';
 
-type Props = {
-  value: WellnessLogInput;
-  onChange: (next: WellnessLogInput) => void;
-  onSubmit: () => void;
-  busy?: boolean;
-  submitLabel?: string;
-  compact?: boolean;
-  trackedSymptoms?: string[];
-};
+function makeDailyFormStyles(colors: ColorPalette) {
+  return {
+    wrap: { gap: spacing.sm },
+    wrapCompact: { gap: spacing.sm },
+    legend: { marginTop: spacing.sm, fontSize: 13, fontWeight: '900' as const, color: colors.text },
+    hint: { color: colors.textMuted, lineHeight: 18 },
+    row: { flexDirection: 'row' as const, gap: spacing.sm },
+    field: { flex: 1, gap: 6 },
+    label: { fontSize: 12, fontWeight: '800' as const, color: colors.textMuted },
+    input: {
+      borderWidth: 1,
+      borderColor: colors.border,
+      borderRadius: radii.md,
+      paddingHorizontal: spacing.md,
+      paddingVertical: 12,
+      fontSize: 15,
+      backgroundColor: colors.surface,
+      color: colors.text,
+    },
+    notes: { minHeight: 90, textAlignVertical: 'top' as const },
+    chips: { flexDirection: 'row' as const, flexWrap: 'wrap' as const, gap: 8 },
+    chip: {
+      borderWidth: 1,
+      borderColor: colors.border,
+      borderRadius: 999,
+      paddingHorizontal: 10,
+      paddingVertical: 6,
+      backgroundColor: colors.surface,
+    },
+    chipActive: { borderColor: colors.accent, backgroundColor: colors.typeCardActiveBg },
+    chipText: { color: colors.text, fontWeight: '700' as const, fontSize: 12 },
+    chipTextActive: { color: colors.accentDark },
+    switchRow: {
+      flexDirection: 'row' as const,
+      alignItems: 'center' as const,
+      justifyContent: 'space-between' as const,
+    },
+    switchLabel: { color: colors.text, fontWeight: '700' as const },
+    customRow: { flexDirection: 'row' as const, gap: 8, alignItems: 'center' as const },
+    customInput: { flex: 1 },
+    addBtn: {
+      borderWidth: 1,
+      borderColor: colors.border,
+      borderRadius: radii.md,
+      paddingHorizontal: spacing.md,
+      paddingVertical: 12,
+      backgroundColor: colors.surface,
+    },
+    addBtnText: { fontWeight: '900' as const, color: colors.text },
+    saveBtn: {
+      marginTop: spacing.md,
+      backgroundColor: colors.accent,
+      borderRadius: radii.md,
+      paddingVertical: 14,
+      alignItems: 'center' as const,
+    },
+    saveBtnText: { color: colors.onAccent, fontWeight: '900' as const, fontSize: 16 },
+    disabled: { opacity: 0.6 },
+  };
+}
 
 function Chip({
   label,
@@ -30,6 +83,7 @@ function Chip({
   active: boolean;
   onPress: () => void;
 }) {
+  const styles = useThemedStyles(makeDailyFormStyles);
   return (
     <Pressable
       onPress={onPress}
@@ -41,6 +95,16 @@ function Chip({
   );
 }
 
+type Props = {
+  value: WellnessLogInput;
+  onChange: (next: WellnessLogInput) => void;
+  onSubmit: () => void;
+  busy?: boolean;
+  submitLabel?: string;
+  compact?: boolean;
+  trackedSymptoms?: string[];
+};
+
 export function WellnessDailyForm({
   value,
   onChange,
@@ -50,6 +114,8 @@ export function WellnessDailyForm({
   compact = false,
   trackedSymptoms = [],
 }: Props) {
+  const { colors } = useTheme();
+  const styles = useThemedStyles(makeDailyFormStyles);
   const [customSymptom, setCustomSymptom] = useState('');
 
   function patch(partial: Partial<WellnessLogInput>) {
@@ -224,59 +290,3 @@ export function WellnessDailyForm({
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  wrap: { gap: spacing.sm },
-  wrapCompact: { gap: spacing.sm },
-  legend: { marginTop: spacing.sm, fontSize: 13, fontWeight: '900', color: colors.text },
-  hint: { color: colors.textMuted, lineHeight: 18 },
-  row: { flexDirection: 'row', gap: spacing.sm },
-  field: { flex: 1, gap: 6 },
-  label: { fontSize: 12, fontWeight: '800', color: colors.textMuted },
-  input: {
-    borderWidth: 1,
-    borderColor: colors.border,
-    borderRadius: radii.md,
-    paddingHorizontal: spacing.md,
-    paddingVertical: 12,
-    fontSize: 15,
-    backgroundColor: colors.surface,
-    color: colors.text,
-  },
-  notes: { minHeight: 90, textAlignVertical: 'top' },
-  chips: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
-  chip: {
-    borderWidth: 1,
-    borderColor: colors.border,
-    borderRadius: 999,
-    paddingHorizontal: 10,
-    paddingVertical: 6,
-    backgroundColor: colors.surface,
-  },
-  chipActive: { borderColor: '#67e8f9', backgroundColor: '#ecfeff' },
-  chipText: { color: colors.text, fontWeight: '700', fontSize: 12 },
-  chipTextActive: { color: colors.accentDark },
-  switchRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
-  switchLabel: { color: colors.text, fontWeight: '700' },
-  customRow: { flexDirection: 'row', gap: 8, alignItems: 'center' },
-  customInput: { flex: 1 },
-  addBtn: {
-    borderWidth: 1,
-    borderColor: colors.border,
-    borderRadius: radii.md,
-    paddingHorizontal: spacing.md,
-    paddingVertical: 12,
-    backgroundColor: colors.surface,
-  },
-  addBtnText: { fontWeight: '900', color: colors.text },
-  saveBtn: {
-    marginTop: spacing.md,
-    backgroundColor: colors.accent,
-    borderRadius: radii.md,
-    paddingVertical: 14,
-    alignItems: 'center',
-  },
-  saveBtnText: { color: '#fff', fontWeight: '900', fontSize: 16 },
-  disabled: { opacity: 0.6 },
-});
-

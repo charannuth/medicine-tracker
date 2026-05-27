@@ -4,14 +4,16 @@ import {
   Pressable,
   RefreshControl,
   ScrollView,
-  StyleSheet,
   Text,
   View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { MedicationNameInput } from '../../components/medication/MedicationNameInput';
-import { colors, radii, spacing } from '../../constants/theme';
+import type { ColorPalette } from '../../constants/theme';
+import { radii, spacing } from '../../constants/theme';
+import { useTheme } from '../../context/ThemeProvider';
+import { useThemedStyles } from '../../hooks/useThemedStyles';
 import { useAuth } from '../../hooks/useAuth';
 import { useMedicalRecordAllergies } from '../../hooks/useMedicalRecordAllergies';
 import { checkDrugAllergies, type AllergyWarning } from '../../lib/allergyCheck';
@@ -28,21 +30,119 @@ import { filterMedicationsActiveOn } from '../../lib/medicationDates';
 import { supabase } from '../../lib/supabase';
 import type { Medication } from '../../lib/types';
 
+function makeInteractionStyles(colors: ColorPalette) {
+  return {
+    safe: { flex: 1, backgroundColor: colors.bg },
+    scroll: { padding: spacing.md, paddingBottom: spacing.xl, gap: spacing.md },
+    header: { gap: spacing.xs },
+    h1: { fontSize: 24, fontWeight: '900' as const, color: colors.text },
+    sub: { color: colors.textMuted, lineHeight: 20 },
+    disclaimer: {
+      backgroundColor: colors.partialBg,
+      borderWidth: 1,
+      borderColor: colors.partialBorder,
+      borderRadius: radii.md,
+      padding: spacing.md,
+    },
+    disclaimerText: { color: colors.text, lineHeight: 20, fontSize: 14 },
+    strong: { fontWeight: '800' as const, color: colors.text },
+    link: { color: colors.accent, fontWeight: '700' as const },
+    footerLink: { textAlign: 'center' as const, marginTop: spacing.sm },
+    card: {
+      backgroundColor: colors.surface,
+      borderRadius: radii.lg,
+      borderWidth: 1,
+      borderColor: colors.border,
+      padding: spacing.lg,
+      gap: spacing.sm,
+    },
+    sectionTitle: { fontSize: 16, fontWeight: '900' as const, color: colors.text },
+    body: { color: colors.text, lineHeight: 20 },
+    hint: { color: colors.textMuted, lineHeight: 20, fontSize: 14 },
+    em: { fontStyle: 'italic' as const, fontWeight: '600' as const },
+    meta: {
+      marginTop: spacing.xs,
+      color: colors.textMuted,
+      fontSize: 13,
+      lineHeight: 18,
+    },
+    medRow: { flexDirection: 'row' as const, flexWrap: 'wrap' as const },
+    medName: { color: colors.text, fontWeight: '700' as const, lineHeight: 22 },
+    medMapped: { color: colors.textMuted, lineHeight: 22 },
+    medUnknown: { color: colors.partialText, lineHeight: 22 },
+    errorCard: { backgroundColor: colors.errorBg, borderColor: colors.errorBorder },
+    errorText: { color: colors.error, fontWeight: '700' as const },
+    warnCard: { backgroundColor: colors.partialBg, borderColor: colors.partialBorder },
+    warnText: { color: colors.text, lineHeight: 20 },
+    inlineWarn: {
+      backgroundColor: colors.partialBg,
+      borderRadius: radii.md,
+      padding: spacing.sm,
+      borderWidth: 1,
+      borderColor: colors.partialBorder,
+    },
+    successCard: { backgroundColor: colors.successBg, borderColor: colors.successBorder },
+    successTitle: { fontWeight: '900' as const, color: colors.successText, fontSize: 16 },
+    loadingWrap: {
+      alignItems: 'center' as const,
+      justifyContent: 'center' as const,
+      padding: spacing.xl,
+      gap: spacing.sm,
+    },
+    loadingText: { color: colors.textMuted },
+    warningBlock: {
+      marginTop: spacing.md,
+      paddingTop: spacing.md,
+      borderTopWidth: 1,
+      borderTopColor: colors.border,
+      gap: spacing.xs,
+    },
+    warningHeader: { gap: spacing.xs },
+    warningTitle: { fontSize: 15, fontWeight: '900' as const, color: colors.text },
+    management: { color: colors.text, lineHeight: 20, fontSize: 14 },
+    managementLabel: { fontWeight: '800' as const },
+    badge: {
+      borderRadius: 999,
+      paddingHorizontal: 10,
+      paddingVertical: 4,
+      alignSelf: 'flex-start' as const,
+    },
+    badgeMajor: { backgroundColor: colors.badgeMajorBg },
+    badgeModerate: { backgroundColor: colors.badgeModerateBg },
+    badgeMinor: { backgroundColor: colors.badgeMinorBg },
+    badgeText: { fontSize: 12, fontWeight: '900' as const, color: colors.text },
+    secondaryBtn: {
+      marginTop: spacing.sm,
+      borderWidth: 1,
+      borderColor: colors.border,
+      borderRadius: radii.md,
+      paddingVertical: 12,
+      alignItems: 'center' as const,
+      backgroundColor: colors.bg,
+    },
+    secondaryBtnText: { fontWeight: '700' as const, color: colors.text, fontSize: 16 },
+    btnDisabled: { opacity: 0.5 },
+  };
+}
+
+type InteractionStylesShape = ReturnType<typeof makeInteractionStyles>;
+
 function normalizeName(s: string): string {
   return s.trim().toLowerCase();
 }
 
-function severityBadgeStyle(sev: string) {
-  if (sev === 'major') return [styles.badge, styles.badgeMajor];
-  if (sev === 'moderate') return [styles.badge, styles.badgeModerate];
-  return [styles.badge, styles.badgeMinor];
+function severityBadgeStyle(sev: string, s: InteractionStylesShape) {
+  if (sev === 'major') return [s.badge, s.badgeMajor];
+  if (sev === 'moderate') return [s.badge, s.badgeModerate];
+  return [s.badge, s.badgeMinor];
 }
 
 function InteractionResultItem({ item }: { item: FoundInteraction }) {
+  const styles = useThemedStyles(makeInteractionStyles);
   return (
     <View style={styles.warningBlock}>
       <View style={styles.warningHeader}>
-        <View style={severityBadgeStyle(item.severity)}>
+        <View style={severityBadgeStyle(item.severity, styles)}>
           <Text style={styles.badgeText}>{severityLabel(item.severity)}</Text>
         </View>
         <Text style={styles.warningTitle}>
@@ -65,6 +165,7 @@ function MedicalRecordWarningItem({
   kind: 'allergy' | 'condition';
   item: AllergyWarning | ConditionWarning;
 }) {
+  const styles = useThemedStyles(makeInteractionStyles);
   const badgeLabel =
     kind === 'allergy'
       ? `Allergy (${item.severity})`
@@ -87,7 +188,7 @@ function MedicalRecordWarningItem({
   return (
     <View style={styles.warningBlock}>
       <View style={styles.warningHeader}>
-        <View style={severityBadgeStyle(item.severity)}>
+        <View style={severityBadgeStyle(item.severity, styles)}>
           <Text style={styles.badgeText}>{badgeLabel}</Text>
         </View>
         <Text style={styles.warningTitle}>{item.drugName}</Text>
@@ -102,6 +203,8 @@ function MedicalRecordWarningItem({
 }
 
 export default function InteractionsScreen() {
+  const { colors } = useTheme();
+  const styles = useThemedStyles(makeInteractionStyles);
   const { user } = useAuth();
   const router = useRouter();
   const { allergies, conditions } = useMedicalRecordAllergies(user?.id);
@@ -482,86 +585,3 @@ export default function InteractionsScreen() {
     </SafeAreaView>
   );
 }
-
-const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: colors.bg },
-  scroll: { padding: spacing.md, paddingBottom: spacing.xl, gap: spacing.md },
-  header: { gap: spacing.xs },
-  h1: { fontSize: 24, fontWeight: '900', color: colors.text },
-  sub: { color: colors.textMuted, lineHeight: 20 },
-  disclaimer: {
-    backgroundColor: '#fffbeb',
-    borderWidth: 1,
-    borderColor: '#fde68a',
-    borderRadius: radii.md,
-    padding: spacing.md,
-  },
-  disclaimerText: { color: colors.text, lineHeight: 20, fontSize: 14 },
-  strong: { fontWeight: '800', color: colors.text },
-  link: { color: colors.accent, fontWeight: '700' },
-  footerLink: { textAlign: 'center', marginTop: spacing.sm },
-  card: {
-    backgroundColor: colors.surface,
-    borderRadius: radii.lg,
-    borderWidth: 1,
-    borderColor: colors.border,
-    padding: spacing.lg,
-    gap: spacing.sm,
-  },
-  sectionTitle: { fontSize: 16, fontWeight: '900', color: colors.text },
-  body: { color: colors.text, lineHeight: 20 },
-  hint: { color: colors.textMuted, lineHeight: 20, fontSize: 14 },
-  em: { fontStyle: 'italic', fontWeight: '600' },
-  meta: { marginTop: spacing.xs, color: colors.textMuted, fontSize: 13, lineHeight: 18 },
-  medRow: { flexDirection: 'row', flexWrap: 'wrap' },
-  medName: { color: colors.text, fontWeight: '700', lineHeight: 22 },
-  medMapped: { color: colors.textMuted, lineHeight: 22 },
-  medUnknown: { color: '#b45309', lineHeight: 22 },
-  errorCard: { backgroundColor: colors.errorBg, borderColor: '#fecaca' },
-  errorText: { color: colors.error, fontWeight: '700' },
-  warnCard: { backgroundColor: '#fffbeb', borderColor: '#fde68a' },
-  warnText: { color: colors.text, lineHeight: 20 },
-  inlineWarn: {
-    backgroundColor: '#fffbeb',
-    borderRadius: radii.md,
-    padding: spacing.sm,
-    borderWidth: 1,
-    borderColor: '#fde68a',
-  },
-  successCard: { backgroundColor: '#ecfdf5', borderColor: '#a7f3d0' },
-  successTitle: { fontWeight: '900', color: '#047857', fontSize: 16 },
-  loadingWrap: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    padding: spacing.xl,
-    gap: spacing.sm,
-  },
-  loadingText: { color: colors.textMuted },
-  warningBlock: {
-    marginTop: spacing.md,
-    paddingTop: spacing.md,
-    borderTopWidth: 1,
-    borderTopColor: colors.border,
-    gap: spacing.xs,
-  },
-  warningHeader: { gap: spacing.xs },
-  warningTitle: { fontSize: 15, fontWeight: '900', color: colors.text },
-  management: { color: colors.text, lineHeight: 20, fontSize: 14 },
-  managementLabel: { fontWeight: '800' },
-  badge: { borderRadius: 999, paddingHorizontal: 10, paddingVertical: 4, alignSelf: 'flex-start' },
-  badgeMajor: { backgroundColor: '#fee2e2' },
-  badgeModerate: { backgroundColor: '#ffedd5' },
-  badgeMinor: { backgroundColor: '#eff6ff' },
-  badgeText: { fontSize: 12, fontWeight: '900', color: colors.text },
-  secondaryBtn: {
-    marginTop: spacing.sm,
-    borderWidth: 1,
-    borderColor: colors.border,
-    borderRadius: radii.md,
-    paddingVertical: 12,
-    alignItems: 'center',
-    backgroundColor: colors.bg,
-  },
-  secondaryBtnText: { fontWeight: '700', color: colors.text, fontSize: 16 },
-  btnDisabled: { opacity: 0.5 },
-});

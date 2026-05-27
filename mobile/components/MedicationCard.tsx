@@ -1,4 +1,4 @@
-import { ActivityIndicator, Pressable, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, Pressable, Text, View } from 'react-native';
 import { formatDoseDisplay } from '../lib/dose';
 import { formatInventoryRemaining } from '../lib/inventory';
 import { formatMedicationType } from '../lib/medicationForms';
@@ -6,7 +6,10 @@ import { formatMedicationDateRange } from '../lib/medicationDates';
 import { isAsNeededMed } from '../lib/medicationSchedule';
 import type { DoseSlotStatus, MedicationWithStatus } from '../lib/types';
 import type { PrnDoseLogPayload } from '../lib/prnCheckIn';
-import { colors, radii, spacing } from '../constants/theme';
+import type { ColorPalette } from '../constants/theme';
+import { radii, spacing } from '../constants/theme';
+import { useTheme } from '../context/ThemeProvider';
+import { useThemedStyles } from '../hooks/useThemedStyles';
 import { PrnDoseLogPanel } from './PrnDoseLogPanel';
 import { useRouter } from 'expo-router';
 
@@ -21,25 +24,176 @@ type MedicationCardProps = {
   busySlot: string | null;
 };
 
-function Badge({
-  label,
-  tone,
-}: {
-  label: string;
-  tone: 'success' | 'pending' | 'partial';
-}) {
-  const toneStyle =
-    tone === 'success'
-      ? styles.badgeSuccess
-      : tone === 'partial'
-        ? styles.badgePartial
-        : styles.badgePending;
-
-  return (
-    <View style={[styles.badge, toneStyle]}>
-      <Text style={styles.badgeText}>{label}</Text>
-    </View>
-  );
+function makeMedicationCardStyles(colors: ColorPalette) {
+  return {
+    card: {
+      backgroundColor: colors.surface,
+      borderRadius: radii.lg,
+      borderWidth: 1,
+      borderColor: colors.border,
+      padding: spacing.md,
+      gap: spacing.sm,
+    },
+    cardTaken: {
+      borderColor: colors.successBorder,
+      backgroundColor: colors.successBg,
+    },
+    cardPrn: {
+      borderStyle: 'dashed' as const,
+    },
+    header: {
+      flexDirection: 'row' as const,
+      justifyContent: 'space-between' as const,
+      gap: spacing.sm,
+    },
+    headerText: {
+      flex: 1,
+      gap: 2,
+    },
+    name: {
+      fontSize: 18,
+      fontWeight: '700' as const,
+      color: colors.text,
+    },
+    typeLabel: {
+      fontSize: 13,
+      color: colors.textMuted,
+    },
+    dosage: {
+      fontSize: 14,
+      color: colors.textMuted,
+      marginTop: 2,
+    },
+    dateRange: {
+      fontSize: 13,
+      color: colors.textMuted,
+    },
+    notes: {
+      fontSize: 14,
+      color: colors.text,
+    },
+    pills: {
+      fontSize: 13,
+      color: colors.textMuted,
+    },
+    pillsLow: {
+      color: colors.partial,
+      fontWeight: '600' as const,
+    },
+    badge: {
+      alignSelf: 'flex-start' as const,
+      borderRadius: radii.sm,
+      paddingHorizontal: 10,
+      paddingVertical: 4,
+    },
+    badgeSuccess: {
+      backgroundColor: colors.successBg,
+    },
+    badgePartial: {
+      backgroundColor: colors.partialBg,
+    },
+    badgePending: {
+      backgroundColor: colors.pendingBg,
+    },
+    badgeText: {
+      fontSize: 12,
+      fontWeight: '700' as const,
+      color: colors.text,
+    },
+    slots: {
+      gap: spacing.sm,
+      marginTop: spacing.xs,
+    },
+    slot: {
+      flexDirection: 'row' as const,
+      alignItems: 'center' as const,
+      justifyContent: 'space-between' as const,
+      gap: spacing.sm,
+      paddingVertical: 4,
+    },
+    slotTakenRow: {
+      opacity: 0.9,
+    },
+    slotTaken: {
+      flexDirection: 'row' as const,
+      alignItems: 'center' as const,
+      justifyContent: 'space-between' as const,
+      gap: spacing.sm,
+      paddingVertical: 4,
+    },
+    slotTime: {
+      flex: 1,
+      fontSize: 15,
+      fontWeight: '600' as const,
+      color: colors.text,
+    },
+    emptySlots: {
+      fontSize: 14,
+      color: colors.textMuted,
+      fontStyle: 'italic' as const,
+    },
+    primaryButton: {
+      backgroundColor: colors.accent,
+      borderRadius: radii.md,
+      paddingVertical: 12,
+      alignItems: 'center' as const,
+      marginTop: spacing.xs,
+    },
+    primaryButtonSmall: {
+      backgroundColor: colors.accent,
+      borderRadius: radii.sm,
+      paddingHorizontal: 14,
+      paddingVertical: 8,
+      minWidth: 110,
+      alignItems: 'center' as const,
+    },
+    primaryButtonText: {
+      color: colors.onAccent,
+      fontSize: 15,
+      fontWeight: '700' as const,
+    },
+    primaryButtonTextSmall: {
+      color: colors.onAccent,
+      fontSize: 14,
+      fontWeight: '700' as const,
+    },
+    secondaryButton: {
+      borderWidth: 1,
+      borderColor: colors.border,
+      borderRadius: radii.sm,
+      paddingHorizontal: 14,
+      paddingVertical: 8,
+      backgroundColor: colors.surface,
+    },
+    secondaryButtonText: {
+      color: colors.text,
+      fontSize: 14,
+      fontWeight: '600' as const,
+    },
+    actions: {
+      flexDirection: 'row' as const,
+      flexWrap: 'wrap' as const,
+      gap: 10,
+      marginTop: spacing.sm,
+    },
+    ghostBtn: {
+      paddingVertical: 6,
+      paddingHorizontal: 2,
+    },
+    ghostText: {
+      color: colors.textMuted,
+      fontWeight: '800' as const,
+    },
+    dangerText: {
+      color: colors.error,
+    },
+    buttonDisabled: {
+      opacity: 0.6,
+    },
+    buttonDisabledText: {
+      opacity: 0.6,
+    },
+  };
 }
 
 export function MedicationCard({
@@ -53,6 +207,30 @@ export function MedicationCard({
   busySlot,
 }: MedicationCardProps) {
   const router = useRouter();
+  const { colors } = useTheme();
+  const styles = useThemedStyles(makeMedicationCardStyles);
+
+  function Badge({
+    label,
+    tone,
+  }: {
+    label: string;
+    tone: 'success' | 'pending' | 'partial';
+  }) {
+    const toneStyle =
+      tone === 'success'
+        ? styles.badgeSuccess
+        : tone === 'partial'
+          ? styles.badgePartial
+          : styles.badgePending;
+
+    return (
+      <View style={[styles.badge, toneStyle]}>
+        <Text style={styles.badgeText}>{label}</Text>
+      </View>
+    );
+  }
+
   const asNeeded = isAsNeededMed(medication);
   const lowSupply =
     medication.pills_remaining != null && medication.pills_remaining <= 7;
@@ -189,7 +367,7 @@ export function MedicationCard({
                     onPress={() => onMarkTaken(slot.time)}
                   >
                     {busy ? (
-                      <ActivityIndicator color="#fff" size="small" />
+                      <ActivityIndicator color={colors.onAccent} size="small" />
                     ) : (
                       <Text style={styles.primaryButtonTextSmall}>Mark taken</Text>
                     )}
@@ -245,173 +423,3 @@ export function MedicationCard({
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  card: {
-    backgroundColor: colors.surface,
-    borderRadius: radii.lg,
-    borderWidth: 1,
-    borderColor: colors.border,
-    padding: spacing.md,
-    gap: spacing.sm,
-  },
-  cardTaken: {
-    borderColor: '#a7f3d0',
-    backgroundColor: '#f0fdf4',
-  },
-  cardPrn: {
-    borderStyle: 'dashed',
-  },
-  header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    gap: spacing.sm,
-  },
-  headerText: {
-    flex: 1,
-    gap: 2,
-  },
-  name: {
-    fontSize: 18,
-    fontWeight: '700',
-    color: colors.text,
-  },
-  typeLabel: {
-    fontSize: 13,
-    color: colors.textMuted,
-  },
-  dosage: {
-    fontSize: 14,
-    color: colors.textMuted,
-    marginTop: 2,
-  },
-  dateRange: {
-    fontSize: 13,
-    color: colors.textMuted,
-  },
-  notes: {
-    fontSize: 14,
-    color: colors.text,
-  },
-  pills: {
-    fontSize: 13,
-    color: colors.textMuted,
-  },
-  pillsLow: {
-    color: colors.partial,
-    fontWeight: '600',
-  },
-  badge: {
-    alignSelf: 'flex-start',
-    borderRadius: radii.sm,
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-  },
-  badgeSuccess: {
-    backgroundColor: colors.successBg,
-  },
-  badgePartial: {
-    backgroundColor: colors.partialBg,
-  },
-  badgePending: {
-    backgroundColor: colors.pendingBg,
-  },
-  badgeText: {
-    fontSize: 12,
-    fontWeight: '700',
-    color: colors.text,
-  },
-  slots: {
-    gap: spacing.sm,
-    marginTop: spacing.xs,
-  },
-  slot: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    gap: spacing.sm,
-    paddingVertical: 4,
-  },
-  slotTakenRow: {
-    opacity: 0.9,
-  },
-  slotTaken: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    gap: spacing.sm,
-    paddingVertical: 4,
-  },
-  slotTime: {
-    flex: 1,
-    fontSize: 15,
-    fontWeight: '600',
-    color: colors.text,
-  },
-  emptySlots: {
-    fontSize: 14,
-    color: colors.textMuted,
-    fontStyle: 'italic',
-  },
-  primaryButton: {
-    backgroundColor: colors.accent,
-    borderRadius: radii.md,
-    paddingVertical: 12,
-    alignItems: 'center',
-    marginTop: spacing.xs,
-  },
-  primaryButtonSmall: {
-    backgroundColor: colors.accent,
-    borderRadius: radii.sm,
-    paddingHorizontal: 14,
-    paddingVertical: 8,
-    minWidth: 110,
-    alignItems: 'center',
-  },
-  primaryButtonText: {
-    color: '#fff',
-    fontSize: 15,
-    fontWeight: '700',
-  },
-  primaryButtonTextSmall: {
-    color: '#fff',
-    fontSize: 14,
-    fontWeight: '700',
-  },
-  secondaryButton: {
-    borderWidth: 1,
-    borderColor: colors.border,
-    borderRadius: radii.sm,
-    paddingHorizontal: 14,
-    paddingVertical: 8,
-    backgroundColor: colors.surface,
-  },
-  secondaryButtonText: {
-    color: colors.text,
-    fontSize: 14,
-    fontWeight: '600',
-  },
-  actions: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 10,
-    marginTop: spacing.sm,
-  },
-  ghostBtn: {
-    paddingVertical: 6,
-    paddingHorizontal: 2,
-  },
-  ghostText: {
-    color: colors.textMuted,
-    fontWeight: '800',
-  },
-  dangerText: {
-    color: colors.error,
-  },
-  buttonDisabled: {
-    opacity: 0.6,
-  },
-  buttonDisabledText: {
-    opacity: 0.6,
-  },
-});

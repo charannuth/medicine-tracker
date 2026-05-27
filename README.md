@@ -9,6 +9,8 @@ A personal web app to manage medications, log daily doses, track adherence strea
 Newest first. Each line is added from the commit subject when you commit (with hooks enabled).
 
 <!-- DEVLOG:START -->
+- **2026-05-27** (`2d65efb`) — Bring mobile app to full web parity with themed UI.
+
 - **2026-05-27** (`1754395`) — Add Expo mobile app with web feature parity.
 
 - **2026-05-26** (`009b8b5`) — Show missed doses on the med progress calendar.

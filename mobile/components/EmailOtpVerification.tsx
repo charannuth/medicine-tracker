@@ -2,15 +2,88 @@ import { useEffect, useState } from 'react';
 import {
   ActivityIndicator,
   Pressable,
-  StyleSheet,
   Text,
   TextInput,
   View,
 } from 'react-native';
+import type { ColorPalette } from '../constants/theme';
+import { radii, spacing } from '../constants/theme';
 import { EMAIL_OTP_LENGTH } from '../lib/authOtp';
-import { colors, radii, spacing } from '../constants/theme';
+import { useTheme } from '../context/ThemeProvider';
+import { useThemedStyles } from '../hooks/useThemedStyles';
 
 const RESEND_COOLDOWN_SEC = 60;
+
+function makeEmailOtpStyles(colors: ColorPalette) {
+  return {
+    subtitle: {
+      fontSize: 15,
+      color: colors.textMuted,
+      lineHeight: 22,
+      marginBottom: spacing.sm,
+    },
+    hint: {
+      fontSize: 14,
+      color: colors.textMuted,
+      marginBottom: spacing.md,
+    },
+    hintStrong: {
+      color: colors.text,
+      fontWeight: '600' as const,
+    },
+    label: {
+      fontSize: 14,
+      fontWeight: '600' as const,
+      color: colors.text,
+      marginBottom: spacing.sm,
+    },
+    otpInput: {
+      borderWidth: 1,
+      borderColor: colors.border,
+      borderRadius: radii.md,
+      paddingHorizontal: spacing.md,
+      paddingVertical: 12,
+      fontSize: 24,
+      letterSpacing: 6,
+      textAlign: 'center' as const,
+      backgroundColor: colors.surface,
+      color: colors.text,
+      marginBottom: spacing.md,
+    },
+    error: {
+      color: colors.error,
+      marginBottom: spacing.sm,
+    },
+    success: {
+      color: colors.success,
+      marginBottom: spacing.sm,
+    },
+    primaryButton: {
+      backgroundColor: colors.accent,
+      borderRadius: radii.md,
+      paddingVertical: 14,
+      alignItems: 'center' as const,
+      marginTop: spacing.sm,
+    },
+    primaryButtonText: {
+      color: colors.onAccent,
+      fontSize: 16,
+      fontWeight: '700' as const,
+    },
+    buttonDisabled: {
+      opacity: 0.6,
+    },
+    linkButton: {
+      paddingVertical: spacing.sm,
+      alignItems: 'center' as const,
+    },
+    linkText: {
+      color: colors.accent,
+      fontSize: 15,
+      fontWeight: '600' as const,
+    },
+  };
+}
 
 type EmailOtpVerificationProps = {
   email: string;
@@ -35,6 +108,8 @@ export function EmailOtpVerification({
   onResend,
   onBack,
 }: EmailOtpVerificationProps) {
+  const { colors } = useTheme();
+  const styles = useThemedStyles(makeEmailOtpStyles);
   const [code, setCode] = useState('');
   const [resendCooldown, setResendCooldown] = useState(RESEND_COOLDOWN_SEC);
   const [resendBusy, setResendBusy] = useState(false);
@@ -94,7 +169,7 @@ export function EmailOtpVerification({
         onPress={handleVerify}
       >
         {busy ? (
-          <ActivityIndicator color="#fff" />
+          <ActivityIndicator color={colors.onAccent} />
         ) : (
           <Text style={styles.primaryButtonText}>{verifyLabel}</Text>
         )}
@@ -122,71 +197,3 @@ export function EmailOtpVerification({
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  subtitle: {
-    fontSize: 15,
-    color: colors.textMuted,
-    lineHeight: 22,
-    marginBottom: spacing.sm,
-  },
-  hint: {
-    fontSize: 14,
-    color: colors.textMuted,
-    marginBottom: spacing.md,
-  },
-  hintStrong: {
-    color: colors.text,
-    fontWeight: '600',
-  },
-  label: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: colors.text,
-    marginBottom: spacing.sm,
-  },
-  otpInput: {
-    borderWidth: 1,
-    borderColor: colors.border,
-    borderRadius: radii.md,
-    paddingHorizontal: spacing.md,
-    paddingVertical: 12,
-    fontSize: 24,
-    letterSpacing: 6,
-    textAlign: 'center',
-    backgroundColor: colors.surface,
-    marginBottom: spacing.md,
-  },
-  error: {
-    color: colors.error,
-    marginBottom: spacing.sm,
-  },
-  success: {
-    color: colors.success,
-    marginBottom: spacing.sm,
-  },
-  primaryButton: {
-    backgroundColor: colors.accent,
-    borderRadius: radii.md,
-    paddingVertical: 14,
-    alignItems: 'center',
-    marginTop: spacing.sm,
-  },
-  primaryButtonText: {
-    color: '#fff',
-    fontSize: 16,
-    fontWeight: '700',
-  },
-  buttonDisabled: {
-    opacity: 0.6,
-  },
-  linkButton: {
-    paddingVertical: spacing.sm,
-    alignItems: 'center',
-  },
-  linkText: {
-    color: colors.accent,
-    fontSize: 15,
-    fontWeight: '600',
-  },
-});

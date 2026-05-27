@@ -69,7 +69,7 @@ function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
       borderWidth: 2,
       borderColor: colors.surface,
     },
-    pillText: { color: '#fff', fontWeight: '900', fontSize: 12 },
+    pillText: { color: colors.onAccent, fontWeight: '900', fontSize: 12 },
     textCol: { flex: 1, gap: 4 },
     name: { fontSize: 18, fontWeight: '900', color: colors.text },
     email: { fontSize: 14, color: colors.textMuted },

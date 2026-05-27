@@ -1,6 +1,9 @@
+import { useMemo } from 'react';
 import { Pressable, Text, TextInput, View } from 'react-native';
 import { useRouter } from 'expo-router';
-import { colors, radii, spacing } from '../../constants/theme';
+import type { ColorPalette } from '../../constants/theme';
+import { radii, spacing } from '../../constants/theme';
+import { useTheme } from '../../context/ThemeProvider';
 import {
   BLOOD_TYPE_OPTIONS,
   COMMON_ALLERGY_SUGGESTIONS,
@@ -11,7 +14,7 @@ import type { MedicalRecordInput } from '../../lib/medicalRecords';
 import { GENDER_OPTIONS, ageFromDateOfBirth } from '../../lib/profileStats';
 import { HeightWeightFields } from '../tracking/HeightWeightFields';
 import { SelectField } from '../tracking/SelectField';
-import { trackingStyles } from '../tracking/trackingStyles';
+import { useTrackingStyles } from '../tracking/trackingStyles';
 import { TagListField } from './TagListField';
 
 type Props = {
@@ -32,6 +35,9 @@ export function MedicalRecordsForm({
   busy = false,
 }: Props) {
   const router = useRouter();
+  const trackingStyles = useTrackingStyles();
+  const { colors } = useTheme();
+  const styles = useMemo(() => makeFormStyles(colors), [colors]);
 
   function patch(partial: Partial<MedicalRecordInput>) {
     onChange({ ...value, ...partial });
@@ -179,23 +185,25 @@ export function MedicalRecordsForm({
   );
 }
 
-const styles = {
-  form: { paddingBottom: spacing.xl },
-  disclaimer: {
-    backgroundColor: '#fffbeb',
-    borderWidth: 1,
-    borderColor: '#fde68a',
-    borderRadius: radii.md,
-    padding: spacing.md,
-    marginBottom: spacing.md,
-  },
-  disclaimerText: { color: colors.text, lineHeight: 20, fontSize: 14 },
-  disclaimerStrong: { fontWeight: '800' as const },
-  asthmaHint: {
-    fontSize: 13,
-    color: colors.textMuted,
-    lineHeight: 19,
-    marginTop: spacing.sm,
-  },
-  textArea: { minHeight: 80, textAlignVertical: 'top' as const },
-};
+function makeFormStyles(colors: ColorPalette) {
+  return {
+    form: { paddingBottom: spacing.xl },
+    disclaimer: {
+      backgroundColor: colors.partialBg,
+      borderWidth: 1,
+      borderColor: colors.partialBorder,
+      borderRadius: radii.md,
+      padding: spacing.md,
+      marginBottom: spacing.md,
+    },
+    disclaimerText: { color: colors.text, lineHeight: 20, fontSize: 14 },
+    disclaimerStrong: { fontWeight: '800' as const },
+    asthmaHint: {
+      fontSize: 13,
+      color: colors.textMuted,
+      lineHeight: 19,
+      marginTop: spacing.sm,
+    },
+    textArea: { minHeight: 80, textAlignVertical: 'top' as const },
+  };
+}

@@ -1,6 +1,9 @@
-import { Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
+import { Pressable, Text, TextInput, View } from 'react-native';
 import type { Meridiem } from '../../lib/dates';
-import { colors, radii, spacing } from '../../constants/theme';
+import type { ColorPalette } from '../../constants/theme';
+import { radii, spacing } from '../../constants/theme';
+import { useTheme } from '../../context/ThemeProvider';
+import { useThemedStyles } from '../../hooks/useThemedStyles';
 import { normalizeTime12Display } from '../../lib/doseTimeInput';
 
 type Props = {
@@ -10,7 +13,40 @@ type Props = {
   onChange: (next: { time12: string; period: Meridiem }) => void;
 };
 
+function makeDoseTimeStyles(colors: ColorPalette) {
+  return {
+    row: { gap: spacing.xs, marginBottom: spacing.sm },
+    label: { fontWeight: '700' as const, color: colors.text, fontSize: 14 },
+    inputs: { flexDirection: 'row' as const, gap: spacing.sm, alignItems: 'center' as const },
+    timeInput: {
+      flex: 1,
+      borderWidth: 1,
+      borderColor: colors.border,
+      borderRadius: radii.md,
+      paddingHorizontal: spacing.md,
+      paddingVertical: 10,
+      fontSize: 16,
+      color: colors.text,
+      backgroundColor: colors.surface,
+    },
+    periodWrap: { flexDirection: 'row' as const, gap: 4 },
+    periodBtn: {
+      paddingHorizontal: 12,
+      paddingVertical: 10,
+      borderRadius: radii.sm,
+      borderWidth: 1,
+      borderColor: colors.border,
+    },
+    periodActive: { backgroundColor: colors.accent, borderColor: colors.accent },
+    periodText: { fontWeight: '700' as const, color: colors.textMuted },
+    periodTextActive: { color: colors.onAccent },
+  };
+}
+
 export function DoseTimeInput({ time12, period, label, onChange }: Props) {
+  const styles = useThemedStyles(makeDoseTimeStyles);
+  const { colors } = useTheme();
+
   return (
     <View style={styles.row}>
       <Text style={styles.label}>{label}</Text>
@@ -47,31 +83,3 @@ export function DoseTimeInput({ time12, period, label, onChange }: Props) {
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  row: { gap: spacing.xs, marginBottom: spacing.sm },
-  label: { fontWeight: '700', color: colors.text, fontSize: 14 },
-  inputs: { flexDirection: 'row', gap: spacing.sm, alignItems: 'center' },
-  timeInput: {
-    flex: 1,
-    borderWidth: 1,
-    borderColor: colors.border,
-    borderRadius: radii.md,
-    paddingHorizontal: spacing.md,
-    paddingVertical: 10,
-    fontSize: 16,
-    color: colors.text,
-    backgroundColor: colors.surface,
-  },
-  periodWrap: { flexDirection: 'row', gap: 4 },
-  periodBtn: {
-    paddingHorizontal: 12,
-    paddingVertical: 10,
-    borderRadius: radii.sm,
-    borderWidth: 1,
-    borderColor: colors.border,
-  },
-  periodActive: { backgroundColor: colors.accent, borderColor: colors.accent },
-  periodText: { fontWeight: '700', color: colors.textMuted },
-  periodTextActive: { color: '#fff' },
-});

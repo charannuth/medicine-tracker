@@ -3,7 +3,6 @@ import {
   ActivityIndicator,
   Pressable,
   ScrollView,
-  StyleSheet,
   Switch,
   Text,
   TextInput,
@@ -45,7 +44,10 @@ import {
 import { getReminders, setReminders } from '../../lib/settings';
 import { rescheduleDoseReminders } from '../../lib/reminderScheduler';
 import type { Medication, MedicationInput, MedicationTrackingSync } from '../../lib/types';
-import { colors, radii, spacing } from '../../constants/theme';
+import type { ColorPalette } from '../../constants/theme';
+import { radii, spacing } from '../../constants/theme';
+import { useTheme } from '../../context/ThemeProvider';
+import { useThemedStyles } from '../../hooks/useThemedStyles';
 import { DosageStepPanel } from './DosageStepPanel';
 import { DoseTimeInput } from './DoseTimeInput';
 import { MedicationNameInput } from './MedicationNameInput';
@@ -76,6 +78,8 @@ export function MedicationFormWizard({
   onSave,
   onCancel,
 }: Props) {
+  const styles = useThemedStyles(makeMedicationWizardStyles);
+  const { colors } = useTheme();
   const defaults = buildFormState(initial, defaultScheduleType);
   const [stepIndex, setStepIndex] = useState(0);
   const [name, setName] = useState(defaults.name);
@@ -648,7 +652,7 @@ export function MedicationFormWizard({
             onPress={() => void handleSubmit()}
           >
             {busy ? (
-              <ActivityIndicator color="#fff" />
+              <ActivityIndicator color={colors.onAccent} />
             ) : (
               <Text style={styles.primaryText}>{isLastStep ? 'Save' : 'Next'}</Text>
             )}
@@ -659,7 +663,8 @@ export function MedicationFormWizard({
   );
 }
 
-const styles = StyleSheet.create({
+function makeMedicationWizardStyles(colors: ColorPalette) {
+  return {
   wrap: { flex: 1, backgroundColor: colors.bg },
   header: {
     padding: spacing.md,
@@ -668,17 +673,17 @@ const styles = StyleSheet.create({
     backgroundColor: colors.surface,
     gap: spacing.sm,
   },
-  title: { fontSize: 20, fontWeight: '900', color: colors.text },
-  stepMeta: { color: colors.textMuted, fontWeight: '600' },
-  dots: { flexDirection: 'row', gap: 6 },
+  title: { fontSize: 20, fontWeight: '900' as const, color: colors.text },
+  stepMeta: { color: colors.textMuted, fontWeight: '600' as const },
+  dots: { flexDirection: 'row' as const, gap: 6 },
   dot: { width: 8, height: 8, borderRadius: 4, backgroundColor: colors.border },
   dotFilled: { backgroundColor: colors.accent },
   dotCurrent: { width: 12 },
   scroll: { flex: 1, padding: spacing.md },
-  panelTitle: { fontSize: 18, fontWeight: '900', color: colors.text, marginBottom: spacing.md },
+  panelTitle: { fontSize: 18, fontWeight: '900' as const, color: colors.text, marginBottom: spacing.md },
   panel: { gap: spacing.sm, paddingBottom: spacing.lg },
   hint: { color: colors.textMuted, lineHeight: 20 },
-  fieldLabel: { fontWeight: '700', color: colors.text, marginTop: spacing.sm },
+  fieldLabel: { fontWeight: '700' as const, color: colors.text, marginTop: spacing.sm },
   input: {
     borderWidth: 1,
     borderColor: colors.border,
@@ -689,7 +694,7 @@ const styles = StyleSheet.create({
     color: colors.text,
     backgroundColor: colors.surface,
   },
-  textarea: { minHeight: 90, textAlignVertical: 'top' },
+  textarea: { minHeight: 90, textAlignVertical: 'top' as const },
   typeCard: {
     borderWidth: 1,
     borderColor: colors.border,
@@ -698,10 +703,10 @@ const styles = StyleSheet.create({
     gap: 4,
     marginBottom: spacing.sm,
   },
-  typeCardActive: { borderColor: colors.accent, backgroundColor: '#ecfeff' },
-  typeCardLabel: { fontWeight: '800', color: colors.text },
+  typeCardActive: { borderColor: colors.accent, backgroundColor: colors.typeCardActiveBg },
+  typeCardLabel: { fontWeight: '800' as const, color: colors.text },
   typeCardDesc: { color: colors.textMuted, fontSize: 13 },
-  chipRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
+  chipRow: { flexDirection: 'row' as const, flexWrap: 'wrap' as const, gap: 8 },
   chip: {
     paddingHorizontal: 14,
     paddingVertical: 10,
@@ -710,12 +715,12 @@ const styles = StyleSheet.create({
     borderColor: colors.border,
   },
   chipActive: { backgroundColor: colors.accent, borderColor: colors.accent },
-  chipText: { fontWeight: '700', color: colors.textMuted },
-  chipTextActive: { color: '#fff' },
+  chipText: { fontWeight: '700' as const, color: colors.textMuted },
+  chipTextActive: { color: colors.onAccent },
   switchRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    flexDirection: 'row' as const,
+    justifyContent: 'space-between' as const,
+    alignItems: 'center' as const,
     marginTop: spacing.md,
   },
   reminderTimesBox: {
@@ -727,28 +732,28 @@ const styles = StyleSheet.create({
     backgroundColor: colors.surface,
     gap: 4,
   },
-  reminderTimeRow: { fontSize: 15, color: colors.text, fontWeight: '600' },
-  link: { color: colors.accent, fontWeight: '800', marginBottom: spacing.sm },
+  reminderTimeRow: { fontSize: 15, color: colors.text, fontWeight: '600' as const },
+  link: { color: colors.accent, fontWeight: '800' as const, marginBottom: spacing.sm },
   footer: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    flexDirection: 'row' as const,
+    justifyContent: 'space-between' as const,
+    alignItems: 'center' as const,
     padding: spacing.md,
     borderTopWidth: 1,
     borderTopColor: colors.border,
     backgroundColor: colors.surface,
   },
-  cancel: { color: colors.textMuted, fontWeight: '700' },
-  nav: { flexDirection: 'row', gap: spacing.sm, alignItems: 'center' },
+  cancel: { color: colors.textMuted, fontWeight: '700' as const },
+  nav: { flexDirection: 'row' as const, gap: spacing.sm, alignItems: 'center' as const },
   primaryBtn: {
     backgroundColor: colors.accent,
     borderRadius: radii.md,
     paddingVertical: 12,
     paddingHorizontal: spacing.lg,
     minWidth: 100,
-    alignItems: 'center',
+    alignItems: 'center' as const,
   },
-  primaryText: { color: '#fff', fontWeight: '900' },
+  primaryText: { color: colors.onAccent, fontWeight: '900' as const },
   secondaryBtn: {
     borderWidth: 1,
     borderColor: colors.border,
@@ -756,7 +761,8 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     paddingHorizontal: spacing.md,
   },
-  secondaryText: { fontWeight: '800', color: colors.text },
+  secondaryText: { fontWeight: '800' as const, color: colors.text },
   disabled: { opacity: 0.6 },
-  error: { color: colors.error, fontWeight: '700', marginTop: spacing.md },
-});
+  error: { color: colors.error, fontWeight: '700' as const, marginTop: spacing.md },
+  };
+}

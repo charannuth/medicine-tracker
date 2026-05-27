@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
 import { ActivityIndicator, Pressable, Text, TextInput, View } from 'react-native';
+import { useTheme } from '../../context/ThemeProvider';
 import { useAuth } from '../../hooks/useAuth';
 import { todayLocalDate, formatScheduleTime } from '../../lib/dates';
 import { formatDoseDisplay } from '../../lib/dose';
@@ -17,7 +18,7 @@ import {
   type HrtMoodChange,
   type HrtDayLog,
 } from '../../lib/tracking/hrt';
-import { trackingStyles } from './trackingStyles';
+import { useTrackingStyles } from './trackingStyles';
 
 type Props = {
   selectedDate: string;
@@ -33,6 +34,8 @@ function monthBounds(year: number, month: number): { start: string; end: string 
 
 export function HrtTrackerPanel({ selectedDate, onSelectDate, onDataMutated }: Props) {
   const { user } = useAuth();
+  const trackingStyles = useTrackingStyles();
+  const { colors } = useTheme();
   const today = todayLocalDate();
   const isFutureDay = selectedDate > today;
 
@@ -135,7 +138,7 @@ export function HrtTrackerPanel({ selectedDate, onSelectDate, onDataMutated }: P
       </Text>
       {error ? <Text style={trackingStyles.errorBanner}>{error}</Text> : null}
       {loading ? (
-        <ActivityIndicator color="#0891b2" style={{ marginVertical: 16 }} />
+        <ActivityIndicator color={colors.accent} style={{ marginVertical: 16 }} />
       ) : (
         <>
           <CycleDayStrip
@@ -155,7 +158,7 @@ export function HrtTrackerPanel({ selectedDate, onSelectDate, onDataMutated }: P
           ) : (
             doseEvents.map((event) => (
               <View key={event.id} style={trackingStyles.card}>
-                <Text style={{ fontWeight: '700', color: '#0f172a' }}>{event.medication_name}</Text>
+                <Text style={{ fontWeight: '700', color: colors.text }}>{event.medication_name}</Text>
                 <Text style={trackingStyles.hint}>{formatScheduleTime(event.schedule_time)}</Text>
                 {(event.dose_pills || event.dose_mg) && (
                   <Text style={trackingStyles.hint}>

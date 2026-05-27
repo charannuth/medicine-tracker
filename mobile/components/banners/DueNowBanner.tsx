@@ -1,8 +1,33 @@
-import { StyleSheet, Text, View } from 'react-native';
+import { Text, View } from 'react-native';
 import type { MissedDoseItem } from '../../lib/missedDoses';
-import { colors, radii, spacing } from '../../constants/theme';
+import type { ColorPalette } from '../../constants/theme';
+import { radii, spacing } from '../../constants/theme';
+import { useThemedStyles } from '../../hooks/useThemedStyles';
+
+function makeStyles(colors: ColorPalette) {
+  return {
+    banner: {
+      borderRadius: radii.lg,
+      padding: spacing.md,
+      borderWidth: 1,
+      gap: 6,
+    },
+    dueNow: {
+      backgroundColor: colors.badgeMinorBg,
+      borderColor: colors.avatarFallbackBorder,
+    },
+    title: {
+      fontWeight: '800' as const,
+      color: colors.text,
+    },
+    item: {
+      color: colors.text,
+    },
+  };
+}
 
 export function DueNowBanner({ items }: { items: MissedDoseItem[] }) {
+  const styles = useThemedStyles(makeStyles);
   const dueToday = items.filter((item) => item.periodLabel === 'Today');
   if (dueToday.length === 0) return null;
 
@@ -21,24 +46,3 @@ export function DueNowBanner({ items }: { items: MissedDoseItem[] }) {
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  banner: {
-    borderRadius: radii.lg,
-    padding: spacing.md,
-    borderWidth: 1,
-    gap: 6,
-  },
-  dueNow: {
-    backgroundColor: '#eff6ff',
-    borderColor: '#bfdbfe',
-  },
-  title: {
-    fontWeight: '800',
-    color: colors.text,
-  },
-  item: {
-    color: colors.text,
-  },
-});
-

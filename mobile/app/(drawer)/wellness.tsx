@@ -4,13 +4,15 @@ import {
   Pressable,
   RefreshControl,
   ScrollView,
-  StyleSheet,
   Text,
   View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useLocalSearchParams } from 'expo-router';
-import { colors, radii, spacing } from '../../constants/theme';
+import type { ColorPalette } from '../../constants/theme';
+import { radii, spacing } from '../../constants/theme';
+import { useTheme } from '../../context/ThemeProvider';
+import { useThemedStyles } from '../../hooks/useThemedStyles';
 import { useAuth } from '../../hooks/useAuth';
 import { useWellnessPageData } from '../../hooks/useWellnessPageData';
 import { useWellnessMedBriefings } from '../../hooks/useWellnessMedBriefings';
@@ -20,6 +22,7 @@ import { WellnessDisclaimer } from '../../components/WellnessDisclaimer';
 import { WellnessTrendsSection } from '../../components/wellness/WellnessTrendsSection';
 import { PrnInsightsSection } from '../../components/wellness/PrnInsightsSection';
 import { WellnessExportReport } from '../../components/wellness/WellnessExportReport';
+import { WellnessMedBriefings } from '../../components/wellness/WellnessMedBriefings';
 import {
   formatWellnessLogSummary,
   isWellnessLogFilled,
@@ -29,7 +32,59 @@ import {
 } from '../../lib/wellness';
 import { formatDisplayDate, todayLocalDate } from '../../lib/dates';
 
+function makeWellnessScreenStyles(colors: ColorPalette) {
+  return {
+    safe: { flex: 1, backgroundColor: colors.bg },
+    scroll: { padding: spacing.md, paddingBottom: spacing.xl, gap: spacing.md },
+    loading: {
+      flex: 1,
+      alignItems: 'center' as const,
+      justifyContent: 'center' as const,
+      gap: spacing.sm,
+    },
+    muted: { color: colors.textMuted },
+    headerCard: {
+      backgroundColor: colors.surface,
+      borderRadius: radii.lg,
+      borderWidth: 1,
+      borderColor: colors.border,
+      padding: spacing.lg,
+      gap: spacing.sm,
+    },
+    card: {
+      backgroundColor: colors.surface,
+      borderRadius: radii.lg,
+      borderWidth: 1,
+      borderColor: colors.border,
+      padding: spacing.lg,
+      gap: spacing.sm,
+    },
+    h1: { fontSize: 22, fontWeight: '900' as const, color: colors.text },
+    sub: { color: colors.textMuted, lineHeight: 20 },
+    sectionTitle: { fontSize: 16, fontWeight: '900' as const, color: colors.text },
+    errorCard: { backgroundColor: colors.errorBg, borderColor: colors.errorBorder },
+    errorText: { color: colors.error, fontWeight: '800' as const },
+    success: { color: colors.success, fontWeight: '800' as const },
+    dayRow: { flexDirection: 'row' as const, flexWrap: 'wrap' as const, gap: 8 },
+    dayBtn: {
+      paddingHorizontal: 12,
+      paddingVertical: 8,
+      borderRadius: radii.md,
+      borderWidth: 1,
+      borderColor: colors.border,
+      alignItems: 'center' as const,
+    },
+    dayBtnActive: { backgroundColor: colors.accent, borderColor: colors.accent },
+    dayBtnText: { fontWeight: '700' as const, color: colors.text, fontSize: 13 },
+    dayBtnTextActive: { color: colors.onAccent },
+    dayDot: { color: colors.success, fontSize: 8 },
+    summary: { color: colors.text, lineHeight: 20, marginTop: spacing.sm },
+  };
+}
+
 export default function WellnessScreen() {
+  const { colors } = useTheme();
+  const styles = useThemedStyles(makeWellnessScreenStyles);
   const { user } = useAuth();
   const params = useLocalSearchParams<{ wellnessDate?: string }>();
   const today = todayLocalDate();
@@ -221,50 +276,9 @@ export default function WellnessScreen() {
             </Text>
           ) : null}
         </View>
+
+        <WellnessMedBriefings medications={activeMeds} />
       </ScrollView>
     </SafeAreaView>
   );
 }
-
-const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: colors.bg },
-  scroll: { padding: spacing.md, paddingBottom: spacing.xl, gap: spacing.md },
-  loading: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: spacing.sm },
-  muted: { color: colors.textMuted },
-  headerCard: {
-    backgroundColor: colors.surface,
-    borderRadius: radii.lg,
-    borderWidth: 1,
-    borderColor: colors.border,
-    padding: spacing.lg,
-    gap: spacing.sm,
-  },
-  card: {
-    backgroundColor: colors.surface,
-    borderRadius: radii.lg,
-    borderWidth: 1,
-    borderColor: colors.border,
-    padding: spacing.lg,
-    gap: spacing.sm,
-  },
-  h1: { fontSize: 22, fontWeight: '900', color: colors.text },
-  sub: { color: colors.textMuted, lineHeight: 20 },
-  sectionTitle: { fontSize: 16, fontWeight: '900', color: colors.text },
-  errorCard: { backgroundColor: colors.errorBg, borderColor: '#fecaca' },
-  errorText: { color: colors.error, fontWeight: '800' },
-  success: { color: colors.success, fontWeight: '800' },
-  dayRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
-  dayBtn: {
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    borderRadius: radii.md,
-    borderWidth: 1,
-    borderColor: colors.border,
-    alignItems: 'center',
-  },
-  dayBtnActive: { backgroundColor: colors.accent, borderColor: colors.accent },
-  dayBtnText: { fontWeight: '700', color: colors.text, fontSize: 13 },
-  dayBtnTextActive: { color: '#fff' },
-  dayDot: { color: colors.success, fontSize: 8 },
-  summary: { color: colors.text, lineHeight: 20, marginTop: spacing.sm },
-});

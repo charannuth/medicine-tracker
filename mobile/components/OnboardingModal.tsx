@@ -1,6 +1,8 @@
-import { Modal, Pressable, StyleSheet, Text, View } from 'react-native';
+import { Modal, Pressable, Text, View } from 'react-native';
 import { useRouter } from 'expo-router';
-import { colors, radii, spacing } from '../constants/theme';
+import type { ColorPalette } from '../constants/theme';
+import { radii, spacing } from '../constants/theme';
+import { useThemedStyles } from '../hooks/useThemedStyles';
 import { setOnboardingDone } from '../lib/settings';
 
 type Props = {
@@ -9,8 +11,44 @@ type Props = {
   onDone: () => void;
 };
 
+function makeStyles(colors: ColorPalette) {
+  return {
+    backdrop: {
+      flex: 1,
+      backgroundColor: 'rgba(15, 23, 42, 0.65)',
+      justifyContent: 'center' as const,
+      padding: spacing.lg,
+    },
+    card: {
+      backgroundColor: colors.surface,
+      borderRadius: radii.xl,
+      padding: spacing.lg,
+      gap: spacing.md,
+    },
+    title: { fontSize: 22, fontWeight: '900' as const, color: colors.text },
+    list: { gap: spacing.sm },
+    item: { color: colors.textMuted, lineHeight: 22, fontSize: 15 },
+    bold: { fontWeight: '800' as const, color: colors.text },
+    link: { color: colors.accent, fontWeight: '800' as const },
+    actions: { gap: spacing.sm, marginTop: spacing.sm },
+    ghostBtn: {
+      paddingVertical: 12,
+      alignItems: 'center' as const,
+    },
+    ghostText: { color: colors.textMuted, fontWeight: '800' as const },
+    primaryBtn: {
+      backgroundColor: colors.accent,
+      borderRadius: radii.md,
+      paddingVertical: 14,
+      alignItems: 'center' as const,
+    },
+    primaryText: { color: colors.onAccent, fontWeight: '900' as const, fontSize: 16 },
+  };
+}
+
 export function OnboardingModal({ userId, visible, onDone }: Props) {
   const router = useRouter();
+  const styles = useThemedStyles(makeStyles);
 
   function finish() {
     void setOnboardingDone(userId);
@@ -57,36 +95,3 @@ export function OnboardingModal({ userId, visible, onDone }: Props) {
     </Modal>
   );
 }
-
-const styles = StyleSheet.create({
-  backdrop: {
-    flex: 1,
-    backgroundColor: 'rgba(15, 23, 42, 0.65)',
-    justifyContent: 'center',
-    padding: spacing.lg,
-  },
-  card: {
-    backgroundColor: colors.surface,
-    borderRadius: radii.xl,
-    padding: spacing.lg,
-    gap: spacing.md,
-  },
-  title: { fontSize: 22, fontWeight: '900', color: colors.text },
-  list: { gap: spacing.sm },
-  item: { color: colors.textMuted, lineHeight: 22, fontSize: 15 },
-  bold: { fontWeight: '800', color: colors.text },
-  link: { color: colors.accent, fontWeight: '800' },
-  actions: { gap: spacing.sm, marginTop: spacing.sm },
-  ghostBtn: {
-    paddingVertical: 12,
-    alignItems: 'center',
-  },
-  ghostText: { color: colors.textMuted, fontWeight: '800' },
-  primaryBtn: {
-    backgroundColor: colors.accent,
-    borderRadius: radii.md,
-    paddingVertical: 14,
-    alignItems: 'center',
-  },
-  primaryText: { color: '#fff', fontWeight: '900', fontSize: 16 },
-});

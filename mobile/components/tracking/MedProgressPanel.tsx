@@ -1,13 +1,16 @@
 import { useEffect, useState } from 'react';
 import { ActivityIndicator, Pressable, Text, View } from 'react-native';
 import { useRouter } from 'expo-router';
+import { useTheme } from '../../context/ThemeProvider';
 import { useAuth } from '../../hooks/useAuth';
 import { fetchMedProgressSnapshot, type MedProgressSnapshot } from '../../lib/tracking/medProgress';
-import { trackingStyles } from './trackingStyles';
+import { useTrackingStyles } from './trackingStyles';
 
 export function MedProgressPanel() {
   const { user } = useAuth();
   const router = useRouter();
+  const trackingStyles = useTrackingStyles();
+  const { colors } = useTheme();
   const [snapshot, setSnapshot] = useState<MedProgressSnapshot | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -33,7 +36,7 @@ export function MedProgressPanel() {
   }, [user]);
 
   if (loading) {
-    return <ActivityIndicator color="#0891b2" style={{ marginVertical: 16 }} />;
+    return <ActivityIndicator color={colors.accent} style={{ marginVertical: 16 }} />;
   }
   if (error) return <Text style={trackingStyles.errorBanner}>{error}</Text>;
   if (!snapshot) return null;

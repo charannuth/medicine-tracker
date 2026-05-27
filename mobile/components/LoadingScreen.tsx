@@ -1,7 +1,12 @@
+import { useMemo } from 'react';
 import { ActivityIndicator, StyleSheet, View } from 'react-native';
-import { colors } from '../constants/theme';
+import type { ColorPalette } from '../constants/theme';
+import { useTheme } from '../context/ThemeProvider';
 
 export function LoadingScreen() {
+  const { colors } = useTheme();
+  const styles = useMemo(() => makeStyles(colors), [colors]);
+
   return (
     <View style={styles.loading}>
       <ActivityIndicator size="large" color={colors.accent} />
@@ -9,11 +14,13 @@ export function LoadingScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  loading: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: colors.bg,
-  },
-});
+function makeStyles(colors: ColorPalette) {
+  return StyleSheet.create({
+    loading: {
+      flex: 1,
+      alignItems: 'center',
+      justifyContent: 'center',
+      backgroundColor: colors.bg,
+    },
+  });
+}

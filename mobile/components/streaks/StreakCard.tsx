@@ -1,8 +1,63 @@
-import { StyleSheet, Text, View } from 'react-native';
+import { Text, View } from 'react-native';
 import { streakMessage, type StreakStats } from '../../lib/streaks';
-import { colors, radii, spacing } from '../../constants/theme';
+import type { ColorPalette } from '../../constants/theme';
+import { radii, spacing } from '../../constants/theme';
+import { useThemedStyles } from '../../hooks/useThemedStyles';
+
+function makeStreakCardStyles(colors: ColorPalette) {
+  return {
+    card: {
+      backgroundColor: colors.surface,
+      borderRadius: radii.lg,
+      borderWidth: 1,
+      borderColor: colors.border,
+      padding: spacing.lg,
+      gap: spacing.sm,
+    },
+    header: { gap: 4 },
+    h3: { fontSize: 18, fontWeight: '900' as const, color: colors.text },
+    sub: { color: colors.textMuted, lineHeight: 18 },
+    muted: { color: colors.textMuted },
+    statsRow: { flexDirection: 'row' as const, gap: spacing.md },
+    stat: {
+      flex: 1,
+      borderWidth: 1,
+      borderColor: colors.border,
+      borderRadius: radii.md,
+      padding: spacing.md,
+      backgroundColor: colors.bg,
+      gap: 2,
+    },
+    statPrimary: {
+      borderColor: colors.accent,
+      backgroundColor: colors.typeCardActiveBg,
+    },
+    value: { fontSize: 28, fontWeight: '900' as const, color: colors.text },
+    label: { color: colors.textMuted, fontWeight: '800' as const },
+    unit: { color: colors.textMuted },
+    today: { color: colors.text, lineHeight: 20 },
+    todayDone: { color: colors.success, fontWeight: '900' as const },
+    todayExtra: { color: colors.textMuted },
+    week: { flexDirection: 'row' as const, gap: 6, marginTop: spacing.sm },
+    weekBar: {
+      flex: 1,
+      height: 14,
+      borderRadius: 8,
+      backgroundColor: colors.border,
+    },
+    weekBarPerfect: { backgroundColor: colors.success },
+    weekLabels: {
+      flexDirection: 'row' as const,
+      justifyContent: 'space-between' as const,
+    },
+    weekLabelText: { color: colors.textMuted, fontSize: 12, fontWeight: '700' as const },
+    message: { color: colors.textMuted, lineHeight: 20, marginTop: spacing.sm },
+  };
+}
 
 export function StreakCard({ stats, loading }: { stats: StreakStats; loading?: boolean }) {
+  const styles = useThemedStyles(makeStreakCardStyles);
+
   if (loading) {
     return (
       <View style={styles.card}>
@@ -38,7 +93,8 @@ export function StreakCard({ stats, loading }: { stats: StreakStats; loading?: b
           {stats.todayExtraLogs > 0 ? (
             <Text style={styles.todayExtra}>
               {' '}
-              ({stats.todayExtraLogs} extra log{stats.todayExtraLogs === 1 ? '' : 's'} not on today&apos;s schedule)
+              ({stats.todayExtraLogs} extra log{stats.todayExtraLogs === 1 ? '' : 's'} not on today&apos;s
+              schedule)
             </Text>
           ) : null}
         </Text>
@@ -61,50 +117,3 @@ export function StreakCard({ stats, loading }: { stats: StreakStats; loading?: b
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  card: {
-    backgroundColor: colors.surface,
-    borderRadius: radii.lg,
-    borderWidth: 1,
-    borderColor: colors.border,
-    padding: spacing.lg,
-    gap: spacing.sm,
-  },
-  header: { gap: 4 },
-  h3: { fontSize: 18, fontWeight: '900', color: colors.text },
-  sub: { color: colors.textMuted, lineHeight: 18 },
-  muted: { color: colors.textMuted },
-  statsRow: { flexDirection: 'row', gap: spacing.md },
-  stat: {
-    flex: 1,
-    borderWidth: 1,
-    borderColor: colors.border,
-    borderRadius: radii.md,
-    padding: spacing.md,
-    backgroundColor: colors.bg,
-    gap: 2,
-  },
-  statPrimary: {
-    borderColor: '#67e8f9',
-    backgroundColor: '#ecfeff',
-  },
-  value: { fontSize: 28, fontWeight: '900', color: colors.text },
-  label: { color: colors.textMuted, fontWeight: '800' },
-  unit: { color: colors.textMuted },
-  today: { color: colors.text, lineHeight: 20 },
-  todayDone: { color: colors.success, fontWeight: '900' },
-  todayExtra: { color: colors.textMuted },
-  week: { flexDirection: 'row', gap: 6, marginTop: spacing.sm },
-  weekBar: {
-    flex: 1,
-    height: 14,
-    borderRadius: 8,
-    backgroundColor: '#e2e8f0',
-  },
-  weekBarPerfect: { backgroundColor: '#22c55e' },
-  weekLabels: { flexDirection: 'row', justifyContent: 'space-between' },
-  weekLabelText: { color: colors.textMuted, fontSize: 12, fontWeight: '700' },
-  message: { color: colors.textMuted, lineHeight: 20, marginTop: spacing.sm },
-});
-

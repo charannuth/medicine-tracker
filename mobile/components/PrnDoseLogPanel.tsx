@@ -2,7 +2,6 @@ import { useMemo, useState } from 'react';
 import {
   ActivityIndicator,
   Pressable,
-  StyleSheet,
   Text,
   TextInput,
   View,
@@ -19,23 +18,125 @@ import {
   prnSymptomLegend,
   prnSymptomOptionsForMed,
 } from '../lib/prnSymptoms';
-import { colors, radii, spacing } from '../constants/theme';
+import type { ColorPalette } from '../constants/theme';
+import { radii, spacing } from '../constants/theme';
+import { useTheme } from '../context/ThemeProvider';
+import { useThemedStyles } from '../hooks/useThemedStyles';
 
-type Props = {
-  medication: MedicationWithStatus;
-  disabled?: boolean;
-  onLog: (payload: PrnDoseLogPayload) => Promise<void> | void;
-};
+function makePrnStyles(colors: ColorPalette) {
+  return {
+    wrap: {
+      gap: spacing.sm,
+      paddingTop: spacing.sm,
+    },
+    saved: {
+      backgroundColor: colors.successBg,
+      borderColor: colors.successBorder,
+      borderWidth: 1,
+      borderRadius: radii.md,
+      padding: spacing.md,
+      color: colors.text,
+      fontWeight: '700' as const,
+    },
+    maxHint: {
+      color: colors.textMuted,
+      fontWeight: '600' as const,
+    },
+    legend: {
+      marginTop: spacing.sm,
+      fontSize: 13,
+      fontWeight: '900' as const,
+      color: colors.text,
+    },
+    hint: {
+      color: colors.textMuted,
+      lineHeight: 18,
+    },
+    input: {
+      borderWidth: 1,
+      borderColor: colors.border,
+      borderRadius: radii.md,
+      paddingHorizontal: spacing.md,
+      paddingVertical: 12,
+      fontSize: 15,
+      backgroundColor: colors.surface,
+      color: colors.text,
+    },
+    notes: {
+      minHeight: 80,
+      textAlignVertical: 'top' as const,
+    },
+    chips: {
+      flexDirection: 'row' as const,
+      flexWrap: 'wrap' as const,
+      gap: 8,
+    },
+    chip: {
+      borderWidth: 1,
+      borderColor: colors.border,
+      borderRadius: 999,
+      paddingHorizontal: 10,
+      paddingVertical: 6,
+      backgroundColor: colors.surface,
+    },
+    chipActive: {
+      borderColor: colors.accent,
+      backgroundColor: colors.typeCardActiveBg,
+    },
+    chipText: {
+      color: colors.text,
+      fontWeight: '700' as const,
+      fontSize: 12,
+    },
+    chipTextActive: {
+      color: colors.accentDark,
+    },
+    customRow: {
+      flexDirection: 'row' as const,
+      gap: 8,
+      alignItems: 'center' as const,
+    },
+    customInput: {
+      flex: 1,
+    },
+    addChipBtn: {
+      backgroundColor: colors.surface,
+      borderWidth: 1,
+      borderColor: colors.border,
+      borderRadius: radii.md,
+      paddingHorizontal: spacing.md,
+      paddingVertical: 12,
+    },
+    addChipText: {
+      fontWeight: '900' as const,
+      color: colors.text,
+    },
+    logButton: {
+      marginTop: spacing.md,
+      backgroundColor: colors.accent,
+      borderRadius: radii.md,
+      paddingVertical: 14,
+      alignItems: 'center' as const,
+    },
+    logButtonText: {
+      color: colors.onAccent,
+      fontWeight: '900' as const,
+      fontSize: 16,
+    },
+    buttonDisabled: {
+      opacity: 0.6,
+    },
+  };
+}
 
-function Chip({
-  label,
-  active,
-  onPress,
-}: {
+type ChipProps = {
   label: string;
   active: boolean;
   onPress: () => void;
-}) {
+};
+
+function Chip({ label, active, onPress }: ChipProps) {
+  const styles = useThemedStyles(makePrnStyles);
   return (
     <Pressable
       onPress={onPress}
@@ -48,7 +149,15 @@ function Chip({
   );
 }
 
+type Props = {
+  medication: MedicationWithStatus;
+  disabled?: boolean;
+  onLog: (payload: PrnDoseLogPayload) => Promise<void> | void;
+};
+
 export function PrnDoseLogPanel({ medication, disabled = false, onLog }: Props) {
+  const { colors } = useTheme();
+  const styles = useThemedStyles(makePrnStyles);
   const symptomPresets = useMemo(() => prnSymptomOptionsForMed(medication), [medication]);
   const [draft, setDraft] = useState(emptyPrnDoseLogPayload());
   const [customSymptom, setCustomSymptom] = useState('');
@@ -173,7 +282,7 @@ export function PrnDoseLogPanel({ medication, disabled = false, onLog }: Props) 
         onPress={handleLog}
       >
         {saving ? (
-          <ActivityIndicator color="#fff" />
+          <ActivityIndicator color={colors.onAccent} />
         ) : (
           <Text style={styles.logButtonText}>
             {atMax ? 'Max doses reached' : 'Log dose'}
@@ -183,108 +292,3 @@ export function PrnDoseLogPanel({ medication, disabled = false, onLog }: Props) 
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  wrap: {
-    gap: spacing.sm,
-    paddingTop: spacing.sm,
-  },
-  saved: {
-    backgroundColor: colors.successBg,
-    borderColor: '#bbf7d0',
-    borderWidth: 1,
-    borderRadius: radii.md,
-    padding: spacing.md,
-    color: colors.text,
-    fontWeight: '700',
-  },
-  maxHint: {
-    color: colors.textMuted,
-    fontWeight: '600',
-  },
-  legend: {
-    marginTop: spacing.sm,
-    fontSize: 13,
-    fontWeight: '900',
-    color: colors.text,
-  },
-  hint: {
-    color: colors.textMuted,
-    lineHeight: 18,
-  },
-  input: {
-    borderWidth: 1,
-    borderColor: colors.border,
-    borderRadius: radii.md,
-    paddingHorizontal: spacing.md,
-    paddingVertical: 12,
-    fontSize: 15,
-    backgroundColor: colors.surface,
-    color: colors.text,
-  },
-  notes: {
-    minHeight: 80,
-    textAlignVertical: 'top',
-  },
-  chips: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 8,
-  },
-  chip: {
-    borderWidth: 1,
-    borderColor: colors.border,
-    borderRadius: 999,
-    paddingHorizontal: 10,
-    paddingVertical: 6,
-    backgroundColor: colors.surface,
-  },
-  chipActive: {
-    borderColor: '#67e8f9',
-    backgroundColor: '#ecfeff',
-  },
-  chipText: {
-    color: colors.text,
-    fontWeight: '700',
-    fontSize: 12,
-  },
-  chipTextActive: {
-    color: colors.accentDark,
-  },
-  customRow: {
-    flexDirection: 'row',
-    gap: 8,
-    alignItems: 'center',
-  },
-  customInput: {
-    flex: 1,
-  },
-  addChipBtn: {
-    backgroundColor: colors.surface,
-    borderWidth: 1,
-    borderColor: colors.border,
-    borderRadius: radii.md,
-    paddingHorizontal: spacing.md,
-    paddingVertical: 12,
-  },
-  addChipText: {
-    fontWeight: '900',
-    color: colors.text,
-  },
-  logButton: {
-    marginTop: spacing.md,
-    backgroundColor: colors.accent,
-    borderRadius: radii.md,
-    paddingVertical: 14,
-    alignItems: 'center',
-  },
-  logButtonText: {
-    color: '#fff',
-    fontWeight: '900',
-    fontSize: 16,
-  },
-  buttonDisabled: {
-    opacity: 0.6,
-  },
-});
-

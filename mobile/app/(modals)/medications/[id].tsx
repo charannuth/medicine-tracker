@@ -1,8 +1,10 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { ActivityIndicator, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { colors, spacing } from '../../../constants/theme';
+import type { ColorPalette } from '../../../constants/theme';
+import { spacing } from '../../../constants/theme';
+import { useTheme } from '../../../context/ThemeProvider';
 import { supabase } from '../../../lib/supabase';
 import {
   fetchMedicationsWithStatus,
@@ -13,10 +15,26 @@ import { rescheduleDoseReminders } from '../../../lib/reminderScheduler';
 import { useAuth } from '../../../hooks/useAuth';
 import { MedicationFormWizard } from '../../../components/medication/MedicationFormWizard';
 import type { Medication, MedicationInput } from '../../../lib/types';
+function makeMedicationModalStyles(colors: ColorPalette) {
+  return StyleSheet.create({
+    safe: { flex: 1, backgroundColor: colors.bg },
+    loading: {
+      flex: 1,
+      alignItems: 'center',
+      justifyContent: 'center',
+      gap: spacing.sm,
+      backgroundColor: colors.bg,
+    },
+    muted: { color: colors.textMuted },
+    error: { color: colors.error, fontWeight: '800' },
+  });
+}
 
 export default function EditMedicationScreen() {
   const router = useRouter();
   const { user } = useAuth();
+  const { colors } = useTheme();
+  const styles = useMemo(() => makeMedicationModalStyles(colors), [colors]);
   const { id } = useLocalSearchParams<{ id: string }>();
   const [loading, setLoading] = useState(true);
   const [med, setMed] = useState<Medication | null>(null);
@@ -95,16 +113,3 @@ export default function EditMedicationScreen() {
     </SafeAreaView>
   );
 }
-
-const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: colors.bg },
-  loading: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: spacing.sm,
-    backgroundColor: colors.bg,
-  },
-  muted: { color: colors.textMuted },
-  error: { color: colors.error, fontWeight: '800' },
-});

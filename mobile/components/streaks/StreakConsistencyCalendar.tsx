@@ -1,6 +1,9 @@
 import { useMemo } from 'react';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
-import { colors, radii, spacing } from '../../constants/theme';
+import { Pressable, Text, View } from 'react-native';
+import type { ColorPalette } from '../../constants/theme';
+import { radii, spacing } from '../../constants/theme';
+import { useTheme } from '../../context/ThemeProvider';
+import { useThemedStyles } from '../../hooks/useThemedStyles';
 import { lastNDays } from '../../lib/dates';
 import { STREAK_CALENDAR_DAYS, type StreakCalendarDay } from '../../lib/streaks';
 
@@ -13,8 +16,8 @@ const STATUS_LABEL: Record<StreakCalendarDay['status'], string> = {
   none: 'No doses scheduled',
 };
 
-/** Match web App.css streak-calendar-* colors (subtle fills, not solid traffic lights). */
-function cellStyle(status: StreakCalendarDay['status'], selected: boolean) {
+/** Match web streak calendar colors (palette-driven streak tokens). */
+function cellStyle(status: StreakCalendarDay['status'], selected: boolean, colors: ColorPalette) {
   const base = {
     borderWidth: 1,
     borderRadius: radii.sm,
@@ -50,9 +53,61 @@ function cellStyle(status: StreakCalendarDay['status'], selected: boolean) {
   }
 }
 
-function LegendSwatch({ status }: { status: StreakCalendarDay['status'] }) {
-  const s = cellStyle(status, false);
-  return <View style={[styles.legendSwatch, { backgroundColor: s.backgroundColor, borderColor: s.borderColor, opacity: status === 'none' ? 0.55 : 1 }]} />;
+function makeCalendarLayoutStyles(colors: ColorPalette) {
+  return {
+    card: {
+      backgroundColor: colors.surface,
+      borderRadius: radii.lg,
+      borderWidth: 1,
+      borderColor: colors.border,
+      padding: spacing.md,
+      gap: spacing.sm,
+    },
+    h3: { fontSize: 18, fontWeight: '900' as const, color: colors.text },
+    hint: { color: colors.textMuted, lineHeight: 20, marginBottom: spacing.xs },
+    legend: {
+      flexDirection: 'row' as const,
+      flexWrap: 'wrap' as const,
+      gap: spacing.sm,
+      marginBottom: spacing.sm,
+    },
+    legendItem: { flexDirection: 'row' as const, alignItems: 'center' as const, gap: 6 },
+    legendSwatch: {
+      width: 14,
+      height: 14,
+      borderRadius: 4,
+      borderWidth: 1,
+    },
+    legendText: { color: colors.textMuted, fontWeight: '600' as const, fontSize: 13 },
+    calendar: {
+      width: '100%' as const,
+      gap: 6,
+    },
+    weekRow: {
+      flexDirection: 'row' as const,
+      gap: 6,
+      width: '100%' as const,
+    },
+    cell: {
+      flex: 1,
+      aspectRatio: 1,
+      alignItems: 'center' as const,
+      justifyContent: 'center' as const,
+      minHeight: 48,
+    },
+    cellSelected: {
+      borderWidth: 2,
+    },
+    cellText: {
+      color: colors.text,
+      fontWeight: '700' as const,
+      fontSize: 15,
+    },
+    cellTextMuted: {
+      color: colors.textMuted,
+      fontWeight: '600' as const,
+    },
+  };
 }
 
 export function StreakConsistencyCalendar({
@@ -64,6 +119,25 @@ export function StreakConsistencyCalendar({
   selectedDate: string | null;
   onSelectDate: (date: string | null) => void;
 }) {
+  const { colors } = useTheme();
+  const styles = useThemedStyles(makeCalendarLayoutStyles);
+
+  function LegendSwatch({ status }: { status: StreakCalendarDay['status'] }) {
+    const s = cellStyle(status, false, colors);
+    return (
+      <View
+        style={[
+          styles.legendSwatch,
+          {
+            backgroundColor: s.backgroundColor,
+            borderColor: s.borderColor,
+            opacity: status === 'none' ? 0.55 : 1,
+          },
+        ]}
+      />
+    );
+  }
+
   const dayMap = useMemo(() => new Map(days.map((d) => [d.date, d])), [days]);
   const calendarDates = useMemo(
     () => lastNDays(STREAK_CALENDAR_DAYS).reverse(),
@@ -115,7 +189,7 @@ export function StreakConsistencyCalendar({
               const status = day?.status ?? 'none';
               const isSelected = selectedDate === date;
               const dayNum = Number(date.split('-')[2]);
-              const cell = cellStyle(status, isSelected);
+              const cell = cellStyle(status, isSelected, colors);
 
               return (
                 <Pressable
@@ -142,58 +216,3 @@ export function StreakConsistencyCalendar({
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  card: {
-    backgroundColor: colors.surface,
-    borderRadius: radii.lg,
-    borderWidth: 1,
-    borderColor: colors.border,
-    padding: spacing.md,
-    gap: spacing.sm,
-  },
-  h3: { fontSize: 18, fontWeight: '900', color: colors.text },
-  hint: { color: colors.textMuted, lineHeight: 20, marginBottom: spacing.xs },
-  legend: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: spacing.sm,
-    marginBottom: spacing.sm,
-  },
-  legendItem: { flexDirection: 'row', alignItems: 'center', gap: 6 },
-  legendSwatch: {
-    width: 14,
-    height: 14,
-    borderRadius: 4,
-    borderWidth: 1,
-  },
-  legendText: { color: colors.textMuted, fontWeight: '600', fontSize: 13 },
-  calendar: {
-    width: '100%',
-    gap: 6,
-  },
-  weekRow: {
-    flexDirection: 'row',
-    gap: 6,
-    width: '100%',
-  },
-  cell: {
-    flex: 1,
-    aspectRatio: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-    minHeight: 48,
-  },
-  cellSelected: {
-    borderWidth: 2,
-  },
-  cellText: {
-    color: colors.text,
-    fontWeight: '700',
-    fontSize: 15,
-  },
-  cellTextMuted: {
-    color: colors.textMuted,
-    fontWeight: '600',
-  },
-});

@@ -2,12 +2,14 @@ import { useEffect, useRef } from 'react';
 import {
   ActivityIndicator,
   Pressable,
-  StyleSheet,
   Text,
   View,
 } from 'react-native';
 import { useRouter } from 'expo-router';
-import { colors, radii, spacing } from '../../constants/theme';
+import type { ColorPalette } from '../../constants/theme';
+import { radii, spacing } from '../../constants/theme';
+import { useTheme } from '../../context/ThemeProvider';
+import { useThemedStyles } from '../../hooks/useThemedStyles';
 import { formatDisplayDate, formatTakenTime, todayLocalDate } from '../../lib/dates';
 import { groupDaySlotsByMedication, type DayDetail } from '../../lib/dayDetail';
 import { formatWellnessLogSummary } from '../../lib/wellness';
@@ -20,12 +22,116 @@ const STATUS_LABEL: Record<StreakDayStatus, string> = {
   none: 'No doses scheduled',
 };
 
-const STATUS_COLOR: Record<StreakDayStatus, string> = {
-  perfect: colors.success,
-  partial: colors.partial,
-  missed: colors.error,
-  none: colors.textMuted,
-};
+function statusAccentColor(colors: ColorPalette, status: StreakDayStatus): string {
+  switch (status) {
+    case 'perfect':
+      return colors.success;
+    case 'partial':
+      return colors.partial;
+    case 'missed':
+      return colors.error;
+    default:
+      return colors.textMuted;
+  }
+}
+
+function makeDayDetailStyles(colors: ColorPalette) {
+  return {
+    panel: {
+      backgroundColor: colors.surface,
+      borderRadius: radii.lg,
+      borderWidth: 1,
+      borderColor: colors.border,
+      padding: spacing.lg,
+      gap: spacing.md,
+    },
+    loadingRow: {
+      flexDirection: 'row' as const,
+      alignItems: 'center' as const,
+      gap: spacing.sm,
+    },
+    muted: { color: colors.textMuted, lineHeight: 20 },
+    bold: { fontWeight: '800' as const, color: colors.text },
+    errorBanner: {
+      backgroundColor: colors.errorBg,
+      borderRadius: radii.md,
+      padding: spacing.md,
+      borderWidth: 1,
+      borderColor: colors.errorBorder,
+    },
+    errorText: { color: colors.error, fontWeight: '700' as const },
+    header: {
+      flexDirection: 'row' as const,
+      justifyContent: 'space-between' as const,
+      alignItems: 'flex-start' as const,
+    },
+    headerText: { flex: 1, gap: 4 },
+    dateTitle: { fontSize: 18, fontWeight: '900' as const, color: colors.text },
+    status: { fontSize: 14, fontWeight: '700' as const },
+    closeBtn: { color: colors.accent, fontWeight: '800' as const, padding: spacing.xs },
+    medList: { gap: spacing.md },
+    medBlock: { gap: spacing.sm },
+    medHead: {
+      flexDirection: 'row' as const,
+      flexWrap: 'wrap' as const,
+      gap: spacing.sm,
+      alignItems: 'baseline' as const,
+    },
+    medName: { fontWeight: '900' as const, color: colors.text, fontSize: 16 },
+    medDose: { color: colors.textMuted, fontWeight: '600' as const },
+    medNotes: { color: colors.textMuted, fontStyle: 'italic' as const },
+    slotRow: {
+      flexDirection: 'row' as const,
+      justifyContent: 'space-between' as const,
+      alignItems: 'center' as const,
+      paddingVertical: spacing.sm,
+      paddingHorizontal: spacing.md,
+      borderRadius: radii.md,
+      gap: spacing.sm,
+    },
+    slotTaken: { backgroundColor: colors.successBg },
+    slotMissed: { backgroundColor: colors.pendingBg },
+    slotTime: { fontWeight: '700' as const, color: colors.text },
+    slotStatus: { alignItems: 'flex-end' as const, gap: 2 },
+    badge: { fontWeight: '800' as const, fontSize: 13 },
+    badgeTaken: { color: colors.success },
+    badgeMissed: { color: colors.textMuted },
+    takenAt: { fontSize: 12, color: colors.textMuted },
+    wellnessSection: {
+      gap: spacing.sm,
+      paddingTop: spacing.sm,
+      borderTopWidth: 1,
+      borderTopColor: colors.border,
+    },
+    sectionTitle: { fontWeight: '900' as const, color: colors.text, fontSize: 15 },
+    wellnessSummary: { color: colors.text, lineHeight: 20 },
+    wellnessNotes: {
+      color: colors.textMuted,
+      fontStyle: 'italic' as const,
+      borderLeftWidth: 3,
+      borderLeftColor: colors.border,
+      paddingLeft: spacing.md,
+      lineHeight: 20,
+    },
+    link: { color: colors.accent, fontWeight: '800' as const, marginTop: spacing.xs },
+    actions: { gap: spacing.sm, marginTop: spacing.sm },
+    primaryBtn: {
+      backgroundColor: colors.accent,
+      borderRadius: radii.md,
+      paddingVertical: 12,
+      alignItems: 'center' as const,
+    },
+    primaryBtnText: { color: colors.onAccent, fontWeight: '900' as const },
+    ghostBtn: {
+      borderWidth: 1,
+      borderColor: colors.border,
+      borderRadius: radii.md,
+      paddingVertical: 12,
+      alignItems: 'center' as const,
+    },
+    ghostBtnText: { color: colors.text, fontWeight: '800' as const },
+  };
+}
 
 type Props = {
   detail: DayDetail | null;
@@ -45,6 +151,8 @@ export function DayAdherenceDetail({
   onClear,
 }: Props) {
   const router = useRouter();
+  const { colors } = useTheme();
+  const styles = useThemedStyles(makeDayDetailStyles);
   const panelRef = useRef<View>(null);
   const isToday = detail?.date === todayLocalDate();
 
@@ -78,7 +186,7 @@ export function DayAdherenceDetail({
             <View style={styles.headerText}>
               <Text style={styles.dateTitle}>{formatDisplayDate(detail.date)}</Text>
               {streakStatus ? (
-                <Text style={[styles.status, { color: STATUS_COLOR[streakStatus] }]}>
+                <Text style={[styles.status, { color: statusAccentColor(colors, streakStatus) }]}>
                   {STATUS_LABEL[streakStatus]}
                   {detail.hasScheduledMeds
                     ? ` · ${takenCount} of ${totalCount} dose${totalCount === 1 ? '' : 's'} logged`
@@ -198,79 +306,3 @@ export function DayAdherenceDetail({
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  panel: {
-    backgroundColor: colors.surface,
-    borderRadius: radii.lg,
-    borderWidth: 1,
-    borderColor: colors.border,
-    padding: spacing.lg,
-    gap: spacing.md,
-  },
-  loadingRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
-  muted: { color: colors.textMuted, lineHeight: 20 },
-  bold: { fontWeight: '800', color: colors.text },
-  errorBanner: {
-    backgroundColor: colors.errorBg,
-    borderRadius: radii.md,
-    padding: spacing.md,
-  },
-  errorText: { color: colors.error, fontWeight: '700' },
-  header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start' },
-  headerText: { flex: 1, gap: 4 },
-  dateTitle: { fontSize: 18, fontWeight: '900', color: colors.text },
-  status: { fontSize: 14, fontWeight: '700' },
-  closeBtn: { color: colors.accent, fontWeight: '800', padding: spacing.xs },
-  medList: { gap: spacing.md },
-  medBlock: { gap: spacing.sm },
-  medHead: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm, alignItems: 'baseline' },
-  medName: { fontWeight: '900', color: colors.text, fontSize: 16 },
-  medDose: { color: colors.textMuted, fontWeight: '600' },
-  medNotes: { color: colors.textMuted, fontStyle: 'italic' },
-  slotRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingVertical: spacing.sm,
-    paddingHorizontal: spacing.md,
-    borderRadius: radii.md,
-    gap: spacing.sm,
-  },
-  slotTaken: { backgroundColor: colors.successBg },
-  slotMissed: { backgroundColor: colors.pendingBg },
-  slotTime: { fontWeight: '700', color: colors.text },
-  slotStatus: { alignItems: 'flex-end', gap: 2 },
-  badge: { fontWeight: '800', fontSize: 13 },
-  badgeTaken: { color: colors.success },
-  badgeMissed: { color: colors.textMuted },
-  takenAt: { fontSize: 12, color: colors.textMuted },
-  wellnessSection: { gap: spacing.sm, paddingTop: spacing.sm, borderTopWidth: 1, borderTopColor: colors.border },
-  sectionTitle: { fontWeight: '900', color: colors.text, fontSize: 15 },
-  wellnessSummary: { color: colors.text, lineHeight: 20 },
-  wellnessNotes: {
-    color: colors.textMuted,
-    fontStyle: 'italic',
-    borderLeftWidth: 3,
-    borderLeftColor: colors.border,
-    paddingLeft: spacing.md,
-    lineHeight: 20,
-  },
-  link: { color: colors.accent, fontWeight: '800', marginTop: spacing.xs },
-  actions: { gap: spacing.sm, marginTop: spacing.sm },
-  primaryBtn: {
-    backgroundColor: colors.accent,
-    borderRadius: radii.md,
-    paddingVertical: 12,
-    alignItems: 'center',
-  },
-  primaryBtnText: { color: '#fff', fontWeight: '900' },
-  ghostBtn: {
-    borderWidth: 1,
-    borderColor: colors.border,
-    borderRadius: radii.md,
-    paddingVertical: 12,
-    alignItems: 'center',
-  },
-  ghostBtnText: { color: colors.text, fontWeight: '800' },
-});

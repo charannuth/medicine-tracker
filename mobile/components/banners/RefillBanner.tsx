@@ -1,6 +1,36 @@
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { Pressable, Text, View } from 'react-native';
 import type { RefillAlert } from '../../lib/refills';
-import { colors, radii, spacing } from '../../constants/theme';
+import type { ColorPalette } from '../../constants/theme';
+import { radii, spacing } from '../../constants/theme';
+import { useThemedStyles } from '../../hooks/useThemedStyles';
+
+function makeStyles(colors: ColorPalette) {
+  return {
+    banner: {
+      borderRadius: radii.lg,
+      padding: spacing.md,
+      borderWidth: 1,
+      gap: 6,
+    },
+    warning: {
+      backgroundColor: colors.partialBg,
+      borderColor: colors.partialBorder,
+    },
+    title: {
+      fontWeight: '800' as const,
+      color: colors.text,
+    },
+    body: {
+      color: colors.text,
+      lineHeight: 20,
+    },
+    link: {
+      color: colors.accent,
+      fontWeight: '800' as const,
+      marginTop: 2,
+    },
+  };
+}
 
 export function RefillBanner({
   alerts,
@@ -9,6 +39,8 @@ export function RefillBanner({
   alerts: RefillAlert[];
   onPress?: () => void;
 }) {
+  const styles = useThemedStyles(makeStyles);
+
   if (alerts.length === 0) return null;
 
   return (
@@ -28,30 +60,3 @@ export function RefillBanner({
     </Pressable>
   );
 }
-
-const styles = StyleSheet.create({
-  banner: {
-    borderRadius: radii.lg,
-    padding: spacing.md,
-    borderWidth: 1,
-    gap: 6,
-  },
-  warning: {
-    backgroundColor: '#fffbeb',
-    borderColor: '#fde68a',
-  },
-  title: {
-    fontWeight: '800',
-    color: colors.text,
-  },
-  body: {
-    color: colors.text,
-    lineHeight: 20,
-  },
-  link: {
-    color: colors.accent,
-    fontWeight: '800',
-    marginTop: 2,
-  },
-});
-

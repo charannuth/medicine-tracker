@@ -1,5 +1,5 @@
 import { Text, View, Pressable } from 'react-native';
-import { trackingStyles } from './trackingStyles';
+import { useTrackingStyles } from './trackingStyles';
 
 type Props = {
   title: string;
@@ -14,6 +14,7 @@ function toggle(list: string[], value: string): string[] {
 }
 
 export function ChipMultiSelect({ title, options, selected, onChange, disabled }: Props) {
+  const trackingStyles = useTrackingStyles();
   return (
     <View style={disabled ? trackingStyles.disabled : undefined}>
       <Text style={trackingStyles.label}>{title}</Text>

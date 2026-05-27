@@ -5,7 +5,6 @@ import {
   Pressable,
   RefreshControl,
   ScrollView,
-  StyleSheet,
   Text,
   View,
 } from 'react-native';
@@ -39,13 +38,144 @@ import {
   isMissedDosesBannerDismissed,
 } from '../../lib/bannerSettings';
 import type { DoseSlotStatus, MedicationWithStatus } from '../../lib/types';
-import { colors, radii, spacing } from '../../constants/theme';
+import type { ColorPalette } from '../../constants/theme';
+import { radii, spacing } from '../../constants/theme';
 import type { PrnDoseLogPayload } from '../../lib/prnCheckIn';
 import { Alert } from 'react-native';
+import { useTheme } from '../../context/ThemeProvider';
+import { useThemedStyles } from '../../hooks/useThemedStyles';
 
 type TodayTab = 'scheduled' | 'as_needed';
 
+function makeTodayStyles(colors: ColorPalette) {
+  return {
+    safe: {
+      flex: 1,
+      backgroundColor: colors.bg,
+    },
+    scroll: {
+      padding: spacing.md,
+      paddingBottom: spacing.xl,
+      gap: spacing.md,
+    },
+    loadingWrap: {
+      flex: 1,
+      alignItems: 'center' as const,
+      justifyContent: 'center' as const,
+      backgroundColor: colors.bg,
+      gap: spacing.sm,
+    },
+    loadingText: {
+      color: colors.textMuted,
+    },
+    summary: {
+      gap: 4,
+    },
+    summaryTitle: {
+      fontSize: 28,
+      fontWeight: '800' as const,
+      color: colors.text,
+    },
+    summaryText: {
+      fontSize: 16,
+      color: colors.textMuted,
+    },
+    tabs: {
+      flexDirection: 'row' as const,
+      backgroundColor: colors.border,
+      borderRadius: radii.lg,
+      padding: 4,
+      gap: 4,
+    },
+    tab: {
+      flex: 1,
+      flexDirection: 'row' as const,
+      alignItems: 'center' as const,
+      justifyContent: 'center' as const,
+      gap: 6,
+      paddingVertical: 10,
+      borderRadius: radii.md,
+    },
+    tabActive: {
+      backgroundColor: colors.surface,
+    },
+    tabText: {
+      fontSize: 14,
+      fontWeight: '600' as const,
+      color: colors.textMuted,
+    },
+    tabTextActive: {
+      color: colors.text,
+    },
+    tabCount: {
+      minWidth: 22,
+      height: 22,
+      borderRadius: 11,
+      backgroundColor: colors.pendingBg,
+      alignItems: 'center' as const,
+      justifyContent: 'center' as const,
+      paddingHorizontal: 6,
+    },
+    tabCountActive: {
+      backgroundColor: colors.accent,
+    },
+    tabCountText: {
+      fontSize: 12,
+      fontWeight: '700' as const,
+      color: colors.text,
+    },
+    tabCountTextActive: {
+      color: colors.onAccent,
+    },
+    errorBanner: {
+      backgroundColor: colors.errorBg,
+      borderRadius: radii.md,
+      padding: spacing.md,
+      borderWidth: 1,
+      borderColor: colors.errorBorder,
+    },
+    errorBannerText: {
+      color: colors.error,
+    },
+    emptyState: {
+      backgroundColor: colors.surface,
+      borderRadius: radii.lg,
+      padding: spacing.lg,
+      borderWidth: 1,
+      borderColor: colors.border,
+      gap: spacing.sm,
+    },
+    emptyTitle: {
+      fontSize: 18,
+      fontWeight: '700' as const,
+      color: colors.text,
+    },
+    emptyBody: {
+      fontSize: 15,
+      color: colors.textMuted,
+      lineHeight: 22,
+    },
+    emptyBtn: {
+      marginTop: spacing.sm,
+      backgroundColor: colors.accent,
+      borderRadius: radii.md,
+      paddingVertical: 12,
+      alignItems: 'center' as const,
+    },
+    emptyBtnText: {
+      color: colors.onAccent,
+      fontSize: 16,
+      fontWeight: '700' as const,
+    },
+    list: {
+      gap: spacing.md,
+    },
+  };
+}
+
 export default function TodayScreen() {
+  const { colors } = useTheme();
+  const styles = useThemedStyles(makeTodayStyles);
   const { user } = useAuth();
   const router = useRouter();
   const [medications, setMedications] = useState<MedicationWithStatus[]>([]);
@@ -399,127 +529,3 @@ export default function TodayScreen() {
     </SafeAreaView>
   );
 }
-
-const styles = StyleSheet.create({
-  safe: {
-    flex: 1,
-    backgroundColor: colors.bg,
-  },
-  scroll: {
-    padding: spacing.md,
-    paddingBottom: spacing.xl,
-    gap: spacing.md,
-  },
-  loadingWrap: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: colors.bg,
-    gap: spacing.sm,
-  },
-  loadingText: {
-    color: colors.textMuted,
-  },
-  summary: {
-    gap: 4,
-  },
-  summaryTitle: {
-    fontSize: 28,
-    fontWeight: '800',
-    color: colors.text,
-  },
-  summaryText: {
-    fontSize: 16,
-    color: colors.textMuted,
-  },
-  tabs: {
-    flexDirection: 'row',
-    backgroundColor: '#e2e8f0',
-    borderRadius: radii.lg,
-    padding: 4,
-    gap: 4,
-  },
-  tab: {
-    flex: 1,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 6,
-    paddingVertical: 10,
-    borderRadius: radii.md,
-  },
-  tabActive: {
-    backgroundColor: colors.surface,
-  },
-  tabText: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: colors.textMuted,
-  },
-  tabTextActive: {
-    color: colors.text,
-  },
-  tabCount: {
-    minWidth: 22,
-    height: 22,
-    borderRadius: 11,
-    backgroundColor: '#cbd5e1',
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingHorizontal: 6,
-  },
-  tabCountActive: {
-    backgroundColor: colors.accent,
-  },
-  tabCountText: {
-    fontSize: 12,
-    fontWeight: '700',
-    color: colors.text,
-  },
-  tabCountTextActive: {
-    color: '#fff',
-  },
-  errorBanner: {
-    backgroundColor: colors.errorBg,
-    borderRadius: radii.md,
-    padding: spacing.md,
-    borderWidth: 1,
-    borderColor: '#fecaca',
-  },
-  errorBannerText: {
-    color: colors.error,
-  },
-  emptyState: {
-    backgroundColor: colors.surface,
-    borderRadius: radii.lg,
-    padding: spacing.lg,
-    borderWidth: 1,
-    borderColor: colors.border,
-    gap: spacing.sm,
-  },
-  emptyTitle: {
-    fontSize: 18,
-    fontWeight: '700',
-    color: colors.text,
-  },
-  emptyBody: {
-    fontSize: 15,
-    color: colors.textMuted,
-    lineHeight: 22,
-  },
-  emptyBtn: {
-    marginTop: spacing.sm,
-    backgroundColor: colors.accent,
-    borderRadius: radii.md,
-    paddingVertical: 12,
-    alignItems: 'center',
-  },
-  emptyBtnText: {
-    color: '#fff',
-    fontSize: 16,
-    fontWeight: '700',
-  },
-  list: {
-    gap: spacing.md,
-  },
-});

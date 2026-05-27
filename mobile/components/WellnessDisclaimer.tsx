@@ -1,7 +1,35 @@
-import { StyleSheet, Text, View } from 'react-native';
-import { colors, radii, spacing } from '../constants/theme';
+import { Text, View } from 'react-native';
+import type { ColorPalette } from '../constants/theme';
+import { radii, spacing } from '../constants/theme';
+import { useThemedStyles } from '../hooks/useThemedStyles';
+
+function makeStyles(colors: ColorPalette) {
+  return {
+    compact: {
+      color: colors.textMuted,
+      lineHeight: 18,
+      marginTop: spacing.sm,
+    },
+    full: {
+      borderWidth: 1,
+      borderColor: colors.border,
+      backgroundColor: colors.surface,
+      borderRadius: radii.lg,
+      padding: spacing.md,
+    },
+    fullText: {
+      color: colors.text,
+      lineHeight: 20,
+    },
+    strong: {
+      fontWeight: '900' as const,
+    },
+  };
+}
 
 export function WellnessDisclaimer({ compact = false }: { compact?: boolean }) {
+  const styles = useThemedStyles(makeStyles);
+
   if (compact) {
     return (
       <Text style={styles.compact}>
@@ -20,26 +48,3 @@ export function WellnessDisclaimer({ compact = false }: { compact?: boolean }) {
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  compact: {
-    color: colors.textMuted,
-    lineHeight: 18,
-    marginTop: spacing.sm,
-  },
-  full: {
-    borderWidth: 1,
-    borderColor: colors.border,
-    backgroundColor: colors.surface,
-    borderRadius: radii.lg,
-    padding: spacing.md,
-  },
-  fullText: {
-    color: colors.text,
-    lineHeight: 20,
-  },
-  strong: {
-    fontWeight: '900',
-  },
-});
-

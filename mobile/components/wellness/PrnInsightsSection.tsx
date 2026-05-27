@@ -1,7 +1,29 @@
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { Pressable, Text, View } from 'react-native';
 import { useRouter } from 'expo-router';
+import type { ColorPalette } from '../../constants/theme';
+import { radii, spacing } from '../../constants/theme';
+import { useThemedStyles } from '../../hooks/useThemedStyles';
 import type { PrnInsightsSummary } from '../../lib/prnInsights';
-import { colors, radii, spacing } from '../../constants/theme';
+
+function makeStyles(colors: ColorPalette) {
+  return {
+    card: {
+      backgroundColor: colors.surface,
+      borderRadius: radii.lg,
+      borderWidth: 1,
+      borderColor: colors.border,
+      padding: spacing.lg,
+      gap: spacing.sm,
+    },
+    title: { fontSize: 16, fontWeight: '900' as const, color: colors.text },
+    hint: { color: colors.textMuted, lineHeight: 20 },
+    link: { color: colors.accent, fontWeight: '800' as const },
+    medBlock: { marginTop: spacing.sm, gap: 4 },
+    medName: { fontWeight: '800' as const, color: colors.text },
+    body: { color: colors.text },
+    bullet: { color: colors.textMuted, lineHeight: 20 },
+  };
+}
 
 export function PrnInsightsSection({
   insights,
@@ -11,6 +33,7 @@ export function PrnInsightsSection({
   loading?: boolean;
 }) {
   const router = useRouter();
+  const styles = useThemedStyles(makeStyles);
 
   if (loading) {
     return (
@@ -58,21 +81,3 @@ export function PrnInsightsSection({
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  card: {
-    backgroundColor: colors.surface,
-    borderRadius: radii.lg,
-    borderWidth: 1,
-    borderColor: colors.border,
-    padding: spacing.lg,
-    gap: spacing.sm,
-  },
-  title: { fontSize: 16, fontWeight: '900', color: colors.text },
-  hint: { color: colors.textMuted, lineHeight: 20 },
-  link: { color: colors.accent, fontWeight: '800' },
-  medBlock: { marginTop: spacing.sm, gap: 4 },
-  medName: { fontWeight: '800', color: colors.text },
-  body: { color: colors.text },
-  bullet: { color: colors.textMuted, lineHeight: 20 },
-});

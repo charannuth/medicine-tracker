@@ -1,7 +1,9 @@
 import { useEffect, useMemo, useRef } from 'react';
-import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Pressable, ScrollView, Text, View } from 'react-native';
 import { addDaysToDateString } from '../../lib/dates';
-import { colors, radii, spacing } from '../../constants/theme';
+import type { ColorPalette } from '../../constants/theme';
+import { radii, spacing } from '../../constants/theme';
+import { useThemedStyles } from '../../hooks/useThemedStyles';
 
 type Props = {
   selectedDate: string;
@@ -25,6 +27,63 @@ function monthShort(dateStr: string): string {
   return new Date(`${dateStr}T12:00:00`).toLocaleDateString(undefined, { month: 'short' });
 }
 
+function makeStyles(colors: ColorPalette) {
+  return {
+    wrap: { marginVertical: spacing.md },
+    nav: {
+      flexDirection: 'row' as const,
+      alignItems: 'center' as const,
+      justifyContent: 'space-between' as const,
+      marginBottom: spacing.sm,
+      gap: 8,
+    },
+    arrow: { padding: 8 },
+    arrowText: { fontSize: 20, color: colors.text },
+    title: {
+      flex: 1,
+      fontSize: 15,
+      fontWeight: '600' as const,
+      color: colors.text,
+      textAlign: 'center' as const,
+    },
+    todayBtn: {
+      borderWidth: 1,
+      borderColor: colors.border,
+      borderRadius: radii.sm,
+      paddingHorizontal: 10,
+      paddingVertical: 6,
+    },
+    todayBtnText: { fontSize: 13, fontWeight: '600' as const, color: colors.text },
+    disabled: { opacity: 0.4 },
+    scroll: { gap: 8, paddingVertical: 4 },
+    pill: {
+      minWidth: 52,
+      alignItems: 'center' as const,
+      paddingVertical: 8,
+      paddingHorizontal: 6,
+      borderRadius: radii.md,
+      borderWidth: 1,
+      borderColor: colors.border,
+      backgroundColor: colors.surface,
+    },
+    pillActive: { backgroundColor: colors.accent, borderColor: colors.accent },
+    pillLogged: {},
+    pillToday: { borderColor: colors.accent },
+    pillFuture: { opacity: 0.65 },
+    dow: { fontSize: 11, color: colors.textMuted },
+    num: { fontSize: 18, fontWeight: '700' as const, color: colors.text },
+    month: { fontSize: 10, color: colors.textMuted },
+    pillTextActive: { color: colors.onAccent },
+    dot: {
+      width: 6,
+      height: 6,
+      borderRadius: 3,
+      backgroundColor: colors.brandCrimson,
+      marginTop: 4,
+    },
+  };
+}
+
 export function CycleDayStrip({
   selectedDate,
   today,
@@ -33,6 +92,7 @@ export function CycleDayStrip({
   rangeDays = 14,
 }: Props) {
   const scrollRef = useRef<ScrollView>(null);
+  const styles = useThemedStyles(makeStyles);
 
   const dates = useMemo(() => {
     const list: string[] = [];
@@ -113,52 +173,3 @@ export function CycleDayStrip({
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  wrap: { marginVertical: spacing.md },
-  nav: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    marginBottom: spacing.sm,
-    gap: 8,
-  },
-  arrow: { padding: 8 },
-  arrowText: { fontSize: 20, color: colors.text },
-  title: { flex: 1, fontSize: 15, fontWeight: '600', color: colors.text, textAlign: 'center' },
-  todayBtn: {
-    borderWidth: 1,
-    borderColor: colors.border,
-    borderRadius: radii.sm,
-    paddingHorizontal: 10,
-    paddingVertical: 6,
-  },
-  todayBtnText: { fontSize: 13, fontWeight: '600', color: colors.text },
-  disabled: { opacity: 0.4 },
-  scroll: { gap: 8, paddingVertical: 4 },
-  pill: {
-    minWidth: 52,
-    alignItems: 'center',
-    paddingVertical: 8,
-    paddingHorizontal: 6,
-    borderRadius: radii.md,
-    borderWidth: 1,
-    borderColor: colors.border,
-    backgroundColor: colors.surface,
-  },
-  pillActive: { backgroundColor: colors.accent, borderColor: colors.accent },
-  pillLogged: {},
-  pillToday: { borderColor: colors.accent },
-  pillFuture: { opacity: 0.65 },
-  dow: { fontSize: 11, color: colors.textMuted },
-  num: { fontSize: 18, fontWeight: '700', color: colors.text },
-  month: { fontSize: 10, color: colors.textMuted },
-  pillTextActive: { color: '#fff' },
-  dot: {
-    width: 6,
-    height: 6,
-    borderRadius: 3,
-    backgroundColor: colors.brandCrimson,
-    marginTop: 4,
-  },
-});

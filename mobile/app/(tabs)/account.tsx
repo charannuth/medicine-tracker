@@ -29,6 +29,7 @@ import {
   simulatorReminderNote,
 } from '../../lib/notifications';
 import { cancelAllDoseReminders, rescheduleDoseReminders } from '../../lib/reminderScheduler';
+import { runReminderCheck, type ReminderCheckResult } from '../../lib/reminderDebug';
 import {
   getReminders,
   getTimezone,
@@ -66,6 +67,7 @@ export default function AccountScreen() {
   const [profileBusy, setProfileBusy] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
   const [settingsError, setSettingsError] = useState<string | null>(null);
+  const [reminderDebug, setReminderDebug] = useState<ReminderCheckResult | null>(null);
 
   const styles = useMemo(() => makeStyles(colors), [colors]);
 
@@ -138,6 +140,9 @@ export default function AccountScreen() {
         await setReminders({ enabled: true });
         setRemindersOn(true);
         const summary = await rescheduleDoseReminders(user.id);
+        const check = await runReminderCheck(user.id);
+        setReminderDebug(check);
+        setMessage(check.summary);
         if (summary.skippedOverLimit > 0) {
           Alert.alert(
             'Reminder limit',
@@ -148,12 +153,29 @@ export default function AccountScreen() {
         await setReminders({ enabled: false });
         setRemindersOn(false);
         await cancelAllDoseReminders();
+        setReminderDebug(null);
       }
     } catch (err) {
       Alert.alert(
         'Reminders',
         err instanceof Error ? err.message : 'Could not update reminders',
       );
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function handleCheckRemindersNow() {
+    if (!user) return;
+    setBusy(true);
+    setSettingsError(null);
+    setMessage(null);
+    try {
+      const check = await runReminderCheck(user.id);
+      setReminderDebug(check);
+      setMessage(check.summary);
+    } catch (err) {
+      setSettingsError(err instanceof Error ? err.message : 'Reminder check failed');
     } finally {
       setBusy(false);
     }
@@ -282,6 +304,42 @@ export default function AccountScreen() {
                 <Text style={styles.link}>Open iPhone Settings</Text>
               </Pressable>
             ) : null}
+            {remindersOn ? (
+              <Pressable
+                style={styles.secondaryBtn}
+                disabled={busy}
+                onPress={() => void handleCheckRemindersNow()}
+              >
+                <Text style={styles.secondaryBtnText}>Check dose reminders now</Text>
+              </Pressable>
+            ) : null}
+            {reminderDebug && remindersOn ? (
+              <View style={styles.debugBox}>
+                <Text style={styles.hint}>
+                  App clock: <Text style={styles.strong}>{reminderDebug.nowLabel}</Text> (
+                  {reminderDebug.timezone}) · Today: {reminderDebug.today}
+                </Text>
+                <Text style={styles.hint}>
+                  Pending local notifications: {reminderDebug.pendingNotificationCount}
+                </Text>
+                {reminderDebug.slots.length === 0 ? (
+                  <Text style={styles.hint}>No dose slots for today.</Text>
+                ) : (
+                  reminderDebug.slots.map((slot) => (
+                    <Text key={`${slot.medicationName}-${slot.scheduleTime}`} style={styles.hint}>
+                      <Text style={styles.strong}>{slot.medicationName}</Text> {slot.scheduleLabel}
+                      {slot.taken
+                        ? ' — taken'
+                        : slot.scheduledNotification
+                          ? ' — notification scheduled'
+                          : slot.skipReason
+                            ? ` — ${slot.skipReason}`
+                            : ''}
+                    </Text>
+                  ))
+                )}
+              </View>
+            ) : null}
             {__DEV__ ? (
               <Pressable
                 style={styles.devButton}
@@ -395,6 +453,15 @@ function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
     },
     switchLabel: { fontWeight: '800', color: colors.text, flex: 1 },
     link: { color: colors.accent, fontWeight: '700', fontSize: 15 },
+    debugBox: {
+      marginTop: spacing.sm,
+      padding: spacing.md,
+      borderRadius: radii.md,
+      borderWidth: 1,
+      borderColor: colors.border,
+      backgroundColor: colors.bg,
+      gap: 4,
+    },
     devButton: {
       marginTop: spacing.xs,
       borderRadius: radii.md,
@@ -436,7 +503,7 @@ function makeStyles(colors: ReturnType<typeof useTheme>['colors']) {
       borderRadius: radii.md,
       padding: spacing.md,
       borderWidth: 1,
-      borderColor: '#fecaca',
+      borderColor: colors.errorBorder,
     },
     errorBannerText: { color: colors.error, fontWeight: '700' },
     footerLink: { textAlign: 'center', marginTop: spacing.sm },

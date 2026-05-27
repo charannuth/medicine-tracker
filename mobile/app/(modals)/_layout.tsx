@@ -1,8 +1,17 @@
 import { Stack } from 'expo-router';
+import { useTheme } from '../../context/ThemeProvider';
 
 export default function ModalLayout() {
+  const { colors } = useTheme();
+
   return (
-    <Stack>
+    <Stack
+      screenOptions={{
+        headerStyle: { backgroundColor: colors.surface },
+        headerTintColor: colors.text,
+        contentStyle: { backgroundColor: colors.bg },
+      }}
+    >
       <Stack.Screen
         name="medications/new"
         options={{ title: 'Add medication', presentation: 'modal' }}
@@ -14,4 +23,3 @@ export default function ModalLayout() {
     </Stack>
   );
 }
-

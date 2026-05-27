@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   ActivityIndicator,
   Alert,
@@ -10,7 +10,9 @@ import {
   View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { colors, spacing } from '../../constants/theme';
+import { spacing } from '../../constants/theme';
+import type { ColorPalette } from '../../constants/theme';
+import { useTheme } from '../../context/ThemeProvider';
 import { useAuth } from '../../hooks/useAuth';
 import { useTrackingCalendarData } from '../../hooks/useTrackingCalendarData';
 import { PhysicalProfileForm } from '../../components/tracking/PhysicalProfileForm';
@@ -20,7 +22,7 @@ import { MedProgressPanel } from '../../components/tracking/MedProgressPanel';
 import { WeightTrackerPanel } from '../../components/tracking/WeightTrackerPanel';
 import { TrackingCalendar } from '../../components/tracking/TrackingCalendar';
 import { SelectField } from '../../components/tracking/SelectField';
-import { trackingStyles } from '../../components/tracking/trackingStyles';
+import { useTrackingStyles } from '../../components/tracking/trackingStyles';
 import {
   calendarSourceOptions,
   calendarSupportFor,
@@ -53,6 +55,9 @@ import {
 import type { MedicalRecord } from '../../lib/medicalRecords';
 
 export default function TrackingScreen() {
+  const { colors } = useTheme();
+  const trackingStyles = useTrackingStyles();
+  const styles = useMemo(() => makeTrackingScreenStyles(colors), [colors]);
   const { user } = useAuth();
   const today = todayLocalDate();
   const [medicalRecord, setMedicalRecord] = useState<MedicalRecord | null>(null);
@@ -462,13 +467,15 @@ export default function TrackingScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: colors.bg },
-  scroll: { padding: spacing.lg, paddingBottom: spacing.xl * 2 },
-  subtitle: {
-    fontSize: 15,
-    color: colors.textMuted,
-    marginBottom: spacing.md,
-    lineHeight: 22,
-  },
-});
+function makeTrackingScreenStyles(colors: ColorPalette) {
+  return StyleSheet.create({
+    safe: { flex: 1, backgroundColor: colors.bg },
+    scroll: { padding: spacing.lg, paddingBottom: spacing.xl * 2 },
+    subtitle: {
+      fontSize: 15,
+      color: colors.textMuted,
+      marginBottom: spacing.md,
+      lineHeight: 22,
+    },
+  });
+}

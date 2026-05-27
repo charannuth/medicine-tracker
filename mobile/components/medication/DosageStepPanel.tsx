@@ -1,5 +1,8 @@
-import { Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
-import { colors, radii, spacing } from '../../constants/theme';
+import { Pressable, Text, TextInput, View } from 'react-native';
+import type { ColorPalette } from '../../constants/theme';
+import { radii, spacing } from '../../constants/theme';
+import { useTheme } from '../../context/ThemeProvider';
+import { useThemedStyles } from '../../hooks/useThemedStyles';
 import {
   dosageStepHint,
   type DosageWizardValues,
@@ -17,38 +20,81 @@ type Props = {
   onChange: (patch: Partial<DosageWizardValues>) => void;
 };
 
-function FieldLabel({ children }: { children: string }) {
-  return <Text style={styles.label}>{children}</Text>;
-}
-
-function TextField({
-  value,
-  onChangeText,
-  placeholder,
-  keyboardType,
-  multiline,
-}: {
-  value: string;
-  onChangeText: (t: string) => void;
-  placeholder?: string;
-  keyboardType?: 'default' | 'numeric' | 'decimal-pad';
-  multiline?: boolean;
-}) {
-  return (
-    <TextInput
-      style={[styles.input, multiline && styles.textarea]}
-      value={value}
-      onChangeText={onChangeText}
-      placeholder={placeholder}
-      placeholderTextColor={colors.textMuted}
-      keyboardType={keyboardType}
-      multiline={multiline}
-    />
-  );
+function makeDosagePanelStyles(colors: ColorPalette) {
+  return {
+    panel: { gap: spacing.sm },
+    hint: { color: colors.textMuted, lineHeight: 20, marginBottom: spacing.xs },
+    label: { fontWeight: '700' as const, color: colors.text, marginTop: spacing.sm },
+    input: {
+      borderWidth: 1,
+      borderColor: colors.border,
+      borderRadius: radii.md,
+      paddingHorizontal: spacing.md,
+      paddingVertical: 12,
+      fontSize: 16,
+      color: colors.text,
+      backgroundColor: colors.surface,
+    },
+    textarea: { minHeight: 80, textAlignVertical: 'top' as const },
+    radioGroup: { gap: spacing.sm },
+    radioCard: {
+      borderWidth: 1,
+      borderColor: colors.border,
+      borderRadius: radii.md,
+      padding: spacing.md,
+      gap: 4,
+    },
+    radioCardActive: { borderColor: colors.accent, backgroundColor: colors.typeCardActiveBg },
+    radioTitle: { fontWeight: '800' as const, color: colors.text },
+    radioSub: { color: colors.textMuted, fontSize: 13 },
+    chipRow: { flexDirection: 'row' as const, flexWrap: 'wrap' as const, gap: 6 },
+    chip: {
+      paddingHorizontal: 12,
+      paddingVertical: 8,
+      borderRadius: radii.sm,
+      borderWidth: 1,
+      borderColor: colors.border,
+    },
+    chipActive: { backgroundColor: colors.accent, borderColor: colors.accent },
+    chipText: { fontWeight: '700' as const, color: colors.textMuted },
+    chipTextActive: { color: colors.onAccent },
+  };
 }
 
 export function DosageStepPanel({ route, scheduleType, values, onChange }: Props) {
+  const styles = useThemedStyles(makeDosagePanelStyles);
+  const { colors } = useTheme();
   const hint = dosageStepHint(route, scheduleType);
+
+  function FieldLabel({ children }: { children: string }) {
+    return <Text style={styles.label}>{children}</Text>;
+  }
+
+  function TextField({
+    value,
+    onChangeText,
+    placeholder,
+    keyboardType,
+    multiline,
+  }: {
+    value: string;
+    onChangeText: (t: string) => void;
+    placeholder?: string;
+    keyboardType?: 'default' | 'numeric' | 'decimal-pad';
+    multiline?: boolean;
+  }) {
+    return (
+      <TextInput
+        style={[styles.input, multiline && styles.textarea]}
+        value={value}
+        onChangeText={onChangeText}
+        placeholder={placeholder}
+        placeholderTextColor={colors.textMuted}
+        keyboardType={keyboardType}
+        multiline={multiline}
+      />
+    );
+  }
 
   if (scheduleType === 'as_needed') {
     return (
@@ -185,42 +231,3 @@ export function DosageStepPanel({ route, scheduleType, values, onChange }: Props
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  panel: { gap: spacing.sm },
-  hint: { color: colors.textMuted, lineHeight: 20, marginBottom: spacing.xs },
-  label: { fontWeight: '700', color: colors.text, marginTop: spacing.sm },
-  input: {
-    borderWidth: 1,
-    borderColor: colors.border,
-    borderRadius: radii.md,
-    paddingHorizontal: spacing.md,
-    paddingVertical: 12,
-    fontSize: 16,
-    color: colors.text,
-    backgroundColor: colors.surface,
-  },
-  textarea: { minHeight: 80, textAlignVertical: 'top' },
-  radioGroup: { gap: spacing.sm },
-  radioCard: {
-    borderWidth: 1,
-    borderColor: colors.border,
-    borderRadius: radii.md,
-    padding: spacing.md,
-    gap: 4,
-  },
-  radioCardActive: { borderColor: colors.accent, backgroundColor: '#ecfeff' },
-  radioTitle: { fontWeight: '800', color: colors.text },
-  radioSub: { color: colors.textMuted, fontSize: 13 },
-  chipRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 6 },
-  chip: {
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    borderRadius: radii.sm,
-    borderWidth: 1,
-    borderColor: colors.border,
-  },
-  chipActive: { backgroundColor: colors.accent, borderColor: colors.accent },
-  chipText: { fontWeight: '700', color: colors.textMuted },
-  chipTextActive: { color: '#fff' },
-});

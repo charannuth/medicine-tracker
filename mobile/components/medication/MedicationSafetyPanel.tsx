@@ -1,7 +1,10 @@
 import { useEffect, useState } from 'react';
-import { ActivityIndicator, Alert, Pressable, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, Alert, Pressable, Text, View } from 'react-native';
 import { useRouter } from 'expo-router';
-import { colors, radii, spacing } from '../../constants/theme';
+import type { ColorPalette } from '../../constants/theme';
+import { radii, spacing } from '../../constants/theme';
+import { useTheme } from '../../context/ThemeProvider';
+import { useThemedStyles } from '../../hooks/useThemedStyles';
 import { severityLabel } from '../../lib/drugInteractions';
 import {
   buildMedicationSafetyReview,
@@ -16,9 +19,48 @@ type Props = {
   existingMedicationNames: string[];
 };
 
+function makeSafetyPanelStyles(colors: ColorPalette) {
+  return {
+    panel: { gap: spacing.md },
+    loading: { flexDirection: 'row' as const, alignItems: 'center' as const, gap: spacing.sm },
+    hint: { color: colors.textMuted, lineHeight: 20 },
+    error: { color: colors.error, fontWeight: '700' as const },
+    intro: { color: colors.text, lineHeight: 22 },
+    bold: { fontWeight: '800' as const },
+    link: { color: colors.accent, fontWeight: '800' as const },
+    sectionTitle: { fontWeight: '900' as const, fontSize: 15, color: colors.text, marginTop: spacing.sm },
+    list: { gap: spacing.sm },
+    alertItem: {
+      backgroundColor: colors.pendingBg,
+      borderRadius: radii.md,
+      padding: spacing.md,
+      gap: 4,
+    },
+    alertTitle: { fontWeight: '800' as const, color: colors.text },
+    body: { color: colors.text, lineHeight: 20 },
+    bullet: { color: colors.text, lineHeight: 22 },
+    disclaimer: {
+      backgroundColor: colors.pendingBg,
+      padding: spacing.md,
+      borderRadius: radii.md,
+    },
+    disclaimerAlert: { backgroundColor: colors.errorBg },
+    aiBtn: {
+      borderWidth: 1,
+      borderColor: colors.border,
+      borderRadius: radii.md,
+      padding: spacing.md,
+      alignItems: 'center' as const,
+    },
+    aiBtnText: { fontWeight: '700' as const, color: colors.text },
+  };
+}
+
 export function MedicationSafetyPanel({ drugName, existingMedicationNames }: Props) {
   const { user } = useAuth();
   const router = useRouter();
+  const { colors } = useTheme();
+  const styles = useThemedStyles(makeSafetyPanelStyles);
   const { allergies, conditions } = useMedicalRecordAllergies(user?.id);
   const [review, setReview] = useState<MedicationSafetyReview | null>(null);
   const [loading, setLoading] = useState(true);
@@ -165,38 +207,3 @@ export function MedicationSafetyPanel({ drugName, existingMedicationNames }: Pro
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  panel: { gap: spacing.md },
-  loading: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
-  hint: { color: colors.textMuted, lineHeight: 20 },
-  error: { color: colors.error, fontWeight: '700' },
-  intro: { color: colors.text, lineHeight: 22 },
-  bold: { fontWeight: '800' },
-  link: { color: colors.accent, fontWeight: '800' },
-  sectionTitle: { fontWeight: '900', fontSize: 15, color: colors.text, marginTop: spacing.sm },
-  list: { gap: spacing.sm },
-  alertItem: {
-    backgroundColor: colors.pendingBg,
-    borderRadius: radii.md,
-    padding: spacing.md,
-    gap: 4,
-  },
-  alertTitle: { fontWeight: '800', color: colors.text },
-  body: { color: colors.text, lineHeight: 20 },
-  bullet: { color: colors.text, lineHeight: 22 },
-  disclaimer: {
-    backgroundColor: colors.pendingBg,
-    padding: spacing.md,
-    borderRadius: radii.md,
-  },
-  disclaimerAlert: { backgroundColor: colors.errorBg },
-  aiBtn: {
-    borderWidth: 1,
-    borderColor: colors.border,
-    borderRadius: radii.md,
-    padding: spacing.md,
-    alignItems: 'center',
-  },
-  aiBtnText: { fontWeight: '700', color: colors.text },
-});

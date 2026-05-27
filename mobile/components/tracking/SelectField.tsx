@@ -1,5 +1,5 @@
 import { Alert, Pressable, Text, View } from 'react-native';
-import { trackingStyles } from './trackingStyles';
+import { useTrackingStyles } from './trackingStyles';
 
 type Option = { value: string; label: string; disabled?: boolean };
 
@@ -20,6 +20,7 @@ export function SelectField({
   disabled,
   placeholder = 'Choose…',
 }: Props) {
+  const trackingStyles = useTrackingStyles();
   const selected = options.find((o) => o.value === value);
 
   function openPicker() {

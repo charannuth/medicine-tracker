@@ -10,7 +10,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import type { ColorPalette } from '../constants/theme';
 import { radii, spacing } from '../constants/theme';
 import { useThemedStyles } from '../hooks/useThemedStyles';
-import { STREAK_CELEBRATION_MILESTONE_DAYS } from '../lib/streakCelebration';
+import { getActiveStreakBadge } from '../lib/streakBadges';
 import { StreakCelebrationScene } from './streaks/StreakCelebrationScene';
 
 type Props = {
@@ -76,7 +76,8 @@ function makeCelebrationStyles(colors: ColorPalette) {
 }
 
 export function StreakCelebration({ streakDays, onDismiss }: Props) {
-  const dual = streakDays >= STREAK_CELEBRATION_MILESTONE_DAYS;
+  const dual = streakDays >= 7;
+  const badge = getActiveStreakBadge(streakDays);
   const opacity = useRef(new Animated.Value(0)).current;
   const scale = useRef(new Animated.Value(0.88)).current;
   const styles = useThemedStyles(makeCelebrationStyles);
@@ -97,7 +98,9 @@ export function StreakCelebration({ streakDays, onDismiss }: Props) {
     ]).start();
   }, [opacity, scale]);
 
-  const label = `Streak × ${STREAK_CELEBRATION_MILESTONE_DAYS} — week in bloom!`;
+  const label = badge
+    ? `Streak × ${streakDays} — ${badge.label}!`
+    : `Streak × ${streakDays}!`;
 
   return (
     <Modal visible transparent animationType="fade" onRequestClose={onDismiss}>
@@ -117,9 +120,8 @@ export function StreakCelebration({ streakDays, onDismiss }: Props) {
             </View>
             <Text style={styles.title}>{label}</Text>
             <Text style={styles.body}>
-              {dual
-                ? 'A full week in bloom — purple and gold on one stem. Keep it growing tomorrow.'
-                : 'Every scheduled dose logged today. Keep it growing tomorrow.'}
+              {badge?.description ??
+                'Every scheduled dose logged today. Keep it growing tomorrow.'}
             </Text>
             <Pressable style={styles.button} onPress={onDismiss}>
               <Text style={styles.buttonText}>Continue</Text>

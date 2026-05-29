@@ -1,17 +1,19 @@
 import { useEffect, useRef, useState } from 'react';
 import {
   markStreakCelebratedToday,
-  STREAK_CELEBRATION_MILESTONE_DAYS,
   wasStreakCelebratedToday,
 } from '../lib/streakCelebration';
+import { getDisplayStreakDays } from '../lib/streakBadges';
 import type { StreakStats } from '../lib/streaks';
 
-/** Dev-only: set EXPO_PUBLIC_PREVIEW_STREAK=7 in mobile/.env to replay the modal. */
+/** Dev-only: set EXPO_PUBLIC_PREVIEW_STREAK=7 (or any day count) in mobile/.env to replay the modal. */
 function devPreviewStreakDays(): number | null {
   if (!__DEV__) return null;
   const flag = process.env.EXPO_PUBLIC_PREVIEW_STREAK;
-  if (flag === '7' || flag === '1') return STREAK_CELEBRATION_MILESTONE_DAYS;
-  return null;
+  if (!flag || flag === '0') return null;
+  const n = Number(flag);
+  if (!Number.isFinite(n) || n <= 0) return 1;
+  return n;
 }
 
 export function useStreakCelebration(
@@ -41,7 +43,7 @@ export function useStreakCelebration(
       initializedRef.current = true;
       prevRef.current = {
         todayComplete: stats.todayComplete,
-        currentStreak: stats.currentStreak,
+        currentStreak: getDisplayStreakDays(stats),
       };
       return;
     }
@@ -53,16 +55,17 @@ export function useStreakCelebration(
 
     void (async () => {
       const already = await wasStreakCelebratedToday(userId);
-      const hitMilestone = stats.currentStreak === STREAK_CELEBRATION_MILESTONE_DAYS;
-      if (becameCompleteToday && !already && hitMilestone) {
+      const displayStreak = getDisplayStreakDays(stats);
+
+      if (becameCompleteToday && !already && displayStreak > 0) {
         await markStreakCelebratedToday(userId);
-        setCelebrationStreak(STREAK_CELEBRATION_MILESTONE_DAYS);
+        setCelebrationStreak(displayStreak);
       }
     })();
 
     prevRef.current = {
       todayComplete: stats.todayComplete,
-      currentStreak: stats.currentStreak,
+      currentStreak: getDisplayStreakDays(stats),
     };
   }, [userId, stats]);
 
@@ -70,7 +73,11 @@ export function useStreakCelebration(
     celebrationStreak,
     dismissCelebration: () => setCelebrationStreak(null),
     previewCelebration: __DEV__
-      ? () => setCelebrationStreak(STREAK_CELEBRATION_MILESTONE_DAYS)
+      ? (days?: number) => {
+          const fallback =
+            stats != null ? getDisplayStreakDays(stats) : 0;
+          setCelebrationStreak(days ?? (fallback > 0 ? fallback : 7));
+        }
       : undefined,
   };
 }

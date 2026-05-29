@@ -33,6 +33,8 @@ import { isAsNeededMed, type MedicationScheduleType } from '../../lib/medication
 import { fetchStreakStats, type StreakStats } from '../../lib/streaks';
 import { fetchMissedDoses, type MissedDoseItem } from '../../lib/missedDoses';
 import { getRefillAlerts } from '../../lib/refills';
+import { rescheduleAllReminders } from '../../lib/reminders';
+import { getReminders } from '../../lib/settings';
 import {
   dismissMissedDosesBanner,
   isMissedDosesBannerDismissed,
@@ -240,6 +242,17 @@ export default function TodayScreen() {
     }
   }
 
+  async function syncRemindersAfterSupplyChange() {
+    if (!user) return;
+    const { enabled } = await getReminders();
+    if (!enabled) return;
+    try {
+      await rescheduleAllReminders(user.id);
+    } catch {
+      // ignore — bootstrap will retry on next foreground
+    }
+  }
+
   async function handleMarkTaken(med: MedicationWithStatus, scheduleTime: string) {
     if (!user) return;
     const key = `${med.id}-${scheduleTime}`;
@@ -248,6 +261,7 @@ export default function TodayScreen() {
     try {
       await markDoseTaken(user.id, med.id, scheduleTime);
       await loadAll();
+      await syncRemindersAfterSupplyChange();
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Could not log dose');
     } finally {
@@ -263,6 +277,7 @@ export default function TodayScreen() {
     try {
       await undoDose(slot.doseLogId, med.id);
       await loadAll();
+      await syncRemindersAfterSupplyChange();
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Could not undo dose');
     } finally {
@@ -424,9 +439,11 @@ export default function TodayScreen() {
         {!missedBannerDismissed ? (
           <MissedDosesBanner
             items={missedDoses}
-            onDismiss={async () => {
-              await dismissMissedDosesBanner();
-              setMissedBannerDismissed(true);
+            onDismiss={() => {
+              void (async () => {
+                await dismissMissedDosesBanner();
+                setMissedBannerDismissed(true);
+              })();
             }}
           />
         ) : null}

@@ -129,7 +129,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   );
 
   const updateProfileAvatar = useCallback(
-    async (image: Blob) => {
+    async (image: Blob | ArrayBuffer) => {
       if (!supabase) throw new Error('Supabase is not configured');
       const userId = session?.user?.id;
       if (!userId) throw new Error('You must be signed in');

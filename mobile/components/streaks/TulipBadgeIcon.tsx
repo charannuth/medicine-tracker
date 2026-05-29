@@ -1,13 +1,5 @@
 import Svg, { Circle, Ellipse, G, Path } from 'react-native-svg';
-
-function bouquetColorsForMinDays(minDays: number): string[] {
-  if (minDays < 7) return ['#7c3aed'];
-  if (minDays < 14) return ['#7c3aed', '#facc15'];
-  if (minDays < 30) return ['#7c3aed', '#facc15', '#fb923c'];
-  if (minDays < 60) return ['#7c3aed', '#facc15', '#fb923c', '#f472b6'];
-  if (minDays < 100) return ['#7c3aed', '#facc15', '#fb923c', '#f472b6', '#f8fafc'];
-  return ['#7c3aed', '#facc15', '#fb923c', '#f472b6', '#f8fafc', '#ef4444'];
-}
+import { bouquetColorsForMinDays } from '../../lib/streakBadges';
 
 function Tulip({
   x,

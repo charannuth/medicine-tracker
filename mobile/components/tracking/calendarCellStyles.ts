@@ -20,6 +20,14 @@ function calendarTints(isDark: boolean) {
       cycleSymptom: { bg: '#431407', text: '#fdba74' },
       weightEvent: { bg: '#0c4a6e', text: '#7dd3fc' },
       hrtEvent: { bg: '#581c87', text: '#e9d5ff' },
+      doctorVisitUpcoming: '#1e3a5f',
+      doctorVisitLogged: '#064e3b',
+      doctorVisitNeedsNotes: '#78350f',
+      doctorVisitFollowup: '#4c1d95',
+      doctorUpcoming: { bg: '#1e3a8a', text: '#93c5fd' },
+      doctorPast: { bg: '#064e3b', text: '#6ee7b7' },
+      doctorNotes: { bg: '#78350f', text: '#fcd34d' },
+      doctorFollowup: { bg: '#4c1d95', text: '#c4b5fd' },
     };
   }
   return {
@@ -37,6 +45,14 @@ function calendarTints(isDark: boolean) {
     cycleSymptom: { bg: '#fff7ed', text: '#c2410c' },
     weightEvent: { bg: '#e0f2fe', text: '#0369a1' },
     hrtEvent: { bg: '#fae8ff', text: '#86198f' },
+    doctorVisitUpcoming: '#dbeafe',
+    doctorVisitLogged: '#d1fae5',
+    doctorVisitNeedsNotes: '#fef3c7',
+    doctorVisitFollowup: '#ede9fe',
+    doctorUpcoming: { bg: '#dbeafe', text: '#1d4ed8' },
+    doctorPast: { bg: '#d1fae5', text: '#047857' },
+    doctorNotes: { bg: '#fef3c7', text: '#b45309' },
+    doctorFollowup: { bg: '#ede9fe', text: '#6d28d9' },
   };
 }
 
@@ -66,6 +82,18 @@ export function cellStylesFromClassNames(
   if (classNames.includes('weight-workout')) out.push({ backgroundColor: t.weightWorkout });
   if (classNames.includes('weight-off-schedule')) out.push({ opacity: 0.45 });
   if (classNames.includes('hrt-logged')) out.push({ backgroundColor: t.hrt });
+  if (classNames.includes('doctor-visit-upcoming')) {
+    out.push({ backgroundColor: t.doctorVisitUpcoming });
+  }
+  if (classNames.includes('doctor-visit-logged')) {
+    out.push({ backgroundColor: t.doctorVisitLogged });
+  }
+  if (classNames.includes('doctor-visit-needs-notes')) {
+    out.push({ backgroundColor: t.doctorVisitNeedsNotes });
+  }
+  if (classNames.includes('doctor-visit-followup')) {
+    out.push({ backgroundColor: t.doctorVisitFollowup });
+  }
   if (classNames.includes('med-perfect')) {
     out.push({ backgroundColor: colors.streakPerfectBg, borderColor: colors.streakPerfectBorder });
   }
@@ -95,6 +123,14 @@ export function eventToneStyle(
       return t.weightEvent;
     case 'hrt':
       return t.hrtEvent;
+    case 'doctor-upcoming':
+      return t.doctorUpcoming;
+    case 'doctor-past':
+      return t.doctorPast;
+    case 'doctor-notes':
+      return t.doctorNotes;
+    case 'doctor-followup':
+      return t.doctorFollowup;
     case 'med-perfect':
       return { bg: colors.streakPerfectBg, text: colors.success };
     case 'med-partial':

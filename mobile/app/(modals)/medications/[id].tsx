@@ -11,7 +11,7 @@ import {
   repairMedicationSchedule,
   updateMedication,
 } from '../../../lib/medications';
-import { rescheduleDoseReminders } from '../../../lib/reminderScheduler';
+import { rescheduleAllReminders } from '../../../lib/reminders';
 import { useAuth } from '../../../hooks/useAuth';
 import { MedicationFormWizard } from '../../../components/medication/MedicationFormWizard';
 import type { Medication, MedicationInput } from '../../../lib/types';
@@ -77,7 +77,7 @@ export default function EditMedicationScreen() {
     if (!user || !med) return;
     await updateMedication(med.id, input);
     try {
-      await rescheduleDoseReminders(user.id);
+      await rescheduleAllReminders(user.id);
     } catch {
       // ignore
     }

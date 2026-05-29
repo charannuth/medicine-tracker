@@ -57,3 +57,33 @@ export function getEarnedStreakBadges(longestStreak: number): StreakBadge[] {
 export function getNextStreakBadge(longestStreak: number): StreakBadge | null {
   return STREAK_BADGES.find((b) => longestStreak < b.minDays) ?? null
 }
+
+/** Streak days to show on Today (includes today when complete, even on a fresh restart). */
+export function getDisplayStreakDays(stats: {
+  currentStreak: number
+  todayComplete: boolean
+}): number {
+  if (stats.currentStreak > 0) return stats.currentStreak
+  if (stats.todayComplete) return 1
+  return 0
+}
+
+/** Highest badge tier reached by the current streak (shown on Today). */
+export function getActiveStreakBadge(currentStreak: number): StreakBadge | null {
+  if (currentStreak <= 0) return null
+  let active: StreakBadge | null = null
+  for (const badge of STREAK_BADGES) {
+    if (currentStreak >= badge.minDays) active = badge
+  }
+  return active
+}
+
+/** Tulip colors for a badge tier (bouquet grows at 7+ days). */
+export function bouquetColorsForMinDays(minDays: number): string[] {
+  if (minDays < 7) return ['#7c3aed']
+  if (minDays < 14) return ['#7c3aed', '#facc15']
+  if (minDays < 30) return ['#7c3aed', '#facc15', '#fb923c']
+  if (minDays < 60) return ['#7c3aed', '#facc15', '#fb923c', '#f472b6']
+  if (minDays < 100) return ['#7c3aed', '#facc15', '#fb923c', '#f472b6', '#f8fafc']
+  return ['#7c3aed', '#facc15', '#fb923c', '#f472b6', '#f8fafc', '#ef4444']
+}

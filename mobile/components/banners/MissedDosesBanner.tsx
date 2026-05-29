@@ -9,8 +9,10 @@ function makeStyles(colors: ColorPalette) {
     banner: {
       borderRadius: radii.lg,
       padding: spacing.md,
+      paddingRight: spacing.xl + spacing.sm,
       borderWidth: 1,
       gap: 6,
+      position: 'relative' as const,
     },
     missed: {
       backgroundColor: colors.badgeModerateBg,
@@ -25,18 +27,21 @@ function makeStyles(colors: ColorPalette) {
     },
     dismiss: {
       position: 'absolute' as const,
-      right: 6,
-      top: 6,
-      width: 32,
-      height: 32,
-      borderRadius: 16,
+      right: 4,
+      top: 4,
+      zIndex: 10,
+      elevation: 10,
+      width: 36,
+      height: 36,
+      borderRadius: 18,
       alignItems: 'center' as const,
       justifyContent: 'center' as const,
     },
     dismissText: {
-      fontSize: 20,
+      fontSize: 22,
       fontWeight: '800' as const,
       color: colors.textMuted,
+      lineHeight: 24,
     },
   };
 }
@@ -54,14 +59,6 @@ export function MissedDosesBanner({
 
   return (
     <View style={[styles.banner, styles.missed]} accessibilityRole="text">
-      <Pressable
-        onPress={onDismiss}
-        accessibilityRole="button"
-        accessibilityLabel="Dismiss missed doses"
-        style={styles.dismiss}
-      >
-        <Text style={styles.dismissText}>×</Text>
-      </Pressable>
       <Text style={styles.title}>Missed doses:</Text>
       {items.map((item) => (
         <Text
@@ -71,6 +68,15 @@ export function MissedDosesBanner({
           • {item.periodLabel}: {item.medicationName} at {item.scheduleLabel}
         </Text>
       ))}
+      <Pressable
+        onPress={onDismiss}
+        accessibilityRole="button"
+        accessibilityLabel="Dismiss missed doses"
+        hitSlop={8}
+        style={({ pressed }) => [styles.dismiss, pressed && { opacity: 0.6 }]}
+      >
+        <Text style={styles.dismissText}>×</Text>
+      </Pressable>
     </View>
   );
 }

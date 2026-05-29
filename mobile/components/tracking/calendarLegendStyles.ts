@@ -13,6 +13,10 @@ function legendTints(isDark: boolean) {
       weight: { bg: 'rgba(34, 197, 94, 0.45)', border: '#4ade80' },
       weightMeals: { bg: 'rgba(22, 163, 74, 0.35)', border: '#22c55e' },
       hrt: { bg: 'rgba(168, 85, 247, 0.45)', border: '#e879f9' },
+      doctorUpcoming: { bg: 'rgba(96, 165, 250, 0.45)', border: '#60a5fa' },
+      doctorLogged: { bg: 'rgba(52, 211, 153, 0.4)', border: '#34d399' },
+      doctorNeedsNotes: { bg: 'rgba(251, 191, 36, 0.45)', border: '#fbbf24' },
+      doctorFollowup: { bg: 'rgba(196, 181, 253, 0.45)', border: '#a78bfa' },
       dot: '#c084fc',
       heart: '#f472b6',
     };
@@ -27,6 +31,10 @@ function legendTints(isDark: boolean) {
     weight: { bg: 'rgba(34, 197, 94, 0.45)', border: '#16a34a' },
     weightMeals: { bg: 'rgba(22, 163, 74, 0.28)', border: '#22c55e' },
     hrt: { bg: 'rgba(168, 85, 247, 0.4)', border: '#d946ef' },
+    doctorUpcoming: { bg: 'rgba(96, 165, 250, 0.35)', border: '#3b82f6' },
+    doctorLogged: { bg: 'rgba(34, 197, 94, 0.35)', border: '#22c55e' },
+    doctorNeedsNotes: { bg: 'rgba(251, 191, 36, 0.4)', border: '#f59e0b' },
+    doctorFollowup: { bg: 'rgba(167, 139, 250, 0.4)', border: '#8b5cf6' },
     dot: '#9333ea',
     heart: '#ec4899',
   };
@@ -100,6 +108,34 @@ export function legendSwatchStyle(
         ...base,
         backgroundColor: colors.streakMissedBg,
         borderColor: colors.streakMissedBorder,
+        borderWidth: 2,
+      };
+    case 'doctor-visit-upcoming':
+      return {
+        ...base,
+        backgroundColor: t.doctorUpcoming.bg,
+        borderColor: t.doctorUpcoming.border,
+        borderWidth: 2,
+      };
+    case 'doctor-visit-logged':
+      return {
+        ...base,
+        backgroundColor: t.doctorLogged.bg,
+        borderColor: t.doctorLogged.border,
+        borderWidth: 2,
+      };
+    case 'doctor-visit-needs-notes':
+      return {
+        ...base,
+        backgroundColor: t.doctorNeedsNotes.bg,
+        borderColor: t.doctorNeedsNotes.border,
+        borderWidth: 2,
+      };
+    case 'doctor-visit-followup':
+      return {
+        ...base,
+        backgroundColor: t.doctorFollowup.bg,
+        borderColor: t.doctorFollowup.border,
         borderWidth: 2,
       };
     default:

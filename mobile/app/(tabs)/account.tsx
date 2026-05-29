@@ -26,9 +26,11 @@ import {
   openNotificationSettings,
   requestNotificationPermission,
   scheduleTestReminder,
+  scheduleTestNextDoseReminder,
+  scheduleTestRefillReminder,
   simulatorReminderNote,
 } from '../../lib/notifications';
-import { cancelAllDoseReminders, rescheduleDoseReminders } from '../../lib/reminderScheduler';
+import { cancelAllLocalReminders, rescheduleAllReminders } from '../../lib/reminders';
 import { runReminderCheck, type ReminderCheckResult } from '../../lib/reminderDebug';
 import {
   getReminders,
@@ -109,7 +111,16 @@ export default function AccountScreen() {
   async function handleTimezoneChange(tz: string) {
     setTimezoneState(tz);
     await setTimezone(tz);
-    setMessage('Timezone saved. “Today” uses this zone.');
+    if (user && remindersOn) {
+      try {
+        await rescheduleAllReminders(user.id);
+        const check = await runReminderCheck(user.id);
+        setReminderDebug(check);
+      } catch {
+        // ignore reschedule errors on timezone change
+      }
+    }
+    setMessage('Timezone saved. Dose times and visit reminders use this zone.');
   }
 
   async function handleThemeChange(mode: ThemeMode) {
@@ -139,20 +150,28 @@ export default function AccountScreen() {
         }
         await setReminders({ enabled: true });
         setRemindersOn(true);
-        const summary = await rescheduleDoseReminders(user.id);
+        const summary = await rescheduleAllReminders(user.id);
         const check = await runReminderCheck(user.id);
         setReminderDebug(check);
-        setMessage(check.summary);
-        if (summary.skippedOverLimit > 0) {
+        const totalScheduled =
+          summary.dose.scheduled + summary.doctorVisits.scheduled + summary.refills.scheduled;
+        setMessage(
+          `${check.summary} · ${summary.refills.scheduled} refill reminder${summary.refills.scheduled === 1 ? '' : 's'}.`,
+        );
+        if (
+          summary.dose.skippedOverLimit > 0 ||
+          summary.doctorVisits.skippedOverLimit > 0 ||
+          summary.refills.skippedOverLimit > 0
+        ) {
           Alert.alert(
             'Reminder limit',
-            `Scheduled ${summary.scheduled} dose reminders (iOS allows up to 64). Add fewer dose times or disable reminders on some medications.`,
+            `Scheduled ${totalScheduled} reminders (iOS allows up to 64 total). Fewer dose times, visits, or tracked meds may be needed.`,
           );
         }
       } else {
         await setReminders({ enabled: false });
         setRemindersOn(false);
-        await cancelAllDoseReminders();
+        await cancelAllLocalReminders();
         setReminderDebug(null);
       }
     } catch (err) {
@@ -171,6 +190,9 @@ export default function AccountScreen() {
     setSettingsError(null);
     setMessage(null);
     try {
+      if (remindersOn) {
+        await rescheduleAllReminders(user.id);
+      }
       const check = await runReminderCheck(user.id);
       setReminderDebug(check);
       setMessage(check.summary);
@@ -183,7 +205,7 @@ export default function AccountScreen() {
 
   async function handleSignOut() {
     try {
-      await cancelAllDoseReminders();
+      await cancelAllLocalReminders();
       await signOut();
     } catch {
       /* ignore */
@@ -215,7 +237,7 @@ export default function AccountScreen() {
               stats={streakStats}
             />
             <View style={styles.card}>
-              <StreakBadges longestStreak={streakStats.longestStreak} catalog={false} />
+              <StreakBadges longestStreak={streakStats.longestStreak} compact />
             </View>
             <View style={styles.teaserRow}>
               <Pressable style={styles.teaser} onPress={() => router.push('/(drawer)/streaks')}>
@@ -285,9 +307,11 @@ export default function AccountScreen() {
           <TimezonePickerField value={timezone} onChange={(tz) => void handleTimezoneChange(tz)} />
 
           <View style={styles.reminderSection}>
-            <Text style={styles.fieldLabel}>Dose reminders</Text>
+            <Text style={styles.fieldLabel}>Reminders</Text>
             <Text style={styles.hint}>
-              Lock-screen alerts at each scheduled dose time, even when the app is closed.
+              Lock-screen alerts for scheduled dose times, low supply refills (10:00 AM daily while
+            at or below 7 remaining), and upcoming doctor visits (9:00 AM on visit and follow-up
+            days).
             </Text>
             {simNote ? <Text style={styles.hint}>{simNote}</Text> : null}
             <Text style={styles.hint}>{notificationPermissionHint(permissionStatus)}</Text>
@@ -310,7 +334,7 @@ export default function AccountScreen() {
                 disabled={busy}
                 onPress={() => void handleCheckRemindersNow()}
               >
-                <Text style={styles.secondaryBtnText}>Check dose reminders now</Text>
+                <Text style={styles.secondaryBtnText}>Check reminders now</Text>
               </Pressable>
             ) : null}
             {reminderDebug && remindersOn ? (
@@ -320,7 +344,9 @@ export default function AccountScreen() {
                   {reminderDebug.timezone}) · Today: {reminderDebug.today}
                 </Text>
                 <Text style={styles.hint}>
-                  Pending local notifications: {reminderDebug.pendingNotificationCount}
+                  Pending: {reminderDebug.doseNotificationCount} dose ·{' '}
+                  {reminderDebug.visitNotificationCount} visit ·{' '}
+                  {reminderDebug.refillNotificationCount} refill
                 </Text>
                 {reminderDebug.slots.length === 0 ? (
                   <Text style={styles.hint}>No dose slots for today.</Text>
@@ -341,24 +367,66 @@ export default function AccountScreen() {
               </View>
             ) : null}
             {__DEV__ ? (
-              <Pressable
-                style={styles.devButton}
-                onPress={() => {
-                  void (async () => {
-                    const result = await scheduleTestReminder(15);
-                    if (result.ok) {
-                      Alert.alert(
-                        'Test scheduled',
-                        'Lock your phone within 15 seconds to verify the notification.',
-                      );
-                    } else {
-                      Alert.alert('Test failed', result.reason);
-                    }
-                  })();
-                }}
-              >
-                <Text style={styles.devButtonText}>Send test reminder in 15s</Text>
-              </Pressable>
+              <>
+                <Pressable
+                  style={styles.devButton}
+                  onPress={() => {
+                    void (async () => {
+                      const result = await scheduleTestReminder(15);
+                      if (result.ok) {
+                        Alert.alert(
+                          'Test scheduled',
+                          'You should see an alert in about 15 seconds (Notification Center in the simulator).',
+                        );
+                      } else {
+                        Alert.alert('Test failed', result.reason);
+                      }
+                    })();
+                  }}
+                >
+                  <Text style={styles.devButtonText}>Send test reminder in 15s</Text>
+                </Pressable>
+                {user && remindersOn ? (
+                  <Pressable
+                    style={styles.devButton}
+                    onPress={() => {
+                      void (async () => {
+                        const result = await scheduleTestNextDoseReminder(user.id, 60);
+                        if (result.ok) {
+                          Alert.alert(
+                            'Dose test scheduled',
+                            `Simulating your next dose (${result.label}) in 60 seconds.`,
+                          );
+                        } else {
+                          Alert.alert('Dose test failed', result.reason);
+                        }
+                      })();
+                    }}
+                  >
+                    <Text style={styles.devButtonText}>Test next dose in 60s</Text>
+                  </Pressable>
+                ) : null}
+                {user && remindersOn ? (
+                  <Pressable
+                    style={styles.devButton}
+                    onPress={() => {
+                      void (async () => {
+                        const result = await scheduleTestRefillReminder(user.id, 30);
+                        if (result.ok) {
+                          Alert.alert(
+                            'Refill test scheduled',
+                            `Simulating a refill alert for ${result.label} in 30 seconds.`,
+                          );
+                        } else {
+                          Alert.alert('Refill test failed', result.reason);
+                        }
+                      })();
+                    }}
+                  >
+                    <Text style={styles.devButtonText}>Test refill alert in 30s</Text>
+                  </Pressable>
+                ) : null}
+              </>
             ) : null}
           </View>
 

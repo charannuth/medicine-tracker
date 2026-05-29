@@ -15,6 +15,7 @@ import { OnboardingModal } from '../../components/OnboardingModal';
 import { isOnboardingDone } from '../../lib/settings';
 import { fetchMedicationsWithStatus } from '../../lib/medications';
 import { useReminderBootstrap } from '../../hooks/useReminderBootstrap';
+import { useNotificationResponses } from '../../hooks/useNotificationResponses';
 import { useTheme } from '../../context/ThemeProvider';
 
 function Hamburger({
@@ -123,6 +124,7 @@ export default function DrawerLayout() {
   const [showOnboarding, setShowOnboarding] = useState(false);
 
   useReminderBootstrap(user?.id);
+  useNotificationResponses();
 
   useEffect(() => {
     if (!user) return;
@@ -151,6 +153,7 @@ export default function DrawerLayout() {
     history: 'History',
     tracking: 'Tracking',
     wellness: 'Wellness',
+    'doctor-visits': 'Doctor visits',
     streaks: 'Streaks',
     account: 'My account',
     'medical-records': 'Medical records',
@@ -195,6 +198,7 @@ export default function DrawerLayout() {
         <Drawer.Screen name="index" options={{ title: 'Today' }} />
         <Drawer.Screen name="history" options={{ title: 'History' }} />
         <Drawer.Screen name="wellness" options={{ title: 'Wellness' }} />
+        <Drawer.Screen name="doctor-visits" options={{ title: 'Doctor visits' }} />
         <Drawer.Screen name="streaks" options={{ title: 'Streaks' }} />
         <Drawer.Screen name="tracking" options={{ title: 'Tracking' }} />
         <Drawer.Screen name="medical-records" options={{ title: 'Medical records' }} />

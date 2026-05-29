@@ -5,6 +5,7 @@ import {
   normalizeScheduleTimes,
   scheduleTimeToMinutes,
   todayLocalDate,
+  currentMinutesSinceMidnight,
 } from './dates';
 import { filterMedicationsActiveOn } from './medicationDates';
 import { isAsNeededMed } from './medicationSchedule';
@@ -90,9 +91,7 @@ export async function rescheduleDoseReminders(
 ): Promise<ReminderScheduleSummary> {
   const Notifications = await getExpoNotifications();
   if (!Notifications) {
-    throw new Error(
-      'Notifications are not available. Rebuild the app with npx expo run:ios after installing expo-notifications.',
-    );
+    throw new Error('Notifications are not available in this build.');
   }
 
   const { enabled } = await getReminders();
@@ -144,6 +143,80 @@ export async function rescheduleDoseReminders(
   }
 
   return { scheduled: toSchedule.length, skippedOverLimit };
+}
+
+const TEST_NEXT_DOSE_ID = 'drdose-test-next-dose';
+
+/** Fire a one-off dose-style alert for the next untaken slot today (simulator-friendly). */
+export async function scheduleTestNextDoseReminder(
+  userId: string,
+  secondsFromNow = 60,
+): Promise<{ ok: true; label: string } | { ok: false; reason: string }> {
+  const Notifications = await getExpoNotifications();
+  if (!Notifications) {
+    return { ok: false, reason: 'Notifications module unavailable.' };
+  }
+
+  const { enabled } = await getReminders();
+  if (!enabled) {
+    return { ok: false, reason: 'Turn on dose reminders first.' };
+  }
+
+  if (!supabase) {
+    return { ok: false, reason: 'Supabase is not configured.' };
+  }
+
+  await ensureNotificationInfrastructure();
+
+  const today = todayLocalDate();
+  const { data, error } = await supabase.from('medications').select('*').eq('user_id', userId);
+  if (error) return { ok: false, reason: error.message };
+
+  const active = filterMedicationsActiveOn((data ?? []) as Medication[], today);
+  const nowMins = currentMinutesSinceMidnight();
+
+  type Candidate = { med: Medication; time: string; mins: number };
+  const candidates: Candidate[] = [];
+  for (const med of active) {
+    if (isAsNeededMed(med)) continue;
+    for (const time of normalizeScheduleTimes(med.schedule_times ?? [])) {
+      const mins = scheduleTimeToMinutes(time);
+      if (!Number.isFinite(mins)) continue;
+      candidates.push({ med, time, mins });
+    }
+  }
+
+  candidates.sort((a, b) => a.mins - b.mins);
+  const next =
+    candidates.find((c) => c.mins >= nowMins) ?? candidates[0];
+
+  if (!next) {
+    return { ok: false, reason: 'Add a daily medication with dose times first.' };
+  }
+
+  await Notifications.cancelScheduledNotificationAsync(TEST_NEXT_DOSE_ID);
+
+  const seconds = Math.max(10, Math.round(secondsFromNow));
+  await Notifications.scheduleNotificationAsync({
+    identifier: TEST_NEXT_DOSE_ID,
+    content: {
+      title: 'Dose due',
+      body: `Time for ${next.med.name} (${formatScheduleTime(next.time)})`,
+      sound: 'default',
+      data: { medicationId: next.med.id, scheduleTime: next.time, screen: 'today' },
+      ...(Platform.OS === 'android' ? { channelId: DOSE_REMINDER_CHANNEL_ID } : {}),
+    },
+    trigger: {
+      type: Notifications.SchedulableTriggerInputTypes.TIME_INTERVAL,
+      seconds,
+      repeats: false,
+    },
+  });
+
+  return {
+    ok: true,
+    label: `${next.med.name} at ${formatScheduleTime(next.time)}`,
+  };
 }
 
 /** For debugging in Account — next fire time for a sample identifier. */

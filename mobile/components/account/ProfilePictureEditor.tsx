@@ -1,16 +1,27 @@
 import { useState } from 'react';
-import { ActivityIndicator, Alert, Pressable, StyleSheet, Text, View } from 'react-native';
+import {
+  ActionSheetIOS,
+  ActivityIndicator,
+  Alert,
+  Linking,
+  Platform,
+  Pressable,
+  StyleSheet,
+  Text,
+  View,
+} from 'react-native';
 import { useAuth } from '../../hooks/useAuth';
 import { useTheme } from '../../context/ThemeProvider';
-import {
-  getExpoImagePicker,
-  IMAGE_PICKER_REBUILD_HINT,
-} from '../../lib/expoImagePicker';
 import { getAvatarUrl } from '../../lib/profile';
+import {
+  openAppSettings,
+  PhotoPermissionError,
+  pickProfilePhotoFromLibrary,
+  profilePhotoPermissionMessage,
+  takeProfilePhotoWithCamera,
+} from '../../lib/profilePhoto';
 import { ProfileAvatar } from '../ProfileAvatar';
 import { radii, spacing } from '../../constants/theme';
-
-const MAX_FILE_BYTES = 8 * 1024 * 1024;
 
 export function ProfilePictureEditor() {
   const { user, updateProfileAvatar, removeProfileAvatar } = useAuth();
@@ -22,55 +33,82 @@ export function ProfilePictureEditor() {
   const hasAvatar = Boolean(getAvatarUrl(user));
   const styles = makeStyles(colors);
 
-  async function pickFromLibrary() {
-    setError(null);
-    setMessage(null);
+  function showSourcePicker() {
+    const chooseLibrary = () => void saveFromLibrary();
+    const chooseCamera = () => void saveFromCamera();
 
-    let ImagePicker: Awaited<ReturnType<typeof getExpoImagePicker>>;
-    try {
-      ImagePicker = await getExpoImagePicker();
-    } catch {
-      ImagePicker = null;
-    }
-
-    if (!ImagePicker) {
-      setError(IMAGE_PICKER_REBUILD_HINT);
-      Alert.alert('Rebuild required', IMAGE_PICKER_REBUILD_HINT);
-      return;
-    }
-
-    const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
-    if (!permission.granted) {
-      Alert.alert(
-        'Photo access needed',
-        'Allow access to your photo library in Settings to choose a profile picture.',
+    if (Platform.OS === 'ios') {
+      ActionSheetIOS.showActionSheetWithOptions(
+        {
+          options: ['Cancel', 'Choose from library', 'Take photo'],
+          cancelButtonIndex: 0,
+        },
+        (index) => {
+          if (index === 1) chooseLibrary();
+          if (index === 2) chooseCamera();
+        },
       );
       return;
     }
 
-    const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ['images'],
-      allowsEditing: true,
-      aspect: [1, 1],
-      quality: 0.85,
-    });
+    Alert.alert('Profile photo', undefined, [
+      { text: 'Cancel', style: 'cancel' },
+      { text: 'Photo library', onPress: chooseLibrary },
+      { text: 'Camera', onPress: chooseCamera },
+    ]);
+  }
 
-    if (result.canceled || !result.assets[0]) return;
+  function handlePermissionError(source: 'library' | 'camera') {
+    Alert.alert(
+      source === 'library' ? 'Photo access needed' : 'Camera access needed',
+      profilePhotoPermissionMessage(source),
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Open Settings',
+          onPress: () => {
+            void openAppSettings().catch(() => Linking.openSettings());
+          },
+        },
+      ],
+    );
+  }
 
-    const asset = result.assets[0];
-    if (asset.fileSize && asset.fileSize > MAX_FILE_BYTES) {
-      setError('Image must be 8 MB or smaller.');
-      return;
-    }
-
+  async function saveFromLibrary() {
+    setError(null);
+    setMessage(null);
     setBusy(true);
     try {
-      const response = await fetch(asset.uri);
-      const blob = await response.blob();
-      await updateProfileAvatar(blob);
+      const bytes = await pickProfilePhotoFromLibrary();
+      if (!bytes) return;
+      await updateProfileAvatar(bytes);
       setMessage('Profile photo saved.');
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Could not save photo');
+      if (err instanceof PhotoPermissionError) {
+        handlePermissionError('library');
+      } else {
+        setError(err instanceof Error ? err.message : 'Could not choose photo');
+      }
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function saveFromCamera() {
+    setError(null);
+    setMessage(null);
+    setBusy(true);
+    try {
+      const bytes = await takeProfilePhotoWithCamera();
+      if (!bytes) return;
+      await updateProfileAvatar(bytes);
+      setMessage('Profile photo saved.');
+    } catch (err) {
+      if (err instanceof PhotoPermissionError) {
+        handlePermissionError('camera');
+      } else {
+        setError(err instanceof Error ? err.message : 'Could not take photo');
+      }
     } finally {
       setBusy(false);
     }
@@ -95,8 +133,8 @@ export function ProfilePictureEditor() {
     <View style={styles.wrap}>
       <Text style={styles.title}>Profile photo</Text>
       <Text style={styles.hint}>
-        Optional. Your initials show until you add a photo. Use the square crop when picking from
-        your library.
+        Optional. Pick from your photo library or take a new photo — use the square crop, then save.
+        Your initials show until you add one.
       </Text>
 
       <View style={styles.row}>
@@ -105,12 +143,14 @@ export function ProfilePictureEditor() {
           <Pressable
             style={[styles.btn, busy && styles.btnDisabled]}
             disabled={busy}
-            onPress={() => void pickFromLibrary()}
+            onPress={showSourcePicker}
           >
             {busy ? (
               <ActivityIndicator color={colors.text} />
             ) : (
-              <Text style={styles.btnText}>{hasAvatar ? 'Change photo' : 'Choose from library'}</Text>
+              <Text style={styles.btnText}>
+                {hasAvatar ? 'Change photo' : 'Add photo'}
+              </Text>
             )}
           </Pressable>
           {hasAvatar ? (

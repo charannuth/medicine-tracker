@@ -75,14 +75,37 @@ function makeBadgeStyles(colors: ColorPalette) {
       paddingHorizontal: spacing.sm,
       maxWidth: '100%' as const,
     },
+    chip: {
+      flexDirection: 'row' as const,
+      alignItems: 'center' as const,
+      gap: 4,
+      paddingVertical: 6,
+      paddingHorizontal: 10,
+      borderRadius: radii.md,
+      borderWidth: 1,
+      borderColor: colors.successBorder,
+      backgroundColor: colors.successBg,
+    },
+    chipDays: {
+      fontWeight: '900' as const,
+      fontSize: 13,
+      color: colors.text,
+    },
+    chipRow: {
+      flexDirection: 'row' as const,
+      flexWrap: 'wrap' as const,
+      gap: spacing.sm,
+    },
   };
 }
 
 export function StreakBadges({
   longestStreak,
+  compact = false,
   catalog = true,
 }: {
   longestStreak: number;
+  compact?: boolean;
   catalog?: boolean;
 }) {
   const styles = useThemedStyles(makeBadgeStyles);
@@ -126,21 +149,68 @@ export function StreakBadges({
   const earnedIds = new Set(earned.map((b) => b.id));
   const next = useMemo(() => getNextStreakBadge(longestStreak), [longestStreak]);
 
+  if (compact) {
+    return (
+      <View style={styles.section}>
+        <Text style={styles.title}>Tulip badges</Text>
+        {earned.length === 0 ? (
+          <Text style={styles.hint}>
+            Complete a perfect day to earn your first tulip badge.
+          </Text>
+        ) : (
+          <View style={styles.chipRow}>
+            {earned.map((badge) => (
+              <View
+                key={badge.id}
+                style={styles.chip}
+                accessibilityLabel={`${badge.label}, ${badge.minDays} days`}
+              >
+                <TulipBadgeIcon earned minDays={badge.minDays} size={32} />
+                <Text style={styles.chipDays}>{badge.minDays}d</Text>
+              </View>
+            ))}
+          </View>
+        )}
+      </View>
+    );
+  }
+
+  if (catalog) {
+    return (
+      <View style={styles.section}>
+        <Text style={styles.title}>Tulip badges</Text>
+        <Text style={styles.hint}>
+          Each badge unlocks when your longest streak reaches consecutive perfect days.
+          {next ? ` Next: ${next.label} at ${next.minDays} days.` : ' You have every badge!'}
+        </Text>
+        <View style={styles.gridCatalog}>
+          {STREAK_BADGES.map((badge) => (
+            <BadgeTile
+              key={badge.id}
+              badge={badge}
+              earned={earnedIds.has(badge.id)}
+              catalog
+            />
+          ))}
+        </View>
+      </View>
+    );
+  }
+
   return (
     <View style={styles.section}>
-      <Text style={styles.title}>Tulip badges</Text>
+      <Text style={styles.title}>Streak badges</Text>
       <Text style={styles.hint}>
-        Each badge unlocks when your longest streak reaches consecutive perfect days.
-        {next ? ` Next: ${next.label} at ${next.minDays} days.` : ' You have every badge!'}
+        Earn tulips for consecutive perfect adherence days.
+        {next
+          ? ` Next: ${next.label} at ${next.minDays} days${
+              longestStreak > 0 ? ` (${next.minDays - longestStreak} to go)` : ''
+            }.`
+          : ' You have every badge!'}
       </Text>
-      <View style={catalog ? styles.gridCatalog : styles.grid}>
+      <View style={styles.grid}>
         {STREAK_BADGES.map((badge) => (
-          <BadgeTile
-            key={badge.id}
-            badge={badge}
-            earned={earnedIds.has(badge.id)}
-            catalog={catalog}
-          />
+          <BadgeTile key={badge.id} badge={badge} earned={earnedIds.has(badge.id)} />
         ))}
       </View>
     </View>

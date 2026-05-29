@@ -19,7 +19,7 @@ export type AuthContextValue = {
   updatePassword: (password: string) => Promise<void>;
   signOut: () => Promise<void>;
   updateDisplayName: (displayName: string) => Promise<void>;
-  updateProfileAvatar: (image: Blob) => Promise<void>;
+  updateProfileAvatar: (image: Blob | ArrayBuffer) => Promise<void>;
   removeProfileAvatar: () => Promise<void>;
 };
 

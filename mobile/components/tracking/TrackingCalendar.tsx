@@ -41,6 +41,8 @@ type Props = {
   enabledTrackers: TrackerId[];
   data: TrackingCalendarData;
   loading?: boolean;
+  sourceOptions?: CalendarSourceMeta[];
+  hideOverviewHint?: boolean;
   onAnchorChange: (date: string) => void;
   onRangeChange: (range: CalendarViewRange) => void;
   onSourceChange: (source: CalendarSourceId) => void;
@@ -216,6 +218,8 @@ export function TrackingCalendar({
   enabledTrackers,
   data,
   loading = false,
+  sourceOptions: sourceOptionsOverride,
+  hideOverviewHint = false,
   onAnchorChange,
   onRangeChange,
   onSourceChange,
@@ -226,8 +230,8 @@ export function TrackingCalendar({
   const styles = useThemedStyles(makeTrackingCalendarStyles);
   const window = useMemo(() => getCalendarWindow(anchor, range), [anchor, range]);
   const sourceOptions = useMemo(
-    () => calendarSourceOptions(enabledTrackers),
-    [enabledTrackers],
+    () => sourceOptionsOverride ?? calendarSourceOptions(enabledTrackers),
+    [sourceOptionsOverride, enabledTrackers],
   );
   const activeSource = sourceOptions.find((o) => o.id === source);
   const showGrid = !loading && activeSource?.support === 'full';
@@ -260,7 +264,7 @@ export function TrackingCalendar({
             options={rangeOptions}
             onChange={(v) => onRangeChange(v as CalendarViewRange)}
           />
-          {sourceOptions.length > 0 && source ? (
+          {sourceOptions.length > 1 && source ? (
             <SelectField
               label="Show"
               value={source}
@@ -275,7 +279,7 @@ export function TrackingCalendar({
         </Pressable>
       </View>
 
-      {isOverview && !loading ? (
+      {isOverview && !loading && !hideOverviewHint ? (
         <Text style={track.hint}>
           Birds-eye view — every enabled tracker on one calendar. Tap a day for details below.
         </Text>

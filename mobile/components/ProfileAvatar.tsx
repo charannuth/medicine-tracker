@@ -26,6 +26,7 @@ export function ProfileAvatar({
   if (avatarUrl) {
     return (
       <Image
+        key={avatarUrl}
         source={{ uri: avatarUrl }}
         style={[
           styles.avatar,

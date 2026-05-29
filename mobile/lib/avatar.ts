@@ -6,11 +6,11 @@ export function avatarStoragePath(userId: string): string {
   return `${userId}/avatar.jpg`;
 }
 
-export async function uploadAvatar(userId: string, blob: Blob): Promise<string> {
+export async function uploadAvatar(userId: string, body: Blob | ArrayBuffer): Promise<string> {
   if (!supabase) throw new Error('Supabase is not configured');
 
   const path = avatarStoragePath(userId);
-  const { error } = await supabase.storage.from(BUCKET).upload(path, blob, {
+  const { error } = await supabase.storage.from(BUCKET).upload(path, body, {
     upsert: true,
     contentType: 'image/jpeg',
     cacheControl: '3600',

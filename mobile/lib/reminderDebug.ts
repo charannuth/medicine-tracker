@@ -28,6 +28,9 @@ export type ReminderCheckResult = {
   enabled: boolean;
   permissionGranted: boolean;
   pendingNotificationCount: number;
+  doseNotificationCount: number;
+  visitNotificationCount: number;
+  refillNotificationCount: number;
   slots: ReminderSlotDebug[];
   summary: string;
 };
@@ -51,11 +54,22 @@ export async function runReminderCheck(userId: string): Promise<ReminderCheckRes
   const nowLabel = formatTimeInTimezone();
 
   const scheduledIds = new Set<string>();
+  let doseNotificationCount = 0;
+  let visitNotificationCount = 0;
+  let refillNotificationCount = 0;
   if (Notifications) {
     const pending = await Notifications.getAllScheduledNotificationsAsync();
     for (const n of pending) {
       if (n.identifier.startsWith('dose-reminder:')) {
         scheduledIds.add(n.identifier);
+        doseNotificationCount += 1;
+      } else if (
+        n.identifier.startsWith('doctor-visit-reminder:') ||
+        n.identifier.startsWith('doctor-followup-reminder:')
+      ) {
+        visitNotificationCount += 1;
+      } else if (n.identifier.startsWith('refill-reminder:')) {
+        refillNotificationCount += 1;
       }
     }
   }
@@ -97,13 +111,21 @@ export async function runReminderCheck(userId: string): Promise<ReminderCheckRes
   } else if (!permissionGranted) {
     summary = 'Notification permission is not granted.';
   } else if (!Notifications) {
-    summary = 'Notifications module unavailable — rebuild with npx expo run:ios.';
-  } else if (slots.length === 0) {
-    summary = 'No active medications with dose times for today.';
+    summary = 'Notifications module unavailable in this build.';
+  } else if (slots.length === 0 && visitNotificationCount === 0 && refillNotificationCount === 0) {
+    summary = 'No dose, visit, or refill reminders scheduled.';
   } else {
     const pending = slots.filter((s) => s.scheduledNotification && !s.taken).length;
     const pastDueUntaken = slots.filter((s) => s.pastDue && !s.taken).length;
-    summary = `${scheduledIds.size} local notification${scheduledIds.size === 1 ? '' : 's'} scheduled · ${pastDueUntaken} past-due slot${pastDueUntaken === 1 ? '' : 's'} today · ${pending} still armed.`;
+    const visitPart =
+      visitNotificationCount > 0
+        ? ` · ${visitNotificationCount} visit reminder${visitNotificationCount === 1 ? '' : 's'}`
+        : '';
+    const refillPart =
+      refillNotificationCount > 0
+        ? ` · ${refillNotificationCount} refill reminder${refillNotificationCount === 1 ? '' : 's'}`
+        : '';
+    summary = `${doseNotificationCount} dose notification${doseNotificationCount === 1 ? '' : 's'} scheduled · ${pastDueUntaken} past-due slot${pastDueUntaken === 1 ? '' : 's'} today · ${pending} still armed${visitPart}${refillPart}.`;
   }
 
   const result: ReminderCheckResult = {
@@ -114,7 +136,10 @@ export async function runReminderCheck(userId: string): Promise<ReminderCheckRes
     nowMinutes: nowMins,
     enabled,
     permissionGranted,
-    pendingNotificationCount: scheduledIds.size,
+    pendingNotificationCount: doseNotificationCount + visitNotificationCount + refillNotificationCount,
+    doseNotificationCount,
+    visitNotificationCount,
+    refillNotificationCount,
     slots,
     summary,
   };

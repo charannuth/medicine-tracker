@@ -100,6 +100,10 @@ function computeCurrentStreak(
     }
   }
 
+  if (streak === 0 && perfectDays.has(today)) {
+    return 1
+  }
+
   return streak
 }
 

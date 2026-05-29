@@ -5,7 +5,7 @@ import type { MedicationScheduleType } from '../../../lib/medicationSchedule';
 import type { ColorPalette } from '../../../constants/theme';
 import { useAuth } from '../../../hooks/useAuth';
 import { createMedication, fetchMedicationsWithStatus } from '../../../lib/medications';
-import { rescheduleDoseReminders } from '../../../lib/reminderScheduler';
+import { rescheduleAllReminders } from '../../../lib/reminders';
 import { MedicationFormWizard } from '../../../components/medication/MedicationFormWizard';
 import type { MedicationInput } from '../../../lib/types';
 import { useThemedStyles } from '../../../hooks/useThemedStyles';
@@ -36,7 +36,7 @@ export default function AddMedicationScreen() {
     if (!user) return;
     await createMedication(user.id, input);
     try {
-      await rescheduleDoseReminders(user.id);
+      await rescheduleAllReminders(user.id);
     } catch {
       // ignore reminder scheduling errors; medication was saved
     }

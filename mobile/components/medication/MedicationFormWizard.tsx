@@ -42,7 +42,7 @@ import {
   simulatorReminderNote,
 } from '../../lib/notifications';
 import { getReminders, setReminders } from '../../lib/settings';
-import { rescheduleDoseReminders } from '../../lib/reminderScheduler';
+import { rescheduleAllReminders } from '../../lib/reminders';
 import type { Medication, MedicationInput, MedicationTrackingSync } from '../../lib/types';
 import type { ColorPalette } from '../../constants/theme';
 import { radii, spacing } from '../../constants/theme';
@@ -270,10 +270,10 @@ export function MedicationFormWizard({
     await setReminders({ enabled });
     if (enabled) {
       try {
-        const summary = await rescheduleDoseReminders(userId);
-        if (summary.skippedOverLimit > 0) {
+        const summary = await rescheduleAllReminders(userId);
+        if (summary.dose.skippedOverLimit > 0) {
           setError(
-            `Reminders on for the first ${summary.scheduled} dose times (iOS limit). Fewer dose times or turn reminders off on less important meds.`,
+            `Reminders on for the first ${summary.dose.scheduled} dose times (iOS limit). Fewer dose times or turn reminders off on less important meds.`,
           );
         }
       } catch (err) {
@@ -282,7 +282,7 @@ export function MedicationFormWizard({
         await setReminders({ enabled: false });
       }
     } else {
-      await rescheduleDoseReminders(userId);
+      await rescheduleAllReminders(userId);
     }
   }
 
@@ -332,7 +332,7 @@ export function MedicationFormWizard({
       if (scheduleType === 'scheduled') {
         const { enabled: remindersEnabled } = await getReminders();
         if (remindersEnabled) {
-          await rescheduleDoseReminders(userId);
+          await rescheduleAllReminders(userId);
         }
       }
 

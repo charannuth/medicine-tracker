@@ -58,6 +58,16 @@ export function getNextStreakBadge(longestStreak: number): StreakBadge | null {
   return STREAK_BADGES.find((b) => longestStreak < b.minDays) ?? null
 }
 
+/** Streak days to show on Today (includes today when complete, even on a fresh restart). */
+export function getDisplayStreakDays(stats: {
+  currentStreak: number
+  todayComplete: boolean
+}): number {
+  if (stats.currentStreak > 0) return stats.currentStreak
+  if (stats.todayComplete) return 1
+  return 0
+}
+
 /** Highest badge tier reached by the current streak (shown on Today). */
 export function getActiveStreakBadge(currentStreak: number): StreakBadge | null {
   if (currentStreak <= 0) return null

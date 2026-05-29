@@ -1,6 +1,6 @@
 import { todayLocalDate } from './dates'
 
-/** Full-screen bloom + butterfly celebration when this streak day is reached. */
+/** Full-screen bloom + butterfly when all of today's scheduled doses are logged. */
 export const STREAK_CELEBRATION_MILESTONE_DAYS = 7
 
 function celebrationKey(userId: string, date: string): string {

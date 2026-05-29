@@ -8,6 +8,7 @@ const navItems = [
   { to: '/', label: 'Today', end: true },
   { to: '/history', label: 'History', end: false },
   { to: '/wellness', label: 'Wellness', end: false },
+  { to: '/doctor-visits', label: 'Doctor visits', end: false },
   { to: '/streaks', label: 'Streaks', end: false },
   { to: '/account', label: 'My account', end: false },
   { to: '/tracking', label: 'Tracking', end: false },

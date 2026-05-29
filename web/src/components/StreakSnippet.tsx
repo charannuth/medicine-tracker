@@ -1,33 +1,37 @@
 import { Link } from 'react-router-dom'
 import { StreakBadgeIcon } from './StreakBadgeIcon'
-import { getActiveStreakBadge } from '../lib/streakBadges'
+import { getActiveStreakBadge, getDisplayStreakDays } from '../lib/streakBadges'
 import type { StreakStats } from '../lib/streaks'
 
 export function StreakSnippet({ stats }: { stats: StreakStats | null }) {
   if (!stats?.hasMedications) return null
 
-  const activeBadge =
-    stats.currentStreak > 0 ? getActiveStreakBadge(stats.currentStreak) : null
+  const displayStreak = getDisplayStreakDays(stats)
+  const activeBadge = displayStreak > 0 ? getActiveStreakBadge(displayStreak) : null
+  const badgeKey = activeBadge ? `${activeBadge.id}-${displayStreak}-${stats.todayComplete}` : null
 
   return (
     <p className="streak-snippet">
-      {activeBadge && (
+      {activeBadge && badgeKey && (
         <span
-          className="streak-snippet-badge streak-badge-earned"
+          key={badgeKey}
+          className="streak-snippet-badge streak-badge-earned streak-snippet-badge-pop"
           title={activeBadge.description}
         >
-          <StreakBadgeIcon earned minDays={activeBadge.minDays} />
+          <StreakBadgeIcon earned minDays={activeBadge.minDays} animate />
         </span>
       )}
-      {stats.currentStreak > 0 ? (
+      {displayStreak > 0 ? (
         <>
-          <span className="streak-snippet-count">{stats.currentStreak}</span> day
+          <span className="streak-snippet-count">{displayStreak}</span> day
           streak
           {stats.todayComplete ? ' — today complete' : ' — finish today to continue'}
           {activeBadge && (
             <span className="streak-snippet-tier"> · {activeBadge.label}</span>
           )}
         </>
+      ) : stats.todayComplete ? (
+        <>Today complete — come back tomorrow to extend your streak</>
       ) : (
         <>Log every dose today to start a streak</>
       )}

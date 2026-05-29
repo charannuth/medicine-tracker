@@ -899,6 +899,38 @@ textarea:focus-visible {
 .streak-snippet-badge .streak-badge-icon {
   width: 1.45rem;
   height: 1.8rem;
+  overflow: visible;
+}
+
+.streak-snippet-badge-pop {
+  animation: streak-snippet-badge-pop 0.45s cubic-bezier(0.34, 1.4, 0.64, 1);
+}
+
+@keyframes streak-snippet-badge-pop {
+  0% {
+    opacity: 0;
+    transform: scale(0.65);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.streak-badge-icon-static.streak-badge-earned .streak-badge-stem,
+.streak-snippet-badge .streak-badge-earned .streak-badge-stem {
+  stroke-dashoffset: 0;
+}
+
+.streak-badge-icon-static.streak-badge-earned .streak-badge-petal,
+.streak-snippet-badge .streak-badge-earned .streak-badge-petal {
+  opacity: 1;
+  transform: none;
+}
+
+.streak-badge-icon-static.streak-badge-earned .streak-badge-center,
+.streak-snippet-badge .streak-badge-earned .streak-badge-center {
+  transform: scale(1);
 }
 
 .streak-snippet-tier {
@@ -4876,6 +4908,109 @@ textarea:focus-visible {
   background: var(--warning-bg, color-mix(in srgb, #f59e0b 12%, var(--surface)));
   font-size: 0.9rem;
   line-height: 1.5;
+}
+
+/* Doctor visits */
+.doctor-visits-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.65rem;
+  margin-bottom: 1.25rem;
+}
+
+.doctor-visits-form-card {
+  margin-bottom: 1.25rem;
+}
+
+.doctor-visit-form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+}
+
+.doctor-visit-form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.85rem;
+}
+
+@media (max-width: 520px) {
+  .doctor-visit-form-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.doctor-visit-form-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.65rem;
+  margin-top: 0.35rem;
+}
+
+.doctor-visits-list {
+  list-style: none;
+  padding: 0;
+  margin: 0.75rem 0 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.doctor-visit-row {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 0.75rem 1rem;
+  padding: 0.85rem 1rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: color-mix(in srgb, var(--surface) 92%, var(--accent-soft, transparent));
+}
+
+.doctor-visit-row-main {
+  flex: 1 1 14rem;
+  min-width: 0;
+}
+
+.doctor-visit-row-title {
+  margin: 0;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.doctor-visit-row-when {
+  margin: 0.2rem 0 0;
+  font-size: 0.9rem;
+  color: var(--accent);
+  font-weight: 600;
+}
+
+.doctor-visit-row-meta {
+  margin: 0.25rem 0 0;
+  font-size: 0.85rem;
+  color: var(--text-muted);
+}
+
+.doctor-visit-row-reason {
+  margin: 0.45rem 0 0;
+  font-size: 0.9rem;
+  color: var(--text);
+  line-height: 1.45;
+}
+
+.doctor-visit-row-notes {
+  margin: 0.45rem 0 0;
+  font-size: 0.9rem;
+  color: var(--text);
+  line-height: 1.5;
+  white-space: pre-wrap;
+}
+
+.doctor-visit-row-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: 0.45rem;
 }
 
 .medical-records-section {

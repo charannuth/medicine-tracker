@@ -309,9 +309,7 @@ export function StreakCelebration({ streakDays, onDismiss }: StreakCelebrationPr
           {label}
         </h2>
         <p className="streak-celebration-subtitle">
-          {dualBloom
-            ? badge?.description ?? 'Every scheduled dose logged today. Keep it growing tomorrow.'
-            : 'Every scheduled dose logged today. Keep it growing tomorrow.'}
+          {badge?.description ?? 'Every scheduled dose logged today. Keep it growing tomorrow.'}
         </p>
         <button type="button" className="btn btn-primary streak-celebration-btn" onClick={onDismiss}>
           Continue

@@ -40,8 +40,10 @@ export function HelpPage() {
           </li>
           <li>
             <strong>Medical records</strong> — self-reported allergies, blood type, and
-            conditions (not certified clinical records). <strong>Drug safety check</strong>{' '}
-            — cross-reference medications and your allergy list (always ask a pharmacist).
+            conditions (not certified clinical records). <strong>Doctor visits</strong>{' '}
+            — schedule appointments and save notes after your visit.{' '}
+            <strong>Drug safety check</strong> — cross-reference medications and your
+            allergy list (always ask a pharmacist).
           </li>
           <li>
             <strong>History</strong> — {42}-day calendar; tap a day for doses and wellness

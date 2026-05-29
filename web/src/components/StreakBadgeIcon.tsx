@@ -4,6 +4,8 @@ type StreakBadgeIconProps = {
   earned: boolean
   minDays: number
   className?: string
+  /** When false, show the bloomed state without entrance animation. */
+  animate?: boolean
 }
 
 const PETAL_ANGLES = [0, 72, 144, 216, 288] as const
@@ -55,13 +57,18 @@ function AnimatedTulip({
   )
 }
 
-export function StreakBadgeIcon({ earned, minDays, className = '' }: StreakBadgeIconProps) {
+export function StreakBadgeIcon({
+  earned,
+  minDays,
+  className = '',
+  animate = true,
+}: StreakBadgeIconProps) {
   const colors = bouquetColorsForMinDays(minDays)
   const wide = colors.length > 1
 
   return (
     <svg
-      className={`streak-badge-icon${earned ? ' earned' : ''}${wide ? ' streak-badge-icon-wide' : ''}${className ? ` ${className}` : ''}`}
+      className={`streak-badge-icon${earned ? ' earned' : ''}${wide ? ' streak-badge-icon-wide' : ''}${animate ? '' : ' streak-badge-icon-static'}${className ? ` ${className}` : ''}`}
       viewBox={wide ? '0 0 48 40' : '0 0 32 40'}
       fill="none"
       aria-hidden

@@ -24,8 +24,9 @@ Dr. Dose uses **Supabase PostgreSQL** with migrations in `supabase/migrations/`.
 | 016 | `016_body_metric_units.sql` | `height_unit`, `weight_unit` on medical records | Metric / imperial preference |
 | 017 | `017_weight_tracking.sql` | Weight baseline + calories + weight logs + frequency | Weight tracker calendar |
 | 018 | `018_hrt_tracking.sql` | HRT day journaling (bodily + mood changes) | HRT tracker calendar |
+| 019 | `019_doctor_visits.sql` | `doctor_visits` scheduling + post-visit notes | Doctor visits page (web) |
 
-**Production:** If your Supabase project already has migrations **002–018** applied (as of May 2026), it matches this repo. No migration `019+` exists yet.
+**Production:** If your Supabase project already has migrations **002–019** applied, it matches this repo.
 
 ### `schema.sql` vs migrations
 

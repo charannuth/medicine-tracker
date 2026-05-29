@@ -16,6 +16,7 @@ import { TrackingPage } from './pages/TrackingPage'
 import { InteractionsPage } from './pages/InteractionsPage'
 import { TodayPage } from './pages/TodayPage'
 import { MedicalRecordsPage } from './pages/MedicalRecordsPage'
+import { DoctorVisitsPage } from './pages/DoctorVisitsPage'
 import { StreaksPage } from './pages/StreaksPage'
 import { WellnessPage } from './pages/WellnessPage'
 import './App.css'
@@ -83,6 +84,7 @@ function AuthenticatedRoutes({ user }: { user: User }) {
           <Route path="medications" element={<Navigate to="/tracking" replace />} />
           <Route path="interactions" element={<InteractionsPage />} />
           <Route path="medical-records" element={<MedicalRecordsPage />} />
+          <Route path="doctor-visits" element={<DoctorVisitsPage />} />
           <Route path="wellness" element={<WellnessPage />} />
           <Route path="help" element={<HelpPage />} />
           <Route path="*" element={<Navigate to="/" replace />} />

@@ -3,18 +3,18 @@ import {
   markStreakCelebratedToday,
   wasStreakCelebratedToday,
 } from '../lib/streakCelebration'
-import { isStreakCelebrationMilestone } from '../lib/streakBadges'
+import { getDisplayStreakDays } from '../lib/streakBadges'
 import type { StreakStats } from '../lib/streaks'
 
-/** Dev-only: `?previewStreak=7` (or 14, 30, …) replays the milestone modal. */
+/** Dev-only: `?previewStreak=1` (or any day count) replays the bloom modal. */
 function devPreviewStreakDays(): number | null {
   if (!import.meta.env.DEV) return null
   const params = new URLSearchParams(window.location.search)
   if (!params.has('previewStreak')) return null
   if (params.get('previewStreak') === '0') return null
   const n = Number(params.get('previewStreak'))
-  if (!Number.isFinite(n) || n <= 0) return 7
-  return isStreakCelebrationMilestone(n) ? n : null
+  if (!Number.isFinite(n) || n <= 0) return 1
+  return n
 }
 
 export function useStreakCelebration(
@@ -47,7 +47,7 @@ export function useStreakCelebration(
       initializedRef.current = true
       prevRef.current = {
         todayComplete: stats.todayComplete,
-        currentStreak: stats.currentStreak,
+        currentStreak: getDisplayStreakDays(stats),
       }
       return
     }
@@ -57,16 +57,16 @@ export function useStreakCelebration(
 
     const becameCompleteToday = stats.todayComplete && !prev.todayComplete
     const alreadyCelebrated = wasStreakCelebratedToday(userId)
-    const hitMilestone = isStreakCelebrationMilestone(stats.currentStreak)
+    const displayStreak = getDisplayStreakDays(stats)
 
-    if (becameCompleteToday && !alreadyCelebrated && hitMilestone) {
+    if (becameCompleteToday && !alreadyCelebrated && displayStreak > 0) {
       markStreakCelebratedToday(userId)
-      setCelebrationStreak(stats.currentStreak)
+      setCelebrationStreak(displayStreak)
     }
 
     prevRef.current = {
       todayComplete: stats.todayComplete,
-      currentStreak: stats.currentStreak,
+      currentStreak: displayStreak,
     }
   }, [userId, stats])
 

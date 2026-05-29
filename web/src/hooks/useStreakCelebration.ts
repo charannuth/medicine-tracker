@@ -1,20 +1,20 @@
 import { useEffect, useRef, useState } from 'react'
 import {
   markStreakCelebratedToday,
-  STREAK_CELEBRATION_MILESTONE_DAYS,
   wasStreakCelebratedToday,
 } from '../lib/streakCelebration'
+import { isStreakCelebrationMilestone } from '../lib/streakBadges'
 import type { StreakStats } from '../lib/streaks'
 
-/** Dev-only: `?previewStreak=7` replays the milestone modal (omit param in normal dev). */
+/** Dev-only: `?previewStreak=7` (or 14, 30, …) replays the milestone modal. */
 function devPreviewStreakDays(): number | null {
   if (!import.meta.env.DEV) return null
   const params = new URLSearchParams(window.location.search)
   if (!params.has('previewStreak')) return null
   if (params.get('previewStreak') === '0') return null
   const n = Number(params.get('previewStreak'))
-  if (!Number.isFinite(n) || n <= 0) return STREAK_CELEBRATION_MILESTONE_DAYS
-  return n === STREAK_CELEBRATION_MILESTONE_DAYS ? n : null
+  if (!Number.isFinite(n) || n <= 0) return 7
+  return isStreakCelebrationMilestone(n) ? n : null
 }
 
 export function useStreakCelebration(
@@ -57,12 +57,11 @@ export function useStreakCelebration(
 
     const becameCompleteToday = stats.todayComplete && !prev.todayComplete
     const alreadyCelebrated = wasStreakCelebratedToday(userId)
-    const hitWeekMilestone =
-      stats.currentStreak === STREAK_CELEBRATION_MILESTONE_DAYS
+    const hitMilestone = isStreakCelebrationMilestone(stats.currentStreak)
 
-    if (becameCompleteToday && !alreadyCelebrated && hitWeekMilestone) {
+    if (becameCompleteToday && !alreadyCelebrated && hitMilestone) {
       markStreakCelebratedToday(userId)
-      setCelebrationStreak(STREAK_CELEBRATION_MILESTONE_DAYS)
+      setCelebrationStreak(stats.currentStreak)
     }
 
     prevRef.current = {

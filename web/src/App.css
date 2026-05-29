@@ -876,9 +876,34 @@ textarea:focus-visible {
 }
 
 .streak-snippet {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.35rem 0.45rem;
   margin: 0.35rem 0 0;
   font-size: var(--text-sm);
   color: var(--text-muted);
+}
+
+.streak-snippet-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.1rem 0.35rem;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--account-purple-border);
+  background: color-mix(in srgb, var(--account-purple-soft) 55%, var(--surface));
+  box-shadow: 0 1px 8px color-mix(in srgb, var(--account-purple) 10%, transparent);
+}
+
+.streak-snippet-badge .streak-badge-icon {
+  width: 1.45rem;
+  height: 1.8rem;
+}
+
+.streak-snippet-tier {
+  color: var(--text-muted);
+  font-weight: 600;
 }
 
 .streak-snippet-count {
@@ -4460,6 +4485,125 @@ textarea:focus-visible {
 .streak-badge-icon.earned {
   color: var(--account-purple);
   filter: drop-shadow(0 2px 6px color-mix(in srgb, #fbbf24 35%, transparent));
+}
+
+.streak-badge-icon-wide {
+  width: 2.75rem;
+}
+
+.streak-badge-chip .streak-badge-icon-wide {
+  width: 1.65rem;
+  height: 1.35rem;
+}
+
+.streak-badge-earned .streak-badge-tulip-2 .streak-badge-stem {
+  animation-delay: 0.2s;
+}
+.streak-badge-earned .streak-badge-tulip-2 .streak-badge-petal-1 {
+  animation-delay: 0.55s;
+}
+.streak-badge-earned .streak-badge-tulip-2 .streak-badge-petal-2 {
+  animation-delay: 0.68s;
+}
+.streak-badge-earned .streak-badge-tulip-2 .streak-badge-petal-3 {
+  animation-delay: 0.81s;
+}
+.streak-badge-earned .streak-badge-tulip-2 .streak-badge-petal-4 {
+  animation-delay: 0.94s;
+}
+.streak-badge-earned .streak-badge-tulip-2 .streak-badge-petal-5 {
+  animation-delay: 1.07s;
+}
+.streak-badge-earned .streak-badge-tulip-2 .streak-badge-center {
+  animation-delay: 1.35s;
+}
+
+.streak-badge-earned .streak-badge-tulip-3 .streak-badge-stem {
+  animation-delay: 0.4s;
+}
+.streak-badge-earned .streak-badge-tulip-3 .streak-badge-petal-1 {
+  animation-delay: 0.75s;
+}
+.streak-badge-earned .streak-badge-tulip-3 .streak-badge-petal-2 {
+  animation-delay: 0.88s;
+}
+.streak-badge-earned .streak-badge-tulip-3 .streak-badge-petal-3 {
+  animation-delay: 1.01s;
+}
+.streak-badge-earned .streak-badge-tulip-3 .streak-badge-petal-4 {
+  animation-delay: 1.14s;
+}
+.streak-badge-earned .streak-badge-tulip-3 .streak-badge-petal-5 {
+  animation-delay: 1.27s;
+}
+.streak-badge-earned .streak-badge-tulip-3 .streak-badge-center {
+  animation-delay: 1.55s;
+}
+
+.streak-badge-earned .streak-badge-tulip-4 .streak-badge-stem {
+  animation-delay: 0.6s;
+}
+.streak-badge-earned .streak-badge-tulip-4 .streak-badge-petal-1 {
+  animation-delay: 0.95s;
+}
+.streak-badge-earned .streak-badge-tulip-4 .streak-badge-petal-2 {
+  animation-delay: 1.08s;
+}
+.streak-badge-earned .streak-badge-tulip-4 .streak-badge-petal-3 {
+  animation-delay: 1.21s;
+}
+.streak-badge-earned .streak-badge-tulip-4 .streak-badge-petal-4 {
+  animation-delay: 1.34s;
+}
+.streak-badge-earned .streak-badge-tulip-4 .streak-badge-petal-5 {
+  animation-delay: 1.47s;
+}
+.streak-badge-earned .streak-badge-tulip-4 .streak-badge-center {
+  animation-delay: 1.75s;
+}
+
+.streak-badge-earned .streak-badge-tulip-5 .streak-badge-stem {
+  animation-delay: 0.8s;
+}
+.streak-badge-earned .streak-badge-tulip-5 .streak-badge-petal-1 {
+  animation-delay: 1.15s;
+}
+.streak-badge-earned .streak-badge-tulip-5 .streak-badge-petal-2 {
+  animation-delay: 1.28s;
+}
+.streak-badge-earned .streak-badge-tulip-5 .streak-badge-petal-3 {
+  animation-delay: 1.41s;
+}
+.streak-badge-earned .streak-badge-tulip-5 .streak-badge-petal-4 {
+  animation-delay: 1.54s;
+}
+.streak-badge-earned .streak-badge-tulip-5 .streak-badge-petal-5 {
+  animation-delay: 1.67s;
+}
+.streak-badge-earned .streak-badge-tulip-5 .streak-badge-center {
+  animation-delay: 1.95s;
+}
+
+.streak-badge-earned .streak-badge-tulip-6 .streak-badge-stem {
+  animation-delay: 1s;
+}
+.streak-badge-earned .streak-badge-tulip-6 .streak-badge-petal-1 {
+  animation-delay: 1.35s;
+}
+.streak-badge-earned .streak-badge-tulip-6 .streak-badge-petal-2 {
+  animation-delay: 1.48s;
+}
+.streak-badge-earned .streak-badge-tulip-6 .streak-badge-petal-3 {
+  animation-delay: 1.61s;
+}
+.streak-badge-earned .streak-badge-tulip-6 .streak-badge-petal-4 {
+  animation-delay: 1.74s;
+}
+.streak-badge-earned .streak-badge-tulip-6 .streak-badge-petal-5 {
+  animation-delay: 1.87s;
+}
+.streak-badge-earned .streak-badge-tulip-6 .streak-badge-center {
+  animation-delay: 2.15s;
 }
 
 .streak-badge-earned .streak-badge-stem {

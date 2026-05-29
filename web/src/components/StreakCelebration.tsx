@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { STREAK_CELEBRATION_MILESTONE_DAYS } from '../lib/streakCelebration'
+import { getActiveStreakBadge } from '../lib/streakBadges'
 
 type StreakCelebrationProps = {
   streakDays: number
@@ -127,7 +127,8 @@ function TulipBloom({
 
 export function StreakCelebration({ streakDays, onDismiss }: StreakCelebrationProps) {
   const [visible, setVisible] = useState(false)
-  const dualBloom = streakDays >= STREAK_CELEBRATION_MILESTONE_DAYS
+  const dualBloom = streakDays >= 7
+  const badge = getActiveStreakBadge(streakDays)
 
   useEffect(() => {
     const frame = requestAnimationFrame(() => setVisible(true))
@@ -147,7 +148,9 @@ export function StreakCelebration({ streakDays, onDismiss }: StreakCelebrationPr
     }
   }, [onDismiss])
 
-  const label = `Streak × ${STREAK_CELEBRATION_MILESTONE_DAYS} — week in bloom!`
+  const label = badge
+    ? `Streak × ${streakDays} — ${badge.label}!`
+    : `Streak × ${streakDays}!`
 
   return (
     <div
@@ -307,7 +310,7 @@ export function StreakCelebration({ streakDays, onDismiss }: StreakCelebrationPr
         </h2>
         <p className="streak-celebration-subtitle">
           {dualBloom
-            ? 'A full week in bloom — purple and gold on one stem. Keep it growing tomorrow.'
+            ? badge?.description ?? 'Every scheduled dose logged today. Keep it growing tomorrow.'
             : 'Every scheduled dose logged today. Keep it growing tomorrow.'}
         </p>
         <button type="button" className="btn btn-primary streak-celebration-btn" onClick={onDismiss}>

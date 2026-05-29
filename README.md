@@ -9,6 +9,8 @@ A personal web app to manage medications, log daily doses, track adherence strea
 Newest first. Each line is added from the commit subject when you commit (with hooks enabled).
 
 <!-- DEVLOG:START -->
+- **2026-05-29** (`34d135c`) — Add doctor visits calendar UI with split appointment and notes panels.
+
 - **2026-05-29** (`bcacf8c`) — Add doctor visits tracking and daily streak bloom celebration on Today.
 
 - **2026-05-29** (`8dd9958`) — Fix web streak badge animations and tiered Today badge display.

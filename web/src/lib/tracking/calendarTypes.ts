@@ -9,6 +9,10 @@ export type TrackingCalendarEventTone =
   | 'med-perfect'
   | 'med-partial'
   | 'med-missed'
+  | 'doctor-upcoming'
+  | 'doctor-past'
+  | 'doctor-notes'
+  | 'doctor-followup'
 
 /** Apple Calendar–style pill shown inside a day cell. */
 export type TrackingCalendarEvent = {

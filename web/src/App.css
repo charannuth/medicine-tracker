@@ -6017,6 +6017,207 @@ textarea:focus-visible {
   border-left-color: #dc2626;
 }
 
+.tracking-calendar-event--med-missed {
+  background: color-mix(in srgb, #f87171 18%, var(--surface));
+  border-left-color: #dc2626;
+}
+
+.tracking-calendar-event--doctor-upcoming {
+  background: color-mix(in srgb, #60a5fa 20%, var(--surface));
+  border-left-color: #2563eb;
+}
+
+.tracking-calendar-event--doctor-past {
+  background: color-mix(in srgb, #34d399 18%, var(--surface));
+  border-left-color: #059669;
+}
+
+.tracking-calendar-event--doctor-notes {
+  background: color-mix(in srgb, #fbbf24 22%, var(--surface));
+  border-left-color: #d97706;
+}
+
+.tracking-calendar-event--doctor-followup {
+  background: color-mix(in srgb, #c4b5fd 22%, var(--surface));
+  border-left-color: #7c3aed;
+}
+
+.cycle-calendar-day.doctor-visit-upcoming {
+  background: color-mix(in srgb, #60a5fa 14%, var(--surface));
+}
+
+.cycle-calendar-day.doctor-visit-logged {
+  background: color-mix(in srgb, #34d399 12%, var(--surface));
+}
+
+.cycle-calendar-day.doctor-visit-needs-notes {
+  background: color-mix(in srgb, #fbbf24 14%, var(--surface));
+}
+
+.cycle-calendar-day.doctor-visit-followup {
+  background: color-mix(in srgb, #c4b5fd 14%, var(--surface));
+}
+
+.cycle-legend-swatch.doctor-visit-upcoming {
+  background: color-mix(in srgb, #60a5fa 55%, transparent);
+}
+
+.cycle-legend-swatch.doctor-visit-logged {
+  background: color-mix(in srgb, #34d399 55%, transparent);
+}
+
+.cycle-legend-swatch.doctor-visit-needs-notes {
+  background: color-mix(in srgb, #fbbf24 55%, transparent);
+}
+
+.cycle-legend-swatch.doctor-visit-followup {
+  background: color-mix(in srgb, #c4b5fd 55%, transparent);
+}
+
+.doctor-visits-section {
+  margin-bottom: 1.25rem;
+}
+
+.doctor-visits-toolbar {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 0.75rem;
+}
+
+.doctor-visits-module-panel {
+  margin-top: 1rem;
+}
+
+.doctor-visits-notes-hint {
+  color: var(--warning-text, #92400e);
+}
+
+.doctor-visits-day-list {
+  margin: 0.75rem 0 1rem;
+}
+
+.doctor-visits-day-list-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin-bottom: 0.5rem;
+}
+
+.doctor-visits-day-list-header h4 {
+  margin: 0;
+  font-size: 1rem;
+}
+
+.doctor-visits-day-chips {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+}
+
+.doctor-visits-day-chips li {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.doctor-visits-day-chip {
+  border: 1px solid var(--border);
+  background: var(--surface);
+  border-radius: 999px;
+  padding: 0.35rem 0.75rem;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--text);
+  cursor: pointer;
+}
+
+.doctor-visits-day-chip.active {
+  border-color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 12%, var(--surface));
+}
+
+.doctor-visits-day-chip.needs-notes {
+  border-color: #d97706;
+}
+
+.doctor-visits-empty-day {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.65rem;
+  margin: 0.75rem 0 1rem;
+}
+
+.doctor-visit-form-panel .cycle-day-log-fields {
+  margin-top: 0;
+}
+
+.doctor-visit-subpanel {
+  margin-top: 1rem;
+  padding: 1.25rem;
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius);
+  background: var(--surface);
+}
+
+.doctor-visit-subpanel-title {
+  margin: 0 0 0.35rem;
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+.doctor-visit-notes-locked-hint {
+  margin: 0 0 0.75rem;
+}
+
+.doctor-visit-schedule-section,
+.doctor-visit-notes-section {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.doctor-visit-section-title {
+  margin: 0;
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+.doctor-visit-section-hint {
+  margin: 0 0 0.35rem;
+}
+
+.doctor-visit-type-fieldset {
+  border: none;
+  padding: 0;
+  margin: 0 0 0.75rem;
+  min-width: 0;
+}
+
+.doctor-visit-type-legend {
+  font-size: 0.88rem;
+  font-weight: 600;
+  margin-bottom: 0.45rem;
+  padding: 0;
+}
+
+.doctor-visit-type-fieldset .wellness-chip-group {
+  margin-bottom: 0;
+}
+
+.doctor-visit-schedule-fields,
+.doctor-visit-notes-fields {
+  border: none;
+  padding: 0;
+  margin: 0;
+  min-width: 0;
+}
+
 .tracking-calendar-event-more {
   font-size: 0.6rem;
   color: var(--text-muted);
@@ -6361,6 +6562,20 @@ textarea:focus-visible {
   background: var(--bg);
   color: var(--text);
   resize: vertical;
+}
+
+.cycle-notes-label input[type='text'],
+.cycle-notes-label input[type='date'],
+.cycle-notes-label input[type='number'],
+.cycle-notes-label select {
+  font: inherit;
+  padding: 0.5rem 0.65rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--bg);
+  color: var(--text);
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .cycle-day-log h4 {

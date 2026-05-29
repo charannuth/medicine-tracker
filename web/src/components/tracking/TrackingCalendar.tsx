@@ -33,6 +33,8 @@ type TrackingCalendarProps = {
   onRangeChange: (range: CalendarViewRange) => void
   onSourceChange: (source: CalendarSourceId) => void
   onSelectDate: (date: string) => void
+  /** When set, overrides tracker-based source options (e.g. doctor visits page). */
+  sourceOptions?: CalendarSourceMeta[]
 }
 
 function dayButtonClasses(
@@ -248,11 +250,12 @@ export function TrackingCalendar({
   onRangeChange,
   onSourceChange,
   onSelectDate,
+  sourceOptions: sourceOptionsOverride,
 }: TrackingCalendarProps) {
   const window = useMemo(() => getCalendarWindow(anchor, range), [anchor, range])
   const sourceOptions = useMemo(
-    () => calendarSourceOptions(enabledTrackers),
-    [enabledTrackers],
+    () => sourceOptionsOverride ?? calendarSourceOptions(enabledTrackers),
+    [sourceOptionsOverride, enabledTrackers],
   )
   const activeSource = sourceOptions.find((o) => o.id === source)
   const showGrid = !loading && activeSource?.support === 'full'
@@ -312,7 +315,7 @@ export function TrackingCalendar({
           </select>
         </label>
 
-        {sourceOptions.length > 0 && (
+        {sourceOptions.length > 1 && (
           <label className="tracking-calendar-control">
             <span className="tracking-calendar-control-label">Show</span>
             <select
